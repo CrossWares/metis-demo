@@ -1698,10 +1698,10 @@ export default function App() {
       </div>
 
       {/* MAIN */}
-      <div style={{ flex: 1, display: "grid", gridTemplateColumns: "240px 1fr", overflow: "hidden", ...(activeNavTab === "Dashboard" && alertOpen && { gridTemplateColumns: "240px 1fr 260px" }) }}>
+      <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
 
         {/* LEFT — 全タブ共通プロジェクトリスト */}
-        <div style={{ borderRight: `1px solid ${C.border}`, overflow: "auto", background: C.bgCard, display: "flex", flexDirection: "column" }}>
+        <div style={{ width: 240, minWidth: 240, borderRight: `1px solid ${C.border}`, overflow: "auto", background: C.bgCard, display: "flex", flexDirection: "column", flexShrink: 0 }}>
           <div style={{ padding: "8px 14px 6px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
             <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>PROJECTS　{projects.length}</span>
             <button
@@ -1718,25 +1718,23 @@ export default function App() {
           </div>
         </div>
 
-        {/* アラートパネル再表示ボタン */}
-        {activeNavTab === "Dashboard" && !alertOpen && (
-          <button onClick={() => setAlertOpen(true)} style={{ position: "absolute", top: 56, right: 8, zIndex: 10, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 6, padding: "4px 10px", fontSize: 9, color: C.textWeak, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em" }}>ALERTS ▶</button>
-        )}
-
         {/* CENTER — タブ別コンテンツ */}
         {activeNavTab === "Glossary" ? (
-          <div style={{ overflow: "hidden", display: "flex" }}>
+          <div style={{ flex: 1, overflow: "hidden", display: "flex" }}>
             <GlossaryView />
           </div>
         ) : activeNavTab === "Stakeholders" ? (
-          <div style={{ overflow: "hidden", display: "flex" }}>
+          <div style={{ flex: 1, overflow: "hidden", display: "flex" }}>
             <StakeholderView />
           </div>
         ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 260px", overflow: "hidden" }}>
+        <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
 
         {/* CENTER（Dashboard） */}
-        <div style={{ overflow: "auto", background: C.bg }}>
+        <div style={{ flex: 1, overflow: "auto", background: C.bg, position: "relative" }}>
+          {!alertOpen && (
+            <button onClick={() => setAlertOpen(true)} style={{ position: "sticky", top: 8, float: "right", marginRight: 8, zIndex: 10, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 6, padding: "4px 10px", fontSize: 9, color: C.textWeak, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em" }}>ALERTS ▶</button>
+          )}
 
           {/* Header Card */}
           <div style={{ margin: "14px 14px 0", background: C.bgCard, borderRadius: 10, border: `1px solid ${C.border}`, padding: "16px 20px", boxShadow: "0 1px 5px rgba(83,74,183,0.05)" }}>
@@ -1816,7 +1814,7 @@ export default function App() {
         </div>
 
         {/* RIGHT */}
-        <div style={{ borderLeft: alertOpen ? `1px solid ${C.border}` : "none", width: alertOpen ? 260 : 0, minWidth: alertOpen ? 260 : 0, overflow: "hidden", background: C.bgCard, display: "flex", flexDirection: "column", transition: "width 0.22s ease, min-width 0.22s ease", flexShrink: 0 }}>
+        <div style={{ width: alertOpen ? 260 : 0, minWidth: alertOpen ? 260 : 0, overflow: "hidden", background: C.bgCard, borderLeft: alertOpen ? `1px solid ${C.border}` : "none", display: "flex", flexDirection: "column", transition: "width 0.22s ease, min-width 0.22s ease", flexShrink: 0 }}>
           <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>ACTIVE ALERTS</span>
