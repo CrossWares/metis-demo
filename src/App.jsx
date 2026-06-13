@@ -1608,6 +1608,7 @@ export default function App() {
   const [ghostOpen, setGhostOpen]   = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [activeNavTab, setActiveNavTab] = useState("Dashboard");
+  const [alertOpen, setAlertOpen] = useState(true);
 
   useEffect(() => { const t = setInterval(() => setTime(new Date()), 1000); return () => clearInterval(t); }, []);
   useEffect(() => {
@@ -1697,7 +1698,7 @@ export default function App() {
       </div>
 
       {/* MAIN */}
-      <div style={{ flex: 1, display: "grid", gridTemplateColumns: "240px 1fr", overflow: "hidden", ...(activeNavTab === "Dashboard" && { gridTemplateColumns: "240px 1fr 260px" }) }}>
+      <div style={{ flex: 1, display: "grid", gridTemplateColumns: "240px 1fr", overflow: "hidden", ...(activeNavTab === "Dashboard" && alertOpen && { gridTemplateColumns: "240px 1fr 260px" }) }}>
 
         {/* LEFT — 全タブ共通プロジェクトリスト */}
         <div style={{ borderRight: `1px solid ${C.border}`, overflow: "auto", background: C.bgCard, display: "flex", flexDirection: "column" }}>
@@ -1716,6 +1717,11 @@ export default function App() {
             {projects.map(proj => <ProjectListRow key={proj.id} project={proj} selected={selected?.id === proj.id} onClick={setSelected} />)}
           </div>
         </div>
+
+        {/* アラートパネル再表示ボタン */}
+        {activeNavTab === "Dashboard" && !alertOpen && (
+          <button onClick={() => setAlertOpen(true)} style={{ position: "absolute", top: 56, right: 8, zIndex: 10, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 6, padding: "4px 10px", fontSize: 9, color: C.textWeak, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em" }}>ALERTS ▶</button>
+        )}
 
         {/* CENTER — タブ別コンテンツ */}
         {activeNavTab === "Glossary" ? (
@@ -1810,10 +1816,11 @@ export default function App() {
         </div>
 
         {/* RIGHT */}
-        <div style={{ borderLeft: `1px solid ${C.border}`, overflow: "auto", background: C.bgCard, display: "flex", flexDirection: "column" }}>
+        <div style={{ borderLeft: alertOpen ? `1px solid ${C.border}` : "none", width: alertOpen ? 260 : 0, minWidth: alertOpen ? 260 : 0, overflow: "hidden", background: C.bgCard, display: "flex", flexDirection: "column", transition: "width 0.22s ease, min-width 0.22s ease", flexShrink: 0 }}>
           <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>ACTIVE ALERTS</span>
+              <button onClick={() => setAlertOpen(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: C.textWeak, fontSize: 14, lineHeight: 1, padding: "0 2px" }}>✕</button>
               {p.alerts.filter(a => a.level === "critical").length > 0 && (
                 <span style={{ fontSize: 9, fontWeight: 700, color: C.critical, background: "#F9EEF3", border: `1px solid #DDB8CA`, padding: "1px 6px", borderRadius: 3, fontFamily: "'DM Mono', monospace" }}>
                   {p.alerts.filter(a => a.level === "critical").length} critical
