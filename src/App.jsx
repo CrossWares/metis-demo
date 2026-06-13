@@ -1818,7 +1818,8 @@ export default function App() {
                 <span style={{ fontSize: 9, fontWeight: 700, color: C.critical, background: "#F9EEF3", border: `1px solid #DDB8CA`, padding: "1px 6px", borderRadius: 3, fontFamily: "'DM Mono', monospace" }}>
                   {p.alerts.filter(a => a.level === "critical").length} critical
                 </span>
-              )}
+        )
+        }
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {p.alerts.map((a, i) => {
@@ -1862,8 +1863,9 @@ export default function App() {
             </div>
           </div>
         </div>
-        )} {/* Dashboard CENTER閉じ */}
-      </div> {/* MAIN grid閉じ */}
+        </div>
+        )}
+      </div>
 
       {/* STATUS BAR */}
       <div style={{ height: 24, background: C.bgCard, borderTop: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 20px", gap: 12, flexShrink: 0 }}>
