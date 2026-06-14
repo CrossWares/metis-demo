@@ -518,36 +518,39 @@ const DEFAULT_CHART = {
 function StakeholderView() {
   // ── 初期データ ──
   const initNodes = () => [
-    { id:"n1",  label:"プロジェクト\nオーナー",    row:0, col:4, name:"", scope:"", note:"" },
-    { id:"n2",  label:"プロジェクト\nマネージャー", row:1, col:4, name:"", scope:"", note:"" },
-    { id:"n3",  label:"フロントエンド\nリーダー",   row:2, col:2, name:"", scope:"", note:"" },
-    { id:"n4",  label:"バックエンド\nリーダー",     row:2, col:6, name:"", scope:"", note:"" },
-    { id:"n5",  label:"UI開発\nチームリーダー",     row:3, col:1, name:"", scope:"", note:"" },
-    { id:"n6",  label:"サイトデザイン\nチームリーダー", row:3, col:2, name:"", scope:"", note:"" },
-    { id:"n7",  label:"SEO対策コンテンツ\nチームリーダー", row:3, col:3, name:"", scope:"", note:"" },
-    { id:"n8",  label:"サーバー開発\nチームリーダー", row:3, col:5, name:"", scope:"", note:"" },
-    { id:"n9",  label:"データベース\nチームリーダー", row:3, col:6, name:"", scope:"", note:"" },
-    { id:"n10", label:"クラウド開発\nチームリーダー", row:3, col:7, name:"", scope:"", note:"" },
-    { id:"n11", label:"SE",          row:4, col:1, name:"", scope:"", note:"" },
-    { id:"n12", label:"エディター",   row:4, col:3, name:"", scope:"", note:"" },
-    { id:"n13", label:"SE",          row:4, col:5, name:"", scope:"", note:"" },
-    { id:"n14", label:"SE",          row:4, col:6, name:"", scope:"", note:"" },
-    { id:"n15", label:"SE",          row:4, col:7, name:"", scope:"", note:"" },
-    { id:"n16", label:"PG",          row:5, col:1, name:"", scope:"", note:"" },
-    { id:"n17", label:"Webデザイナー",row:5, col:2, name:"", scope:"", note:"" },
-    { id:"n18", label:"ライター",     row:5, col:3, name:"", scope:"", note:"" },
-    { id:"n19", label:"PG",          row:5, col:5, name:"", scope:"", note:"" },
-    { id:"n20", label:"PG",          row:5, col:6, name:"", scope:"", note:"" },
-    { id:"n21", label:"PG",          row:5, col:7, name:"", scope:"", note:"" },
+    { id:"n1",  label:"プロジェクト\nオーナー",         row:0, col:4, name:"", scope:"", note:"" },
+    { id:"n2",  label:"PM",                              row:1, col:3, name:"", scope:"", note:"" },
+    { id:"n3",  label:"PMO",                             row:1, col:5, name:"", scope:"", note:"" },
+    { id:"n4",  label:"フロントエンド\nリーダー",        row:2, col:2, name:"", scope:"", note:"" },
+    { id:"n5",  label:"バックエンド\nリーダー",          row:2, col:6, name:"", scope:"", note:"" },
+    { id:"n6",  label:"UI開発\nチームリーダー",          row:3, col:1, name:"", scope:"", note:"" },
+    { id:"n7",  label:"サイトデザイン\nチームリーダー",  row:3, col:2, name:"", scope:"", note:"" },
+    { id:"n8",  label:"SEO対策コンテンツ\nチームリーダー", row:3, col:3, name:"", scope:"", note:"" },
+    { id:"n9",  label:"サーバー開発\nチームリーダー",    row:3, col:5, name:"", scope:"", note:"" },
+    { id:"n10", label:"データベース\nチームリーダー",    row:3, col:6, name:"", scope:"", note:"" },
+    { id:"n11", label:"クラウド開発\nチームリーダー",    row:3, col:7, name:"", scope:"", note:"" },
+    { id:"n12", label:"SE",           row:4, col:1, name:"", scope:"", note:"" },
+    { id:"n13", label:"ディレクター", row:4, col:2, name:"", scope:"", note:"" },
+    { id:"n14", label:"エディター",   row:4, col:3, name:"", scope:"", note:"" },
+    { id:"n15", label:"SE",           row:4, col:5, name:"", scope:"", note:"" },
+    { id:"n16", label:"SE",           row:4, col:6, name:"", scope:"", note:"" },
+    { id:"n17", label:"SE",           row:4, col:7, name:"", scope:"", note:"" },
+    { id:"n18", label:"PG",           row:5, col:1, name:"", scope:"", note:"" },
+    { id:"n19", label:"Webデザイナー",row:5, col:2, name:"", scope:"", note:"" },
+    { id:"n20", label:"ライター",     row:5, col:3, name:"", scope:"", note:"" },
+    { id:"n21", label:"PG",           row:5, col:5, name:"", scope:"", note:"" },
+    { id:"n22", label:"PG",           row:5, col:6, name:"", scope:"", note:"" },
+    { id:"n23", label:"PG",           row:5, col:7, name:"", scope:"", note:"" },
   ];
   const initEdges = () => [
-    ["n1","n2"],
-    ["n2","n3"],["n2","n4"],
-    ["n3","n5"],["n3","n6"],["n3","n7"],
-    ["n4","n8"],["n4","n9"],["n4","n10"],
-    ["n5","n11"],["n6","n17"],["n7","n12"],["n7","n18"],
-    ["n8","n13"],["n9","n14"],["n10","n15"],
-    ["n11","n16"],["n13","n19"],["n14","n20"],["n15","n21"],
+    ["n1","n2"],["n1","n3"],
+    ["n2","n4"],["n3","n5"],
+    ["n4","n6"],["n4","n7"],["n4","n8"],
+    ["n5","n9"],["n5","n10"],["n5","n11"],
+    ["n6","n12"],["n7","n13"],["n8","n14"],
+    ["n9","n15"],["n10","n16"],["n11","n17"],
+    ["n12","n18"],["n13","n19"],["n14","n20"],
+    ["n15","n21"],["n16","n22"],["n17","n23"],
   ];
 
   const [nodes, setNodes] = useState(initNodes);
@@ -737,7 +740,8 @@ function StakeholderView() {
                 dominantBaseline="middle">L{r}</text>
             ))}
 
-            {/* エッジ */}
+            {/* エッジ（ノードより先に描画してボックスが上レイヤーになる） */}
+            <g>
             {edges.map(([aId,bId],i)=>{
               const a=nodes.find(n=>n.id===aId), b=nodes.find(n=>n.id===bId);
               if(!a||!b) return null;
@@ -746,7 +750,7 @@ function StakeholderView() {
               return (
                 <g key={i} style={{cursor:"pointer"}} onClick={()=>editMode==="connect"&&toggleEdge(aId,bId)}>
                   <path d={`M${pa.x},${pa.y+BOX_H/2} L${pa.x},${midY} L${pb.x},${midY} L${pb.x},${pb.y-BOX_H/2}`}
-                    fill="none" stroke={C.border} strokeWidth={1.5} strokeLinecap="round"/>
+                    fill="none" stroke="#D8D5EE" strokeWidth={1} strokeLinecap="round"/>
                   {/* 削除ハンドル（接続編集モード時） */}
                   {editMode==="connect" && (
                     <g onClick={e=>{e.stopPropagation();toggleEdge(aId,bId);}}>
@@ -757,6 +761,7 @@ function StakeholderView() {
                 </g>
               );
             })}
+            </g>
 
             {/* connectFrom プレビュー */}
             {connectFrom && editMode==="connect" && (()=>{
@@ -766,7 +771,8 @@ function StakeholderView() {
               return <circle cx={p.x} cy={p.y} r={BOX_W/2+4} fill="none" stroke={C.human} strokeWidth={2} strokeDasharray="4 2" opacity={0.7}/>;
             })()}
 
-            {/* ノード */}
+            {/* ノード（エッジより後に描画して常に上レイヤー） */}
+            <g>
             {nodes.map(n=>{
               const {x,y}=nodePos(n);
               const bx=x-BOX_W/2, by=y-BOX_H/2;
@@ -780,16 +786,16 @@ function StakeholderView() {
                 <g key={n.id} style={{cursor:"pointer"}} onClick={()=>handleNodeClick(n)}>
                   {(isSelected||isConnectFrom) && <rect x={bx-3} y={by-3} width={BOX_W+6} height={BOX_H+6} rx={9} fill="none" stroke={isConnectFrom?C.thing:C.human} strokeWidth={1.5} strokeDasharray="4 2" opacity={0.8}/>}
                   <rect x={bx} y={by} width={BOX_W} height={BOX_H} rx={6}
-                    fill={isSelected?C.human+"30":C.human+"18"}
-                    stroke={isSelected?C.human:isConnectFrom?C.thing:C.human+"88"}
-                    strokeWidth={isSelected||isConnectFrom?1.5:1}/>
+                    fill={isSelected?C.human+"30":"#F4F3FB"}
+                    stroke={isSelected?C.human:isConnectFrom?C.thing:"#C8C4E8"}
+                    strokeWidth={isSelected||isConnectFrom?1.5:0.8}/>
                   {hasDetail && <circle cx={bx+BOX_W-5} cy={by+5} r={4} fill={C.thing}/>}
                   {lines.map((line,li)=>(
                     <text key={li} x={x} y={startY+li*lineH}
                       textAnchor="middle" dominantBaseline="middle"
                       fontSize={10} fontFamily="Noto Sans JP,sans-serif"
-                      fontWeight={isSelected?600:500}
-                      fill={isSelected?C.human:C.text}>{line}</text>
+                      fontWeight={isSelected?600:400}
+                      fill={isSelected?C.human:"#9B97C4"}>{line}</text>
                   ))}
                   {/* 移動ボタン（選択時） */}
                   {isSelected && !editMode && [
@@ -806,6 +812,7 @@ function StakeholderView() {
                 </g>
               );
             })}
+            </g>
           </svg>
         </div>
       </div>
