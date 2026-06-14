@@ -1754,11 +1754,6 @@ function GhostSearch({ project, visible, onClose, onApplyData }) {
   }, [visible]);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-  const handleGhostApply = (type, rows) => {
-    setGhostApplyTarget({ type, rows });
-    if(type === "stakeholders") setActiveNavTab("Stakeholders");
-  };
-
   const buildContext = (p) => `あなたはPMO Intelligence「Metis」のAIアシスタントです。以下のプロジェクトデータを参照して日本語・マークダウンなしで答えてください。
 ${p.code} ${p.name} / スコア${p.score}(S:${p.staticScore} D:${p.dynamicScore}) / ${p.status} / PM:${p.owner} / 残${p.daysLeft}日 / 進捗${p.progress}%
 Static: schedule${p.static.schedule} tasks${p.static.tasks} risk${p.static.risk}
