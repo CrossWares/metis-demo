@@ -516,58 +516,227 @@ const DEFAULT_CHART = {
 };
 
 function StakeholderView() {
-  const initDetail = () => {
-    const d={};
-    DEFAULT_CHART.nodes.forEach(n=>{ d[n.id]={name:"",scope:"",note:""}; });
-    return d;
-  };
-  const [nodes, setNodes] = useState(DEFAULT_CHART.nodes.map(n=>({...n})));
-  const [edges] = useState(DEFAULT_CHART.edges);
+  // ── 初期データ ──
+  const initNodes = () => [
+    { id:"n1",  label:"プロジェクト\nオーナー",    row:0, col:4, name:"", scope:"", note:"" },
+    { id:"n2",  label:"プロジェクト\nマネージャー", row:1, col:4, name:"", scope:"", note:"" },
+    { id:"n3",  label:"フロントエンド\nリーダー",   row:2, col:2, name:"", scope:"", note:"" },
+    { id:"n4",  label:"バックエンド\nリーダー",     row:2, col:6, name:"", scope:"", note:"" },
+    { id:"n5",  label:"UI開発\nチームリーダー",     row:3, col:1, name:"", scope:"", note:"" },
+    { id:"n6",  label:"サイトデザイン\nチームリーダー", row:3, col:2, name:"", scope:"", note:"" },
+    { id:"n7",  label:"SEO対策コンテンツ\nチームリーダー", row:3, col:3, name:"", scope:"", note:"" },
+    { id:"n8",  label:"サーバー開発\nチームリーダー", row:3, col:5, name:"", scope:"", note:"" },
+    { id:"n9",  label:"データベース\nチームリーダー", row:3, col:6, name:"", scope:"", note:"" },
+    { id:"n10", label:"クラウド開発\nチームリーダー", row:3, col:7, name:"", scope:"", note:"" },
+    { id:"n11", label:"SE",          row:4, col:1, name:"", scope:"", note:"" },
+    { id:"n12", label:"エディター",   row:4, col:3, name:"", scope:"", note:"" },
+    { id:"n13", label:"SE",          row:4, col:5, name:"", scope:"", note:"" },
+    { id:"n14", label:"SE",          row:4, col:6, name:"", scope:"", note:"" },
+    { id:"n15", label:"SE",          row:4, col:7, name:"", scope:"", note:"" },
+    { id:"n16", label:"PG",          row:5, col:1, name:"", scope:"", note:"" },
+    { id:"n17", label:"Webデザイナー",row:5, col:2, name:"", scope:"", note:"" },
+    { id:"n18", label:"ライター",     row:5, col:3, name:"", scope:"", note:"" },
+    { id:"n19", label:"PG",          row:5, col:5, name:"", scope:"", note:"" },
+    { id:"n20", label:"PG",          row:5, col:6, name:"", scope:"", note:"" },
+    { id:"n21", label:"PG",          row:5, col:7, name:"", scope:"", note:"" },
+  ];
+  const initEdges = () => [
+    ["n1","n2"],
+    ["n2","n3"],["n2","n4"],
+    ["n3","n5"],["n3","n6"],["n3","n7"],
+    ["n4","n8"],["n4","n9"],["n4","n10"],
+    ["n5","n11"],["n6","n17"],["n7","n12"],["n7","n18"],
+    ["n8","n13"],["n9","n14"],["n10","n15"],
+    ["n11","n16"],["n13","n19"],["n14","n20"],["n15","n21"],
+  ];
+
+  const [nodes, setNodes] = useState(initNodes);
+  const [edges, setEdges] = useState(initEdges);
   const [selectedId, setSelectedId] = useState(null);
-  const [details, setDetails] = useState(initDetail);
   const [saved, setSaved] = useState({});
+  // 編集モード: null | "move" | "connect"
+  const [editMode, setEditMode] = useState(null);
+  const [connectFrom, setConnectFrom] = useState(null);
+  const [dragInfo, setDragInfo] = useState(null);
 
-  const COL_W=110, ROW_H=88, PAD_X=20, PAD_Y=24;
-  const BOX_W=94, BOX_H=60;
-  const maxCol=Math.max(...nodes.map(n=>n.col));
-  const maxRow=Math.max(...nodes.map(n=>n.row));
-  const SVG_W=(maxCol+1)*COL_W+PAD_X*2;
-  const SVG_H=(maxRow+1)*ROW_H+PAD_Y*2+20;
+  const COL_W=110, ROW_H=88, PAD_X=20, PAD_Y=24, BOX_W=94, BOX_H=60;
+  const maxCol = Math.max(...nodes.map(n=>n.col), 0);
+  const maxRow = Math.max(...nodes.map(n=>n.row), 0);
+  const SVG_W = (maxCol+2)*COL_W + PAD_X*2;
+  const SVG_H = (maxRow+2)*ROW_H + PAD_Y*2;
 
-  function nodePos(n){ return { x:PAD_X+n.col*COL_W+COL_W/2, y:PAD_Y+n.row*ROW_H+ROW_H/2 }; }
+  // 複雑性スコア
+  const layerCount = maxRow + 1;
+  const nodeCount  = nodes.length;
+  const complexity = Math.round((layerCount * 1.5 + nodeCount * 0.5) * 10) / 10;
+
+  function nodePos(n){ return { x: PAD_X+n.col*COL_W+COL_W/2, y: PAD_Y+n.row*ROW_H+ROW_H/2 }; }
+  function genId(){ return "n"+Date.now()+Math.floor(Math.random()*1000); }
 
   const selectedNode = nodes.find(n=>n.id===selectedId);
-  const det = selectedId ? details[selectedId] : null;
 
-  function updateDet(field, val){
-    setDetails(d=>({...d,[selectedId]:{...d[selectedId],[field]:val}}));
+  // ── ノード操作 ──
+  function addNode() {
+    const newId = genId();
+    setNodes(ns=>[...ns, { id:newId, label:"新しいロール", row:maxRow+1, col:Math.floor((maxCol+1)/2), name:"", scope:"", note:"" }]);
+    setSelectedId(newId);
   }
-  function saveDet(){
-    setSaved(s=>({...s,[selectedId]:true}));
-    setTimeout(()=>setSaved(s=>({...s,[selectedId]:false})),1800);
+  function deleteNode(id) {
+    setNodes(ns=>ns.filter(n=>n.id!==id));
+    setEdges(es=>es.filter(([a,b])=>a!==id&&b!==id));
+    setSelectedId(null);
   }
-  function updateLabel(val){
-    setNodes(ns=>ns.map(n=>n.id===selectedId?{...n,label:val}:n));
+  function updateNode(id, field, val) {
+    setNodes(ns=>ns.map(n=>n.id===id?{...n,[field]:val}:n));
+  }
+  function moveNode(id, drow, dcol) {
+    setNodes(ns=>ns.map(n=>n.id===id?{...n, row:Math.max(0,n.row+drow), col:Math.max(0,n.col+dcol)}:n));
+  }
+  function saveDet(id) {
+    setSaved(s=>({...s,[id]:true}));
+    setTimeout(()=>setSaved(s=>({...s,[id]:false})),1800);
   }
 
-  const PANEL_W=300;
-  const hasDetail=(id)=>{ const d=details[id]; return d&&(d.name||d.scope||d.note); };
+  // ── エッジ操作 ──
+  function toggleEdge(fromId, toId) {
+    if(fromId===toId) return;
+    const exists = edges.some(([a,b])=>a===fromId&&b===toId);
+    if(exists) setEdges(es=>es.filter(([a,b])=>!(a===fromId&&b===toId)));
+    else setEdges(es=>[...es,[fromId,toId]]);
+  }
+
+  // ── CSVインポート ──
+  function handleCSV(e) {
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const lines = ev.target.result.split("\n").map(l=>l.trim()).filter(Boolean);
+      const header = lines[0].split(",").map(s=>s.trim());
+      const ri=header.indexOf("role"), ni=header.indexOf("name"), pi=header.indexOf("parent");
+      if(ri<0||pi<0){ alert("CSVに role, parent 列が必要です"); return; }
+      const rows = lines.slice(1).map(l=>{ const c=l.split(","); return { role:c[ri]?.trim()||"", name:c[ni]?.trim()||"", parent:c[pi]?.trim()||"" }; });
+      // 木構造から row/col を計算
+      const nodeMap={};
+      const newNodes=[], newEdges=[];
+      const colCount={};
+      rows.forEach((r,i)=>{ nodeMap[r.role]={id:"csv"+i, label:r.role.replace(/\\s+/g,"\n"), name:r.name, row:0, col:0, scope:"", note:""}; });
+      // BFSで層を決定
+      const roots = rows.filter(r=>!r.parent||!nodeMap[r.parent]);
+      const queue=[...roots.map(r=>({role:r.role,row:0}))];
+      const visited={};
+      while(queue.length){
+        const {role,row}=queue.shift();
+        if(visited[role]) continue;
+        visited[role]=true;
+        if(!nodeMap[role]) continue;
+        colCount[row]=(colCount[row]||0);
+        nodeMap[role].row=row;
+        nodeMap[role].col=colCount[row];
+        colCount[row]++;
+        rows.filter(r=>r.parent===role).forEach(child=>queue.push({role:child.role,row:row+1}));
+      }
+      Object.values(nodeMap).forEach(n=>newNodes.push(n));
+      rows.forEach(r=>{ if(r.parent&&nodeMap[r.parent]&&nodeMap[r.role]) newEdges.push([nodeMap[r.parent].id, nodeMap[r.role].id]); });
+      setNodes(newNodes);
+      setEdges(newEdges);
+      setSelectedId(null);
+    };
+    reader.readAsText(file);
+    e.target.value="";
+  }
+
+  // ── CSVエクスポート ──
+  function exportCSV() {
+    const lines=["role,name,parent"];
+    const parentMap={};
+    edges.forEach(([a,b])=>{ parentMap[b]=a; });
+    nodes.forEach(n=>{
+      const parentNode=parentMap[n.id]?nodes.find(x=>x.id===parentMap[n.id]):null;
+      lines.push(`${n.label.replace(/\n/g," ")},${n.name||""},${parentNode?parentNode.label.replace(/\n/g," "):""}`);
+    });
+    const blob=new Blob([lines.join("\n")],{type:"text/csv"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a"); a.href=url; a.download="stakeholders.csv"; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ── ノードクリック処理 ──
+  function handleNodeClick(n) {
+    if(editMode==="connect") {
+      if(!connectFrom) { setConnectFrom(n.id); return; }
+      if(connectFrom!==n.id) toggleEdge(connectFrom, n.id);
+      setConnectFrom(null);
+    } else {
+      setSelectedId(selectedId===n.id?null:n.id);
+    }
+  }
 
   return (
     <div style={{display:"flex",flex:1,overflow:"hidden",background:C.bg}}>
 
       {/* 体制図エリア */}
-      <div style={{flex:1,overflow:"auto",display:"flex",flexDirection:"column",minWidth:0}}>
+      <div style={{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",minWidth:0}}>
+
         {/* ヘッダー */}
-        <div style={{padding:"12px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",gap:10,flexShrink:0,background:C.bgCard}}>
-          <div style={{width:7,height:7,borderRadius:"50%",background:C.human}}/>
+        <div style={{padding:"10px 16px",borderBottom:`1px solid ${C.border}`,background:C.bgCard,display:"flex",alignItems:"center",gap:8,flexShrink:0,flexWrap:"wrap"}}>
+          <div style={{width:7,height:7,borderRadius:"50%",background:C.human,flexShrink:0}}/>
           <span style={{fontSize:11,fontWeight:700,color:C.human,fontFamily:"'DM Mono',monospace",letterSpacing:"0.08em"}}>STAKEHOLDERS</span>
-          <span style={{fontSize:10,color:C.textWeak,marginLeft:4}}>プロジェクト体制図</span>
-          <span style={{fontSize:10,color:C.textWeak,marginLeft:"auto"}}>ボックスをクリックして詳細を定義</span>
+
+          {/* 複雑性スコア */}
+          <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:8,padding:"2px 10px",background:C.bg,borderRadius:5,border:`1px solid ${C.border}`}}>
+            <span style={{fontSize:9,color:C.textWeak,fontFamily:"'DM Mono',monospace"}}>層数</span>
+            <span style={{fontSize:12,fontWeight:700,color:layerCount>=7?C.critical:layerCount>=5?C.strong:C.thing}}>{layerCount}</span>
+            <span style={{fontSize:9,color:C.border}}>|</span>
+            <span style={{fontSize:9,color:C.textWeak,fontFamily:"'DM Mono',monospace"}}>ノード</span>
+            <span style={{fontSize:12,fontWeight:700,color:C.text}}>{nodeCount}</span>
+            <span style={{fontSize:9,color:C.border}}>|</span>
+            <span style={{fontSize:9,color:C.textWeak,fontFamily:"'DM Mono',monospace"}}>複雑性</span>
+            <span style={{fontSize:12,fontWeight:700,color:complexity>=20?C.critical:complexity>=12?C.strong:C.thing}}>{complexity}</span>
+          </div>
+
+          <div style={{flex:1}}/>
+
+          {/* 編集モードトグル */}
+          <div style={{display:"flex",gap:4}}>
+            <button onClick={()=>{setEditMode(editMode==="connect"?null:"connect");setConnectFrom(null);}}
+              style={{fontSize:10,fontWeight:600,padding:"4px 10px",borderRadius:5,border:`1px solid ${C.border}`,
+                background:editMode==="connect"?C.human:"transparent",
+                color:editMode==="connect"?"#fff":C.textMid,cursor:"pointer"}}>
+              {editMode==="connect"?`接続中 ${connectFrom?"→ クリックして接続先を選択":"→ 起点を選択"}`:  "線を編集"}
+            </button>
+            <button onClick={addNode}
+              style={{fontSize:10,fontWeight:600,padding:"4px 10px",borderRadius:5,border:`1px solid ${C.human}`,background:"transparent",color:C.human,cursor:"pointer"}}>
+              ＋ ロール追加
+            </button>
+          </div>
+
+          {/* CSV操作 */}
+          <label style={{fontSize:10,fontWeight:600,padding:"4px 10px",borderRadius:5,border:`1px solid ${C.border}`,background:"transparent",color:C.textMid,cursor:"pointer"}}>
+            📁 CSVインポート
+            <input type="file" accept=".csv" onChange={handleCSV} style={{display:"none"}}/>
+          </label>
+          <button onClick={exportCSV}
+            style={{fontSize:10,fontWeight:600,padding:"4px 10px",borderRadius:5,border:`1px solid ${C.border}`,background:"transparent",color:C.textMid,cursor:"pointer"}}>
+            ↓ エクスポート
+          </button>
         </div>
 
-        <div style={{flex:1,overflow:"auto",padding:"24px 28px",background:C.bgCard}}>
+        {/* SVG体制図 */}
+        <div style={{flex:1,overflow:"auto",padding:"16px 20px",background:C.bgCard}}>
           <svg width={SVG_W} height={SVG_H} style={{display:"block",minWidth:SVG_W}}>
+
+            {/* グリッドガイド（薄く） */}
+            {Array.from({length:maxRow+2}).map((_,r)=>(
+              <line key={"r"+r} x1={0} y1={PAD_Y+r*ROW_H} x2={SVG_W} y2={PAD_Y+r*ROW_H}
+                stroke={C.border} strokeWidth={0.5} strokeDasharray="3 4" opacity={0.4}/>
+            ))}
+            {/* 層ラベル */}
+            {Array.from({length:maxRow+1}).map((_,r)=>(
+              <text key={"rl"+r} x={8} y={PAD_Y+r*ROW_H+ROW_H/2}
+                fontSize={8} fill={C.textWeak} fontFamily="'DM Mono',monospace"
+                dominantBaseline="middle">L{r}</text>
+            ))}
+
             {/* エッジ */}
             {edges.map(([aId,bId],i)=>{
               const a=nodes.find(n=>n.id===aId), b=nodes.find(n=>n.id===bId);
@@ -575,35 +744,64 @@ function StakeholderView() {
               const pa=nodePos(a), pb=nodePos(b);
               const midY=(pa.y+BOX_H/2+pb.y-BOX_H/2)/2;
               return (
-                <path key={i}
-                  d={`M${pa.x},${pa.y+BOX_H/2} L${pa.x},${midY} L${pb.x},${midY} L${pb.x},${pb.y-BOX_H/2}`}
-                  fill="none" stroke={C.border} strokeWidth={1.5} strokeLinecap="round"/>
+                <g key={i} style={{cursor:"pointer"}} onClick={()=>editMode==="connect"&&toggleEdge(aId,bId)}>
+                  <path d={`M${pa.x},${pa.y+BOX_H/2} L${pa.x},${midY} L${pb.x},${midY} L${pb.x},${pb.y-BOX_H/2}`}
+                    fill="none" stroke={C.border} strokeWidth={1.5} strokeLinecap="round"/>
+                  {/* 削除ハンドル（接続編集モード時） */}
+                  {editMode==="connect" && (
+                    <g onClick={e=>{e.stopPropagation();toggleEdge(aId,bId);}}>
+                      <circle cx={(pa.x+pb.x)/2} cy={midY} r={8} fill={C.bgCard} stroke={C.critical} strokeWidth={1}/>
+                      <text x={(pa.x+pb.x)/2} y={midY} textAnchor="middle" dominantBaseline="middle" fontSize={10} fill={C.critical}>✕</text>
+                    </g>
+                  )}
+                </g>
               );
             })}
+
+            {/* connectFrom プレビュー */}
+            {connectFrom && editMode==="connect" && (()=>{
+              const fn=nodes.find(n=>n.id===connectFrom);
+              if(!fn) return null;
+              const p=nodePos(fn);
+              return <circle cx={p.x} cy={p.y} r={BOX_W/2+4} fill="none" stroke={C.human} strokeWidth={2} strokeDasharray="4 2" opacity={0.7}/>;
+            })()}
 
             {/* ノード */}
             {nodes.map(n=>{
               const {x,y}=nodePos(n);
               const bx=x-BOX_W/2, by=y-BOX_H/2;
               const isSelected=selectedId===n.id;
-              const hasDet=hasDetail(n.id);
+              const isConnectFrom=connectFrom===n.id;
+              const hasDetail=n.name||n.scope||n.note;
               const lines=n.label.split("\n");
-              const lineH=15;
-              const totalH=lines.length*lineH;
+              const lineH=15, totalH=lines.length*lineH;
               const startY=y-totalH/2+lineH*0.5;
               return (
-                <g key={n.id} style={{cursor:"pointer"}} onClick={()=>setSelectedId(isSelected?null:n.id)}>
-                  {isSelected && <rect x={bx-3} y={by-3} width={BOX_W+6} height={BOX_H+6} rx={9} fill="none" stroke={C.human} strokeWidth={1.5} strokeDasharray="4 2" opacity={0.7}/>}
+                <g key={n.id} style={{cursor:"pointer"}} onClick={()=>handleNodeClick(n)}>
+                  {(isSelected||isConnectFrom) && <rect x={bx-3} y={by-3} width={BOX_W+6} height={BOX_H+6} rx={9} fill="none" stroke={isConnectFrom?C.thing:C.human} strokeWidth={1.5} strokeDasharray="4 2" opacity={0.8}/>}
                   <rect x={bx} y={by} width={BOX_W} height={BOX_H} rx={6}
                     fill={isSelected?C.human+"30":C.human+"18"}
-                    stroke={isSelected?C.human:C.human+"88"} strokeWidth={isSelected?1.5:1}/>
-                  {hasDet && <circle cx={bx+BOX_W-5} cy={by+5} r={4} fill={C.thing}/>}
+                    stroke={isSelected?C.human:isConnectFrom?C.thing:C.human+"88"}
+                    strokeWidth={isSelected||isConnectFrom?1.5:1}/>
+                  {hasDetail && <circle cx={bx+BOX_W-5} cy={by+5} r={4} fill={C.thing}/>}
                   {lines.map((line,li)=>(
                     <text key={li} x={x} y={startY+li*lineH}
                       textAnchor="middle" dominantBaseline="middle"
                       fontSize={10} fontFamily="Noto Sans JP,sans-serif"
-                      fontWeight={isSelected?600:500} fill={isSelected?C.human:C.text}
-                    >{line}</text>
+                      fontWeight={isSelected?600:500}
+                      fill={isSelected?C.human:C.text}>{line}</text>
+                  ))}
+                  {/* 移動ボタン（選択時） */}
+                  {isSelected && !editMode && [
+                    {dr:-1,dc:0,label:"↑",dx:0,dy:-BOX_H/2-14},
+                    {dr:1, dc:0,label:"↓",dx:0,dy:BOX_H/2+14},
+                    {dr:0, dc:-1,label:"←",dx:-BOX_W/2-14,dy:0},
+                    {dr:0, dc:1, label:"→",dx:BOX_W/2+14,dy:0},
+                  ].map(({dr,dc,label,dx,dy})=>(
+                    <g key={label} onClick={e=>{e.stopPropagation();moveNode(n.id,dr,dc);}}>
+                      <circle cx={x+dx} cy={y+dy} r={10} fill={C.bgCard} stroke={C.human} strokeWidth={1}/>
+                      <text x={x+dx} y={y+dy} textAnchor="middle" dominantBaseline="middle" fontSize={10} fill={C.human}>{label}</text>
+                    </g>
                   ))}
                 </g>
               );
@@ -612,78 +810,90 @@ function StakeholderView() {
         </div>
       </div>
 
-      {/* 右パネル — スライドイン */}
-      <div style={{
-        width: selectedId ? PANEL_W : 0,
-        minWidth: selectedId ? PANEL_W : 0,
-        transition:"width 0.22s ease, min-width 0.22s ease",
-        overflow:"hidden",
-        borderLeft:`1px solid ${C.border}`,
-        background:C.bgCard,
-        display:"flex",flexDirection:"column",
-        flexShrink:0,
-      }}>
-        {selectedNode && det && (
-          <div style={{width:PANEL_W,display:"flex",flexDirection:"column",height:"100%",overflow:"hidden"}}>
+      {/* 右パネル */}
+      <div style={{width:selectedNode?300:0,minWidth:selectedNode?300:0,overflow:"hidden",borderLeft:`1px solid ${C.border}`,background:C.bgCard,display:"flex",flexDirection:"column",flexShrink:0,transition:"width 0.2s ease,min-width 0.2s ease"}}>
+        {selectedNode && (
+          <div style={{width:300,display:"flex",flexDirection:"column",height:"100%",overflow:"hidden"}}>
             {/* パネルヘッダー */}
-            <div style={{padding:"14px 18px 12px",borderBottom:`1px solid ${C.border}`,flexShrink:0,display:"flex",alignItems:"center",gap:8}}>
+            <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,flexShrink:0,display:"flex",alignItems:"center",gap:8}}>
               <div style={{flex:1}}>
-                <div style={{fontSize:9,color:C.textWeak,fontFamily:"'DM Mono',monospace",letterSpacing:"0.08em",marginBottom:4}}>ROLE DEFINITION</div>
-                <div style={{fontSize:14,fontWeight:700,color:C.human}}>{selectedNode.label.replace(/\n/g," ")}</div>
+                <div style={{fontSize:9,color:C.textWeak,fontFamily:"'DM Mono',monospace",letterSpacing:"0.08em",marginBottom:3}}>ROLE DEFINITION</div>
+                <div style={{fontSize:13,fontWeight:700,color:C.human,lineHeight:1.3}}>{selectedNode.label.replace(/\n/g," ")}</div>
               </div>
-              <button onClick={()=>setSelectedId(null)}
-                style={{background:"none",border:"none",cursor:"pointer",color:C.textWeak,fontSize:16,padding:4,lineHeight:1}}>✕</button>
+              <button onClick={()=>setSelectedId(null)} style={{background:"none",border:"none",cursor:"pointer",color:C.textWeak,fontSize:14,padding:3}}>✕</button>
             </div>
 
-            {/* フォーム */}
-            <div style={{flex:1,overflowY:"auto",padding:"16px 18px",display:"flex",flexDirection:"column",gap:16}}>
+            <div style={{flex:1,overflowY:"auto",padding:"14px 16px",display:"flex",flexDirection:"column",gap:14}}>
 
-              {/* ロール名称 */}
+              {/* ロール名 */}
               <div>
-                <label style={{fontSize:10,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:6}}>ロール名称</label>
+                <label style={{fontSize:9,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:5}}>ロール名</label>
                 <input value={selectedNode.label.replace(/\n/g," ")}
-                  onChange={e=>updateLabel(e.target.value)}
-                  placeholder="例：プロジェクトマネージャー"
-                  style={{width:"100%",padding:"8px 10px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:12,color:C.text,background:C.bg,outline:"none",boxSizing:"border-box"}}/>
+                  onChange={e=>updateNode(selectedNode.id,"label",e.target.value)}
+                  style={{width:"100%",padding:"7px 9px",border:`1px solid ${C.border}`,borderRadius:5,fontSize:12,color:C.text,background:C.bg,outline:"none",boxSizing:"border-box"}}/>
               </div>
 
               {/* 担当者名 */}
               <div>
-                <label style={{fontSize:10,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:6}}>担当者名</label>
-                <input value={det.name} onChange={e=>updateDet("name",e.target.value)}
+                <label style={{fontSize:9,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:5}}>担当者名</label>
+                <input value={selectedNode.name||""}
+                  onChange={e=>updateNode(selectedNode.id,"name",e.target.value)}
                   placeholder="例：山田 太郎"
-                  style={{width:"100%",padding:"8px 10px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:12,color:C.text,background:C.bg,outline:"none",boxSizing:"border-box"}}/>
+                  style={{width:"100%",padding:"7px 9px",border:`1px solid ${C.border}`,borderRadius:5,fontSize:12,color:C.text,background:C.bg,outline:"none",boxSizing:"border-box"}}/>
+              </div>
+
+              {/* 層・列位置 */}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                <div>
+                  <label style={{fontSize:9,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:5}}>層（行）</label>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <button onClick={()=>moveNode(selectedNode.id,-1,0)} style={{padding:"3px 8px",border:`1px solid ${C.border}`,borderRadius:4,background:"transparent",cursor:"pointer",color:C.textMid,fontSize:12}}>↑</button>
+                    <span style={{fontSize:13,fontWeight:600,color:C.text,minWidth:20,textAlign:"center"}}>{selectedNode.row}</span>
+                    <button onClick={()=>moveNode(selectedNode.id,1,0)} style={{padding:"3px 8px",border:`1px solid ${C.border}`,borderRadius:4,background:"transparent",cursor:"pointer",color:C.textMid,fontSize:12}}>↓</button>
+                  </div>
+                </div>
+                <div>
+                  <label style={{fontSize:9,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:5}}>列</label>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <button onClick={()=>moveNode(selectedNode.id,0,-1)} style={{padding:"3px 8px",border:`1px solid ${C.border}`,borderRadius:4,background:"transparent",cursor:"pointer",color:C.textMid,fontSize:12}}>←</button>
+                    <span style={{fontSize:13,fontWeight:600,color:C.text,minWidth:20,textAlign:"center"}}>{selectedNode.col}</span>
+                    <button onClick={()=>moveNode(selectedNode.id,0,1)} style={{padding:"3px 8px",border:`1px solid ${C.border}`,borderRadius:4,background:"transparent",cursor:"pointer",color:C.textMid,fontSize:12}}>→</button>
+                  </div>
+                </div>
               </div>
 
               {/* 業務スコープ */}
               <div>
-                <label style={{fontSize:10,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:6}}>業務スコープ</label>
-                <textarea value={det.scope} onChange={e=>updateDet("scope",e.target.value)}
-                  placeholder={"例：\n・フロントエンド開発の進捗管理\n・メンバーへのタスクアサイン\n・クライアントとの週次定例"}
-                  rows={6}
-                  style={{width:"100%",padding:"8px 10px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:12,color:C.text,background:C.bg,outline:"none",resize:"vertical",fontFamily:"Noto Sans JP,sans-serif",lineHeight:1.7,boxSizing:"border-box"}}/>
+                <label style={{fontSize:9,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:5}}>業務スコープ</label>
+                <textarea value={selectedNode.scope||""}
+                  onChange={e=>updateNode(selectedNode.id,"scope",e.target.value)}
+                  placeholder={"・担当範囲\n・責任境界\n・権限レベル"}
+                  rows={5}
+                  style={{width:"100%",padding:"7px 9px",border:`1px solid ${C.border}`,borderRadius:5,fontSize:12,color:C.text,background:C.bg,outline:"none",resize:"vertical",fontFamily:"Noto Sans JP,sans-serif",lineHeight:1.7,boxSizing:"border-box"}}/>
               </div>
 
               {/* 備考 */}
               <div>
-                <label style={{fontSize:10,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:6}}>備考・注意事項</label>
-                <textarea value={det.note} onChange={e=>updateDet("note",e.target.value)}
-                  placeholder="例：承認権限はPMまで。スコープ変更はオーナー承認が必要。"
+                <label style={{fontSize:9,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:5}}>備考</label>
+                <textarea value={selectedNode.note||""}
+                  onChange={e=>updateNode(selectedNode.id,"note",e.target.value)}
+                  placeholder="承認権限・例外・注意事項など"
                   rows={3}
-                  style={{width:"100%",padding:"8px 10px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:12,color:C.text,background:C.bg,outline:"none",resize:"vertical",fontFamily:"Noto Sans JP,sans-serif",lineHeight:1.7,boxSizing:"border-box"}}/>
+                  style={{width:"100%",padding:"7px 9px",border:`1px solid ${C.border}`,borderRadius:5,fontSize:12,color:C.text,background:C.bg,outline:"none",resize:"vertical",fontFamily:"Noto Sans JP,sans-serif",lineHeight:1.7,boxSizing:"border-box"}}/>
               </div>
+
+              {/* 削除 */}
+              <button onClick={()=>deleteNode(selectedNode.id)}
+                style={{padding:"7px 0",background:"transparent",color:C.textWeak,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,cursor:"pointer",marginTop:4}}>
+                このロールを削除
+              </button>
             </div>
 
-            {/* 保存ボタン */}
-            <div style={{padding:"12px 18px",borderTop:`1px solid ${C.border}`,flexShrink:0}}>
-              <button onClick={saveDet} style={{
-                width:"100%",padding:"9px 0",
-                background:saved[selectedId]?C.thing:C.human,
-                color:"#fff",border:"none",borderRadius:7,
-                fontSize:12,fontWeight:600,cursor:"pointer",
-                transition:"background 0.3s",
-              }}>
-                {saved[selectedId]?"✓ 保存しました":"定義を保存"}
+            {/* 保存 */}
+            <div style={{padding:"10px 16px",borderTop:`1px solid ${C.border}`,flexShrink:0}}>
+              <button onClick={()=>saveDet(selectedNode.id)}
+                style={{width:"100%",padding:"8px 0",background:saved[selectedNode.id]?C.thing:C.human,color:"#fff",border:"none",borderRadius:6,fontSize:12,fontWeight:600,cursor:"pointer",transition:"background 0.3s"}}>
+                {saved[selectedNode.id]?"✓ 保存しました":"定義を保存"}
               </button>
             </div>
           </div>
@@ -1529,77 +1739,199 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
   );
 }
 
-function GhostSearch({ project, visible, onClose }) {
+function GhostSearch({ project, visible, onClose, onApplyData }) {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
+  const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef(null);
   const bottomRef = useRef(null);
+
   useEffect(() => {
     if (visible && inputRef.current) setTimeout(() => inputRef.current?.focus(), 80);
-    if (!visible) { setMessages([]); setQuery(""); }
+    if (!visible) { setMessages([]); setQuery(""); setPendingAction(null); }
   }, [visible]);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
-  const buildContext = (p) => `あなたはPMOIntelligence「PMOSemantic」の検索AIです。以下のデータを参照して日本語・マークダウンなしで答えてください。
+
+  const handleGhostApply = (type, rows) => {
+    setGhostApplyTarget({ type, rows });
+    if(type === "stakeholders") setActiveNavTab("Stakeholders");
+  };
+
+  const buildContext = (p) => `あなたはPMO Intelligence「Metis」のAIアシスタントです。以下のプロジェクトデータを参照して日本語・マークダウンなしで答えてください。
 ${p.code} ${p.name} / スコア${p.score}(S:${p.staticScore} D:${p.dynamicScore}) / ${p.status} / PM:${p.owner} / 残${p.daysLeft}日 / 進捗${p.progress}%
 Static: schedule${p.static.schedule} tasks${p.static.tasks} risk${p.static.risk}
 Dynamic: stakeholder${p.dynamic.stakeholder} team${p.dynamic.team} decision${p.dynamic.decision}
 アラート: ${p.alerts.map(a=>`[${a.level}][${a.axis}]${a.text}`).join(" / ")}
 Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${n.coupling})`).join(", ")}`;
+
+  const parseCSV = (text) => {
+    const lines = text.split("\n").map(l=>l.trim()).filter(Boolean);
+    const header = lines[0].split(",").map(s=>s.trim().toLowerCase());
+    return { header, rows: lines.slice(1).map(l=>{ const c=l.split(","); return Object.fromEntries(header.map((h,i)=>[[h],c[i]?.trim()||""])); }) };
+  };
+
+  const detectAndProcess = async (csvText, filename) => {
+    const { header, rows } = parseCSV(csvText);
+    const headerStr = header.join(",");
+    setMessages(prev=>[...prev, { role:"file", text:`📎 ${filename}（${rows.length}行）` }]);
+    setLoading(true);
+
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", { method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000,
+          system:`あなたはCSVファイルの用途を判定するAIです。ヘッダー情報からファイルの種類を判定し、必ずJSONのみで返してください。
+判定結果は以下のいずれか: "schedule"（WBS・ガントチャート・スケジュール）, "stakeholders"（体制図・組織図・役割一覧）, "unknown"（判定不能）
+返すJSONの形式: {"type":"schedule","message":"WBS・スケジュールデータと判定しました。スケジュールビューに反映しますか？","confidence":"high"}`,
+          messages:[{ role:"user", content:`CSVヘッダー: ${headerStr}
+最初の3行: ${rows.slice(0,3).map(r=>Object.values(r).join(",")).join(" / ")}` }] }) });
+      const data = await res.json();
+      const raw = data.content?.[0]?.text || "{}";
+      const clean = raw.replace(/```json|```/g,"").trim();
+      const result = JSON.parse(clean);
+
+      setPendingAction({ type: result.type, csvText, header, rows, filename });
+      setMessages(prev=>[...prev, { role:"assistant", text: result.message || "ファイルを読み込みました。" }]);
+
+      if(result.type !== "unknown") {
+        setMessages(prev=>[...prev, { role:"action", type: result.type, rows }]);
+      }
+    } catch(e) {
+      setMessages(prev=>[...prev, { role:"assistant", text:"ファイルの解析中にエラーが発生しました。" }]);
+    }
+    setLoading(false);
+  };
+
+  const handleFile = (file) => {
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = e => detectAndProcess(e.target.result, file.name);
+    reader.readAsText(file, "UTF-8");
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault(); setIsDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if(file && (file.name.endsWith(".csv") || file.name.endsWith(".txt"))) handleFile(file);
+    else setMessages(prev=>[...prev, { role:"assistant", text:"CSVファイルをドロップしてください。" }]);
+  };
+
+  const handleApply = (type, rows) => {
+    onApplyData(type, rows);
+    setMessages(prev=>[...prev, { role:"assistant", text: type==="schedule" ? "スケジュールビューに反映しました。ダッシュボードでご確認ください。" : "Stakeholdersタブに体制図を反映しました。" }]);
+    setPendingAction(null);
+  };
+
   const handleSend = async () => {
     if (!query.trim() || loading) return;
-    const q = query; setMessages(prev => [...prev, { role: "user", text: q }]); setQuery(""); setLoading(true);
+    const q = query; setMessages(prev => [...prev, { role:"user", text:q }]); setQuery(""); setLoading(true);
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: buildContext(project),
-          messages: [...messages.map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.text })), { role: "user", content: q }] }) });
+      const res = await fetch("https://api.anthropic.com/v1/messages", { method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000, system:buildContext(project),
+          messages:[...messages.filter(m=>m.role==="user"||m.role==="assistant").map(m=>({ role:m.role==="user"?"user":"assistant", content:m.text })), { role:"user", content:q }] }) });
       const data = await res.json();
-      setMessages(prev => [...prev, { role: "assistant", text: data.content?.[0]?.text || "エラーが発生しました。" }]);
-    } catch { setMessages(prev => [...prev, { role: "assistant", text: "エラーが発生しました。" }]); }
+      setMessages(prev=>[...prev, { role:"assistant", text:data.content?.[0]?.text || "エラーが発生しました。" }]);
+    } catch { setMessages(prev=>[...prev, { role:"assistant", text:"エラーが発生しました。" }]); }
     finally { setLoading(false); }
   };
+
   if (!visible) return null;
   return (
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(26,24,51,0.18)", zIndex: 100, backdropFilter: "blur(1px)" }} />
-      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 520, maxHeight: "70vh", background: "rgba(247,247,251,0.97)", border: `1.5px solid ${C.border}`, borderRadius: 14, boxShadow: "0 24px 64px rgba(83,74,183,0.18)", zIndex: 101, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        <div style={{ padding: "12px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.strong, boxShadow: `0 0 6px ${C.strong}` }} />
-          <span style={{ fontSize: 11, fontWeight: 700, color: C.strong, fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em" }}>SEMANTIC GHOST</span>
-          <span style={{ fontSize: 10, color: C.textWeak, marginLeft: 4 }}>{project.code} + Gravity を参照中</span>
-          <div style={{ flex: 1 }} />
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: C.textWeak, fontSize: 18 }}>×</button>
+      <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(26,24,51,0.18)", zIndex:100, backdropFilter:"blur(1px)" }} />
+      <div
+        onDragOver={e=>{e.preventDefault();setIsDragOver(true);}}
+        onDragLeave={()=>setIsDragOver(false)}
+        onDrop={handleDrop}
+        style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:520, maxHeight:"70vh", background: isDragOver?"rgba(83,74,183,0.06)":"rgba(247,247,251,0.97)", border:`1.5px solid ${isDragOver?C.strong:C.border}`, borderRadius:14, boxShadow:"0 24px 64px rgba(83,74,183,0.18)", zIndex:101, display:"flex", flexDirection:"column", overflow:"hidden", transition:"border-color 0.15s, background 0.15s" }}>
+
+        {/* ヘッダー */}
+        <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:10 }}>
+          <div style={{ width:6, height:6, borderRadius:"50%", background:C.strong, boxShadow:`0 0 6px ${C.strong}` }} />
+          <span style={{ fontSize:11, fontWeight:700, color:C.strong, fontFamily:"'DM Mono',monospace", letterSpacing:"0.06em" }}>SEMANTIC GHOST</span>
+          <span style={{ fontSize:10, color:C.textWeak, marginLeft:4 }}>{project.code} + Gravity を参照中</span>
+          <div style={{ flex:1 }} />
+          <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:C.textWeak, fontSize:18 }}>×</button>
         </div>
-        <div style={{ flex: 1, overflow: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12, minHeight: 120 }}>
+
+        {/* メッセージエリア */}
+        <div style={{ flex:1, overflow:"auto", padding:"14px 16px", display:"flex", flexDirection:"column", gap:12, minHeight:120 }}>
           {messages.length === 0 && (
-            <div style={{ textAlign: "center", paddingTop: 20 }}>
-              <div style={{ fontSize: 11, color: C.textWeak, marginBottom: 14 }}>Semantic Space + Gravity に問い合わせできます</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
+            <div style={{ textAlign:"center", paddingTop:16 }}>
+              <div style={{ fontSize:11, color:C.textWeak, marginBottom:14 }}>Semantic Space + Gravity に問い合わせできます</div>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:6, justifyContent:"center", marginBottom:14 }}>
                 {["承認ノードのGravityが高い理由は？","最もリスクの高い依存関係は？","Drift Viewのズレの原因は何？","どこに介入すれば最も効果的？"].map(hint => (
-                  <button key={hint} onClick={() => setQuery(hint)} style={{ fontSize: 11, color: C.strong, background: "#EEEDFB", border: `1px solid ${C.mid}`, borderRadius: 6, padding: "4px 10px", cursor: "pointer" }}>{hint}</button>
+                  <button key={hint} onClick={()=>setQuery(hint)} style={{ fontSize:11, color:C.strong, background:"#EEEDFB", border:`1px solid ${C.mid}`, borderRadius:6, padding:"4px 10px", cursor:"pointer" }}>{hint}</button>
                 ))}
+              </div>
+              {/* ドロップヒント */}
+              <div style={{ fontSize:10, color:C.textWeak, borderTop:`1px dashed ${C.border}`, paddingTop:12, marginTop:4 }}>
+                CSVファイルのドロップが可能です。
               </div>
             </div>
           )}
-          {messages.map((m, i) => (
-            <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
-              <div style={{ maxWidth: "82%", padding: "8px 12px", borderRadius: m.role === "user" ? "10px 10px 2px 10px" : "10px 10px 10px 2px", background: m.role === "user" ? C.strong : C.bgCard, color: m.role === "user" ? "#fff" : C.text, fontSize: 12, lineHeight: 1.65, border: m.role === "user" ? "none" : `1px solid ${C.border}` }}>{m.text}</div>
-            </div>
-          ))}
-          {loading && <div style={{ display: "flex", gap: 4, padding: "8px 12px" }}>{[0,1,2].map(i => <div key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: C.mid, animation: `pulse 1.2s ease-in-out ${i*0.2}s infinite` }} />)}</div>}
+
+          {messages.map((m, i) => {
+            if(m.role==="file") return (
+              <div key={i} style={{ display:"flex", justifyContent:"flex-end" }}>
+                <div style={{ padding:"6px 12px", borderRadius:"10px 10px 2px 10px", background:C.strong, color:"#fff", fontSize:11 }}>{m.text}</div>
+              </div>
+            );
+            if(m.role==="action") return (
+              <div key={i} style={{ background:C.bgCard, border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 12px", display:"flex", alignItems:"center", gap:10 }}>
+                <span style={{ fontSize:11, color:C.text, flex:1 }}>
+                  {m.type==="schedule" ? `${m.rows.length}件のタスクをスケジュールビューに反映します` : `${m.rows.length}件のロールをStakeholdersに反映します`}
+                </span>
+                <button onClick={()=>handleApply(m.type, m.rows)}
+                  style={{ padding:"5px 14px", background:C.strong, color:"#fff", border:"none", borderRadius:6, fontSize:11, fontWeight:600, cursor:"pointer" }}>
+                  反映する
+                </button>
+                <button onClick={()=>setPendingAction(null)}
+                  style={{ padding:"5px 10px", background:"none", color:C.textWeak, border:`1px solid ${C.border}`, borderRadius:6, fontSize:11, cursor:"pointer" }}>
+                  キャンセル
+                </button>
+              </div>
+            );
+            return (
+              <div key={i} style={{ display:"flex", justifyContent:m.role==="user"?"flex-end":"flex-start" }}>
+                <div style={{ maxWidth:"82%", padding:"8px 12px", borderRadius:m.role==="user"?"10px 10px 2px 10px":"10px 10px 10px 2px", background:m.role==="user"?C.strong:C.bgCard, color:m.role==="user"?"#fff":C.text, fontSize:12, lineHeight:1.65, border:m.role==="user"?"none":`1px solid ${C.border}` }}>{m.text}</div>
+              </div>
+            );
+          })}
+          {loading && <div style={{ display:"flex", gap:4, padding:"8px 12px" }}>{[0,1,2].map(i=><div key={i} style={{ width:5, height:5, borderRadius:"50%", background:C.mid, animation:`pulse 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}</div>}
           <div ref={bottomRef} />
         </div>
-        <div style={{ padding: "10px 14px", borderTop: `1px solid ${C.border}`, display: "flex", gap: 8, alignItems: "center" }}>
-          <input ref={inputRef} value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }} placeholder="Gravity・Semantic Spaceに質問する…" style={{ flex: 1, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 12px", fontSize: 12, color: C.text, background: C.bgCard, outline: "none", fontFamily: "'Noto Sans JP', sans-serif" }} onFocus={e => e.target.style.borderColor = C.strong} onBlur={e => e.target.style.borderColor = C.border} />
-          <button onClick={handleSend} disabled={!query.trim() || loading} style={{ width: 34, height: 34, borderRadius: 8, border: "none", background: query.trim() && !loading ? C.strong : C.border, cursor: query.trim() && !loading ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M8 2l5 5-5 5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </button>
+
+        {/* 入力エリア */}
+        <div style={{ padding:"10px 14px", borderTop:`1px solid ${C.border}`, display:"flex", flexDirection:"column", gap:6 }}>
+          {/* ドラッグオーバー時のハイライト */}
+          {isDragOver && (
+            <div style={{ textAlign:"center", fontSize:11, color:C.strong, fontWeight:600, padding:"4px 0" }}>ここにドロップ</div>
+          )}
+          <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+            {/* ファイル選択ボタン */}
+            <label style={{ flexShrink:0, width:32, height:32, borderRadius:7, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:C.textWeak, fontSize:14 }} title="CSVファイルを選択">
+              📎
+              <input type="file" accept=".csv,.txt" style={{ display:"none" }} onChange={e=>handleFile(e.target.files[0])}/>
+            </label>
+            <input ref={inputRef} value={query} onChange={e=>setQuery(e.target.value)}
+              onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();handleSend();} }}
+              placeholder="Gravity・Semantic Spaceに質問する…"
+              style={{ flex:1, border:`1px solid ${C.border}`, borderRadius:8, padding:"8px 12px", fontSize:12, color:C.text, background:C.bgCard, outline:"none", fontFamily:"'Noto Sans JP',sans-serif" }}
+              onFocus={e=>e.target.style.borderColor=C.strong} onBlur={e=>e.target.style.borderColor=C.border}/>
+            <button onClick={handleSend} disabled={!query.trim()||loading}
+              style={{ width:34, height:34, borderRadius:8, border:"none", background:query.trim()&&!loading?C.strong:C.border, cursor:query.trim()&&!loading?"pointer":"default", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M8 2l5 5-5 5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+          </div>
         </div>
         <style>{`@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}`}</style>
       </div>
     </>
   );
 }
+
 
 export default function App() {
   const [projects, setProjects] = useState(INITIAL_PROJECTS);
@@ -1609,6 +1941,7 @@ export default function App() {
   const [createOpen, setCreateOpen] = useState(false);
   const [activeNavTab, setActiveNavTab] = useState("Dashboard");
   const [alertOpen, setAlertOpen] = useState(true);
+  const [ghostApplyTarget, setGhostApplyTarget] = useState(null); // {type, rows}
 
   useEffect(() => { const t = setInterval(() => setTime(new Date()), 1000); return () => clearInterval(t); }, []);
   useEffect(() => {
@@ -1886,7 +2219,7 @@ export default function App() {
         <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>Metis　alpha　v0.2.0</span>
       </div>
 
-      <GhostSearch project={selected} visible={ghostOpen} onClose={() => setGhostOpen(false)} />
+      <GhostSearch project={selected} visible={ghostOpen} onClose={() => setGhostOpen(false)} onApplyData={handleGhostApply} />
       <CreateProjectModal visible={createOpen} onClose={() => setCreateOpen(false)} onCreated={handleCreated} nextCode={nextCode} />
     </div>
   );
