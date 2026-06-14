@@ -23,14 +23,11 @@ const INITIAL_PROJECTS = [
     owner: "田中 誠", due: "2025-08-31", daysLeft: 113, progress: 38, team: 14,
     trend: [68, 65, 61, 58, 54, 50, 46, 42],
     tasks: [
-      { id:"t1", name:"要件定義・設計", assignee:"田中 誠",   start:"2025-02-01", end:"2025-03-31", progress:100, status:"done" },
-      { id:"t2", name:"基本設計",       assignee:"田中 誠",   start:"2025-03-15", end:"2025-04-30", progress:100, status:"done" },
-      { id:"t3", name:"詳細設計",       assignee:"ベンダーA", start:"2025-04-01", end:"2025-05-15", progress:85,  status:"delay" },
-      { id:"t4", name:"フロントエンド開発", assignee:"ベンダーA", start:"2025-05-01", end:"2025-07-31", progress:45, status:"delay" },
-      { id:"t5", name:"バックエンド開発",   assignee:"ベンダーB", start:"2025-05-01", end:"2025-07-31", progress:38, status:"delay" },
-      { id:"t6", name:"結合テスト",     assignee:"田中 誠",   start:"2025-07-15", end:"2025-08-15", progress:0,  status:"pending" },
-      { id:"t7", name:"UAT",           assignee:"IT部長",    start:"2025-08-01", end:"2025-08-25", progress:0,  status:"pending" },
-      { id:"t8", name:"本番リリース",   assignee:"田中 誠",   start:"2025-08-31", end:"2025-08-31", progress:0,  status:"pending" },
+      { id:"t1", name:"要件定義", assignee:"田中 誠",   start:"2025-02-01", end:"2025-03-31", progress:100, status:"done" },
+      { id:"t2", name:"基本設計", assignee:"田中 誠",   start:"2025-03-15", end:"2025-04-30", progress:100, status:"done" },
+      { id:"t3", name:"製造",     assignee:"ベンダーA", start:"2025-05-01", end:"2025-07-31", progress:42,  status:"delay" },
+      { id:"t4", name:"テスト",   assignee:"田中 誠",   start:"2025-07-15", end:"2025-08-20", progress:0,   status:"pending" },
+      { id:"t5", name:"リリース", assignee:"田中 誠",   start:"2025-08-31", end:"2025-08-31", progress:0,   status:"pending" },
     ],
     static:  { schedule: 35, tasks: 40, risk: 28 },
     dynamic: { stakeholder: 55, team: 50, decision: 42 },
@@ -83,13 +80,11 @@ const INITIAL_PROJECTS = [
     owner: "佐藤 麻衣", due: "2025-11-30", daysLeft: 204, progress: 52, team: 8,
     trend: [68, 70, 69, 72, 71, 73, 71, 71],
     tasks: [
-      { id:"t1", name:"現状分析・要件定義", assignee:"佐藤 麻衣", start:"2025-03-01", end:"2025-04-30", progress:100, status:"done" },
-      { id:"t2", name:"データモデル設計",   assignee:"佐藤 麻衣", start:"2025-04-15", end:"2025-05-31", progress:100, status:"done" },
-      { id:"t3", name:"API設計・外部連携",  assignee:"ベンダーC", start:"2025-05-01", end:"2025-06-30", progress:60,  status:"delay" },
-      { id:"t4", name:"データ基盤構築",     assignee:"ベンダーC", start:"2025-06-01", end:"2025-08-31", progress:35,  status:"active" },
-      { id:"t5", name:"フロントエンド開発", assignee:"ベンダーD", start:"2025-07-01", end:"2025-09-30", progress:10,  status:"active" },
-      { id:"t6", name:"移行・テスト",       assignee:"佐藤 麻衣", start:"2025-09-01", end:"2025-10-31", progress:0,   status:"pending" },
-      { id:"t7", name:"本番リリース",       assignee:"佐藤 麻衣", start:"2025-11-30", end:"2025-11-30", progress:0,   status:"pending" },
+      { id:"t1", name:"要件定義", assignee:"佐藤 麻衣", start:"2025-03-01", end:"2025-04-30", progress:100, status:"done" },
+      { id:"t2", name:"基本設計", assignee:"佐藤 麻衣", start:"2025-04-15", end:"2025-05-31", progress:100, status:"done" },
+      { id:"t3", name:"製造",     assignee:"ベンダーC", start:"2025-06-01", end:"2025-09-30", progress:25,  status:"active" },
+      { id:"t4", name:"テスト",   assignee:"佐藤 麻衣", start:"2025-09-01", end:"2025-10-31", progress:0,   status:"pending" },
+      { id:"t5", name:"リリース", assignee:"佐藤 麻衣", start:"2025-11-30", end:"2025-11-30", progress:0,   status:"pending" },
     ],
     static:  { schedule: 72, tasks: 75, risk: 65 },
     dynamic: { stakeholder: 80, team: 68, decision: 62 },
@@ -135,13 +130,11 @@ const INITIAL_PROJECTS = [
     owner: "木村 隆", due: "2025-07-15", daysLeft: 66, progress: 78, team: 5,
     trend: [78, 80, 82, 83, 85, 86, 88, 88],
     tasks: [
-      { id:"t1", name:"要件定義・PoC",   assignee:"木村 隆", start:"2025-01-15", end:"2025-02-28", progress:100, status:"done" },
-      { id:"t2", name:"設計・アーキテクチャ", assignee:"木村 隆", start:"2025-03-01", end:"2025-03-31", progress:100, status:"done" },
-      { id:"t3", name:"AIモデル統合",    assignee:"木村 隆", start:"2025-04-01", end:"2025-05-15", progress:100, status:"done" },
-      { id:"t4", name:"フロントエンド開発", assignee:"木村 隆", start:"2025-04-15", end:"2025-06-15", progress:95, status:"active" },
-      { id:"t5", name:"セキュリティレビュー", assignee:"CISO", start:"2025-05-20", end:"2025-06-10", progress:100, status:"done" },
-      { id:"t6", name:"UAT",            assignee:"HR部長", start:"2025-06-15", end:"2025-07-05", progress:20, status:"active" },
-      { id:"t7", name:"本番リリース",    assignee:"木村 隆", start:"2025-07-15", end:"2025-07-15", progress:0,  status:"pending" },
+      { id:"t1", name:"要件定義", assignee:"木村 隆", start:"2025-01-15", end:"2025-02-28", progress:100, status:"done" },
+      { id:"t2", name:"基本設計", assignee:"木村 隆", start:"2025-03-01", end:"2025-03-31", progress:100, status:"done" },
+      { id:"t3", name:"製造",     assignee:"木村 隆", start:"2025-04-01", end:"2025-06-15", progress:97,  status:"active" },
+      { id:"t4", name:"テスト",   assignee:"HR部長",  start:"2025-06-15", end:"2025-07-05", progress:20,  status:"active" },
+      { id:"t5", name:"リリース", assignee:"木村 隆", start:"2025-07-15", end:"2025-07-15", progress:0,   status:"pending" },
     ],
     static:  { schedule: 90, tasks: 92, risk: 88 },
     dynamic: { stakeholder: 92, team: 86, decision: 80 },
@@ -2248,37 +2241,7 @@ export default function App() {
             <AxisBlock axis="D" scores={p.dynamic} items={[{ key: "stakeholder", label: "ステークホルダー" },{ key: "team", label: "チーム健全性" },{ key: "decision", label: "意思決定" }]} />
           </div>
 
-          {/* Axis Summary */}
-          <div style={{ margin: "12px 14px 0", background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 18px", display: "flex", alignItems: "center", gap: 20, boxShadow: "0 1px 5px rgba(83,74,183,0.05)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <ScoreRing value={avgStatic} size={46} color={scoreColor(avgStatic)} />
-              <div>
-                <div style={{ fontSize: 9, color: C.thing, fontFamily: "'DM Mono', monospace", marginBottom: 2 }}>◼ STATIC</div>
-                <div style={{ fontSize: 10, color: C.textMid }}>構造・計画</div>
-              </div>
-            </div>
-            <div style={{ width: 1, height: 32, background: C.border }} />
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <ScoreRing value={avgDynamic} size={46} color={scoreColor(avgDynamic)} />
-              <div>
-                <div style={{ fontSize: 9, color: C.human, fontFamily: "'DM Mono', monospace", marginBottom: 2 }}>◆ DYNAMIC</div>
-                <div style={{ fontSize: 10, color: C.textMid }}>人・関係性</div>
-              </div>
-            </div>
-            <div style={{ width: 1, height: 32, background: C.border }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 9, color: C.textWeak, marginBottom: 6 }}>二軸の乖離</div>
-              <div style={{ display: "flex", height: 6, borderRadius: 99, overflow: "hidden" }}>
-                <div style={{ flex: avgStatic, background: C.thing }} />
-                <div style={{ flex: avgDynamic, background: C.human }} />
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-                <span style={{ fontSize: 9, color: C.thing, fontFamily: "'DM Mono', monospace" }}>{avgStatic}</span>
-                <span style={{ fontSize: 9, color: C.textWeak }}>差 {Math.abs(avgStatic - avgDynamic)}</span>
-                <span style={{ fontSize: 9, color: C.human, fontFamily: "'DM Mono', monospace" }}>{avgDynamic}</span>
-              </div>
-            </div>
-          </div>
+
 
           {/* ── SCHEDULE VIEW ── */}
           <div style={{ margin: "12px 14px 0" }}>
@@ -2293,7 +2256,6 @@ export default function App() {
 
         {/* RIGHT */}
         <div style={{ width: alertOpen ? 260 : 0, minWidth: alertOpen ? 260 : 0, overflow: "hidden", background: C.bgCard, borderLeft: alertOpen ? `1px solid ${C.border}` : "none", display: "flex", flexDirection: "column", transition: "width 0.22s ease, min-width 0.22s ease", flexShrink: 0 }}>
-          {/* タスク詳細パネル or Alerts */}
           {selectedTask && taskEditBuf ? (
             <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
               <div style={{ padding: "10px 14px", borderBottom: `1px solid ${C.border}`, flexShrink: 0, display: "flex", alignItems: "center", gap: 8 }}>
@@ -2301,32 +2263,28 @@ export default function App() {
                 <button onClick={() => { setSelectedTask(null); setTaskEditBuf(null); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.textWeak, fontSize: 14 }}>✕</button>
               </div>
               <div style={{ flex: 1, overflowY: "auto", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
-                {/* タスク名 */}
                 <div>
                   <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 5 }}>タスク名</div>
                   <input value={taskEditBuf.name} onChange={e => setTaskEditBuf(b => ({...b, name: e.target.value}))}
                     style={{ width: "100%", padding: "6px 9px", border: `1px solid ${C.border}`, borderRadius: 5, fontSize: 12, color: C.text, background: C.bg, outline: "none", boxSizing: "border-box" }} />
                 </div>
-                {/* 担当者 */}
                 <div>
                   <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 5 }}>担当者</div>
                   <input value={taskEditBuf.assignee} onChange={e => setTaskEditBuf(b => ({...b, assignee: e.target.value}))}
                     style={{ width: "100%", padding: "6px 9px", border: `1px solid ${C.border}`, borderRadius: 5, fontSize: 12, color: C.text, background: C.bg, outline: "none", boxSizing: "border-box" }} />
                 </div>
-                {/* 開始日・終了日 */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   <div>
                     <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 5 }}>開始日</div>
                     <input type="date" value={taskEditBuf.start} onChange={e => setTaskEditBuf(b => ({...b, start: e.target.value}))}
-                      style={{ width: "100%", padding: "6px 6px", border: `1px solid ${C.border}`, borderRadius: 5, fontSize: 11, color: C.text, background: C.bg, outline: "none", boxSizing: "border-box" }} />
+                      style={{ width: "100%", padding: "6px 4px", border: `1px solid ${C.border}`, borderRadius: 5, fontSize: 10, color: C.text, background: C.bg, outline: "none", boxSizing: "border-box" }} />
                   </div>
                   <div>
                     <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 5 }}>終了日</div>
                     <input type="date" value={taskEditBuf.end} onChange={e => setTaskEditBuf(b => ({...b, end: e.target.value}))}
-                      style={{ width: "100%", padding: "6px 6px", border: `1px solid ${C.border}`, borderRadius: 5, fontSize: 11, color: C.text, background: C.bg, outline: "none", boxSizing: "border-box" }} />
+                      style={{ width: "100%", padding: "6px 4px", border: `1px solid ${C.border}`, borderRadius: 5, fontSize: 10, color: C.text, background: C.bg, outline: "none", boxSizing: "border-box" }} />
                   </div>
                 </div>
-                {/* 進捗 */}
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
                     <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase" }}>進捗</div>
@@ -2335,7 +2293,6 @@ export default function App() {
                   <input type="range" min={0} max={100} value={taskEditBuf.progress} onChange={e => setTaskEditBuf(b => ({...b, progress: Number(e.target.value)}))}
                     style={{ width: "100%", accentColor: C.strong }} />
                 </div>
-                {/* ステータス */}
                 <div>
                   <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>ステータス</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -2359,63 +2316,64 @@ export default function App() {
               </div>
             </div>
           ) : (
-          <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>ACTIVE ALERTS</span>
-              <button onClick={() => setAlertOpen(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: C.textWeak, fontSize: 14, lineHeight: 1, padding: "0 2px" }}>✕</button>
-              {p.alerts.filter(a => a.level === "critical").length > 0 && (
-                <span style={{ fontSize: 9, fontWeight: 700, color: C.critical, background: "#F9EEF3", border: `1px solid #DDB8CA`, padding: "1px 6px", borderRadius: 3, fontFamily: "'DM Mono', monospace" }}>
-                  {p.alerts.filter(a => a.level === "critical").length} critical
-                </span>
+            <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+              <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>ACTIVE ALERTS</span>
+                  <button onClick={() => setAlertOpen(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: C.textWeak, fontSize: 14, lineHeight: 1, padding: "0 2px" }}>✕</button>
+                  {p.alerts.filter(a => a.level === "critical").length > 0 && (
+                    <span style={{ fontSize: 9, fontWeight: 700, color: C.critical, background: "#F9EEF3", border: `1px solid #DDB8CA`, padding: "1px 6px", borderRadius: 3, fontFamily: "'DM Mono', monospace" }}>
+                      {p.alerts.filter(a => a.level === "critical").length} critical
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {p.alerts.map((a, i) => {
+                    const bc = a.level === "critical" ? C.critical : a.level === "warn" ? C.strong : C.mid;
+                    const tc = a.level === "critical" ? C.critical : a.level === "warn" ? C.strong : C.textMid;
+                    const ax = AXIS[a.axis];
+                    return (
+                      <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "7px 10px", background: C.bg, borderLeft: `3px solid ${bc}`, borderRadius: "0 6px 6px 0" }}>
+                        <span style={{ fontSize: 8, fontWeight: 700, color: ax.color, background: ax.bg, padding: "1px 5px", borderRadius: 2, flexShrink: 0, fontFamily: "'DM Mono', monospace", marginTop: 1 }}>{ax.label}</span>
+                        <span style={{ fontSize: 11, color: tc, lineHeight: 1.5 }}>{a.text}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div style={{ padding: "12px 14px", flex: 1, overflowY: "auto" }}>
+                <div style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", marginBottom: 10 }}>RECENT EVENTS</div>
+                {p.events.map((e, i) => {
+                  const dc = e.type === "critical" ? C.critical : e.type === "warn" ? C.strong : C.mid;
+                  const tc = e.type === "critical" ? C.critical : e.type === "warn" ? C.strong : C.textMid;
+                  return (
+                    <div key={i} style={{ display: "flex", gap: 10, paddingBottom: 10 }}>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 10 }}>
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: dc, flexShrink: 0, marginTop: 4 }} />
+                        {i < p.events.length - 1 && <div style={{ width: 1, flex: 1, background: C.border, minHeight: 10 }} />}
+                      </div>
+                      <div>
+                        <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>{e.date}　</span>
+                        <span style={{ fontSize: 11, color: tc, lineHeight: 1.5 }}>{e.text}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ padding: "10px 14px", borderTop: `1px solid ${C.border}`, flexShrink: 0, background: C.bg }}>
+                <div style={{ fontSize: 8, color: C.textWeak, marginBottom: 6, fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em" }}>SEMANTIC SPACE</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                  {["Glossary","ステークHマップ","リスク課題","イベント"].map(item => (
+                    <span key={item} style={{ fontSize: 9, color: C.textMid, background: C.bgCard, border: `1px solid ${C.border}`, padding: "2px 8px", borderRadius: 4, cursor: "pointer" }}>{item}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        </div>
         )
         }
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {p.alerts.map((a, i) => {
-                const bc = a.level === "critical" ? C.critical : a.level === "warn" ? C.strong : C.mid;
-                const tc = a.level === "critical" ? C.critical : a.level === "warn" ? C.strong : C.textMid;
-                const ax = AXIS[a.axis];
-                return (
-                  <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "7px 10px", background: C.bg, borderLeft: `3px solid ${bc}`, borderRadius: "0 6px 6px 0" }}>
-                    <span style={{ fontSize: 8, fontWeight: 700, color: ax.color, background: ax.bg, padding: "1px 5px", borderRadius: 2, flexShrink: 0, fontFamily: "'DM Mono', monospace", marginTop: 1 }}>{ax.label}</span>
-                    <span style={{ fontSize: 11, color: tc, lineHeight: 1.5 }}>{a.text}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          )}
-          <div style={{ padding: "12px 14px", flex: 1 }}>
-            <div style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", marginBottom: 10 }}>RECENT EVENTS</div>
-            {p.events.map((e, i) => {
-              const dc = e.type === "critical" ? C.critical : e.type === "warn" ? C.strong : C.mid;
-              const tc = e.type === "critical" ? C.critical : e.type === "warn" ? C.strong : C.textMid;
-              return (
-                <div key={i} style={{ display: "flex", gap: 10, paddingBottom: 10 }}>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 10 }}>
-                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: dc, flexShrink: 0, marginTop: 4 }} />
-                    {i < p.events.length - 1 && <div style={{ width: 1, flex: 1, background: C.border, minHeight: 10 }} />}
-                  </div>
-                  <div>
-                    <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>{e.date}　</span>
-                    <span style={{ fontSize: 11, color: tc, lineHeight: 1.5 }}>{e.text}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ padding: "10px 14px", borderTop: `1px solid ${C.border}`, flexShrink: 0, background: C.bg }}>
-            <div style={{ fontSize: 8, color: C.textWeak, marginBottom: 6, fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em" }}>SEMANTIC SPACE</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-              {["Glossary","ステークHマップ","リスク課題","イベント"].map(item => (
-                <span key={item} style={{ fontSize: 9, color: C.textMid, background: C.bgCard, border: `1px solid ${C.border}`, padding: "2px 8px", borderRadius: 4, cursor: "pointer" }}>{item}</span>
-              ))}
-            </div>
-          </div>
-          )}
-        </div>
-        </div>
-        )}
       </div>
 
       {/* STATUS BAR */}
