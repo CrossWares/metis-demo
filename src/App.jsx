@@ -22,6 +22,16 @@ const INITIAL_PROJECTS = [
     score: 42, staticScore: 35, dynamicScore: 49, status: "critical",
     owner: "田中 誠", due: "2025-08-31", daysLeft: 113, progress: 38, team: 14,
     trend: [68, 65, 61, 58, 54, 50, 46, 42],
+    tasks: [
+      { id:"t1", name:"要件定義・設計", assignee:"田中 誠",   start:"2025-02-01", end:"2025-03-31", progress:100, status:"done" },
+      { id:"t2", name:"基本設計",       assignee:"田中 誠",   start:"2025-03-15", end:"2025-04-30", progress:100, status:"done" },
+      { id:"t3", name:"詳細設計",       assignee:"ベンダーA", start:"2025-04-01", end:"2025-05-15", progress:85,  status:"delay" },
+      { id:"t4", name:"フロントエンド開発", assignee:"ベンダーA", start:"2025-05-01", end:"2025-07-31", progress:45, status:"delay" },
+      { id:"t5", name:"バックエンド開発",   assignee:"ベンダーB", start:"2025-05-01", end:"2025-07-31", progress:38, status:"delay" },
+      { id:"t6", name:"結合テスト",     assignee:"田中 誠",   start:"2025-07-15", end:"2025-08-15", progress:0,  status:"pending" },
+      { id:"t7", name:"UAT",           assignee:"IT部長",    start:"2025-08-01", end:"2025-08-25", progress:0,  status:"pending" },
+      { id:"t8", name:"本番リリース",   assignee:"田中 誠",   start:"2025-08-31", end:"2025-08-31", progress:0,  status:"pending" },
+    ],
     static:  { schedule: 35, tasks: 40, risk: 28 },
     dynamic: { stakeholder: 55, team: 50, decision: 42 },
     alerts: [
@@ -72,6 +82,15 @@ const INITIAL_PROJECTS = [
     score: 71, staticScore: 72, dynamicScore: 70, status: "warn",
     owner: "佐藤 麻衣", due: "2025-11-30", daysLeft: 204, progress: 52, team: 8,
     trend: [68, 70, 69, 72, 71, 73, 71, 71],
+    tasks: [
+      { id:"t1", name:"現状分析・要件定義", assignee:"佐藤 麻衣", start:"2025-03-01", end:"2025-04-30", progress:100, status:"done" },
+      { id:"t2", name:"データモデル設計",   assignee:"佐藤 麻衣", start:"2025-04-15", end:"2025-05-31", progress:100, status:"done" },
+      { id:"t3", name:"API設計・外部連携",  assignee:"ベンダーC", start:"2025-05-01", end:"2025-06-30", progress:60,  status:"delay" },
+      { id:"t4", name:"データ基盤構築",     assignee:"ベンダーC", start:"2025-06-01", end:"2025-08-31", progress:35,  status:"active" },
+      { id:"t5", name:"フロントエンド開発", assignee:"ベンダーD", start:"2025-07-01", end:"2025-09-30", progress:10,  status:"active" },
+      { id:"t6", name:"移行・テスト",       assignee:"佐藤 麻衣", start:"2025-09-01", end:"2025-10-31", progress:0,   status:"pending" },
+      { id:"t7", name:"本番リリース",       assignee:"佐藤 麻衣", start:"2025-11-30", end:"2025-11-30", progress:0,   status:"pending" },
+    ],
     static:  { schedule: 72, tasks: 75, risk: 65 },
     dynamic: { stakeholder: 80, team: 68, decision: 62 },
     alerts: [
@@ -115,6 +134,15 @@ const INITIAL_PROJECTS = [
     score: 88, staticScore: 90, dynamicScore: 86, status: "healthy",
     owner: "木村 隆", due: "2025-07-15", daysLeft: 66, progress: 78, team: 5,
     trend: [78, 80, 82, 83, 85, 86, 88, 88],
+    tasks: [
+      { id:"t1", name:"要件定義・PoC",   assignee:"木村 隆", start:"2025-01-15", end:"2025-02-28", progress:100, status:"done" },
+      { id:"t2", name:"設計・アーキテクチャ", assignee:"木村 隆", start:"2025-03-01", end:"2025-03-31", progress:100, status:"done" },
+      { id:"t3", name:"AIモデル統合",    assignee:"木村 隆", start:"2025-04-01", end:"2025-05-15", progress:100, status:"done" },
+      { id:"t4", name:"フロントエンド開発", assignee:"木村 隆", start:"2025-04-15", end:"2025-06-15", progress:95, status:"active" },
+      { id:"t5", name:"セキュリティレビュー", assignee:"CISO", start:"2025-05-20", end:"2025-06-10", progress:100, status:"done" },
+      { id:"t6", name:"UAT",            assignee:"HR部長", start:"2025-06-15", end:"2025-07-05", progress:20, status:"active" },
+      { id:"t7", name:"本番リリース",    assignee:"木村 隆", start:"2025-07-15", end:"2025-07-15", progress:0,  status:"pending" },
+    ],
     static:  { schedule: 90, tasks: 92, risk: 88 },
     dynamic: { stakeholder: 92, team: 86, decision: 80 },
     alerts: [{ level: "info", axis: "S", text: "UAT開始まで10日・テストシナリオ最終確認推奨" }],
@@ -1315,6 +1343,114 @@ function GlossaryView() {
   );
 }
 
+// ── Gantt View ──
+const TASK_STATUS = {
+  done:    { color: C.thing,    label: "完了",   bg: "#EAF8F3" },
+  active:  { color: C.strong,   label: "進行中", bg: "#EEEDFB" },
+  delay:   { color: C.critical, label: "遅延",   bg: "#F9EEF3" },
+  pending: { color: C.textWeak, label: "未着手", bg: C.bg },
+};
+
+function GanttView({ project, onTaskSelect, selectedTaskId }) {
+  const tasks = project.tasks || [];
+  if (!tasks.length) return null;
+
+  // 全タスクの期間からガント幅を計算
+  const allDates = tasks.flatMap(t => [new Date(t.start), new Date(t.end)]);
+  const minDate = new Date(Math.min(...allDates));
+  const maxDate = new Date(Math.max(...allDates));
+  // 月単位のラベルを生成
+  const months = [];
+  const cur = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+  const end = new Date(maxDate.getFullYear(), maxDate.getMonth() + 1, 1);
+  while (cur < end) {
+    months.push(new Date(cur));
+    cur.setMonth(cur.getMonth() + 1);
+  }
+  const totalDays = (maxDate - minDate) / 86400000 + 1;
+  const pct = (d) => Math.max(0, Math.min(100, (new Date(d) - minDate) / (totalDays * 86400000) * 100));
+  const today = new Date();
+  const todayPct = pct(today);
+
+  return (
+    <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 5px rgba(83,74,183,0.05)" }}>
+      {/* ヘッダー */}
+      <div style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.bg }}>
+        <div style={{ width: 7, height: 7, borderRadius: "50%", background: C.thing, marginRight: 8 }} />
+        <span style={{ fontSize: 11, fontWeight: 700, color: C.thing, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>SCHEDULE VIEW</span>
+        <span style={{ fontSize: 10, color: C.textWeak, marginLeft: 8 }}>タスクをクリックで詳細編集</span>
+        <div style={{ flex: 1 }} />
+        {/* 凡例 */}
+        <div style={{ display: "flex", gap: 10 }}>
+          {Object.entries(TASK_STATUS).map(([k, v]) => (
+            <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: C.textWeak }}>
+              <div style={{ width: 8, height: 8, borderRadius: 2, background: v.color }} />
+              {v.label}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ガント本体 */}
+      <div style={{ padding: "0 0 12px" }}>
+        {/* 月ヘッダー */}
+        <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ padding: "6px 12px", fontSize: 9, color: C.textWeak, borderRight: `1px solid ${C.border}` }}>タスク</div>
+          <div style={{ position: "relative", height: 24 }}>
+            {months.map((m, i) => {
+              const leftPct = pct(m);
+              return (
+                <div key={i} style={{ position: "absolute", left: `${leftPct}%`, top: 0, height: "100%", borderLeft: `1px solid ${C.border}`, paddingLeft: 4, display: "flex", alignItems: "center" }}>
+                  <span style={{ fontSize: 8, color: C.textWeak, fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap" }}>
+                    {m.getFullYear()}/{String(m.getMonth() + 1).padStart(2, "0")}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* タスク行 */}
+        {tasks.map((task, i) => {
+          const st = TASK_STATUS[task.status] || TASK_STATUS.pending;
+          const barLeft = pct(task.start);
+          const barWidth = Math.max(0.5, pct(task.end) - barLeft);
+          const isSelected = selectedTaskId === task.id;
+          return (
+            <div key={task.id} onClick={() => onTaskSelect(task)}
+              style={{ display: "grid", gridTemplateColumns: "140px 1fr", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: isSelected ? C.bg : "transparent", transition: "background 0.1s" }}
+              onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = C.bg; }}
+              onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = "transparent"; }}>
+              {/* タスク名 */}
+              <div style={{ padding: "6px 12px", borderRight: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ width: 5, height: 5, borderRadius: 1, background: st.color, flexShrink: 0 }} />
+                <span style={{ fontSize: 10, color: isSelected ? C.text : C.textMid, fontWeight: isSelected ? 600 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{task.name}</span>
+              </div>
+              {/* バー */}
+              <div style={{ position: "relative", height: 32, display: "flex", alignItems: "center" }}>
+                {/* today線 */}
+                {todayPct > 0 && todayPct < 100 && (
+                  <div style={{ position: "absolute", left: `${todayPct}%`, top: 0, bottom: 0, width: 1, background: C.critical, opacity: 0.4, zIndex: 1 }} />
+                )}
+                {/* バー背景（予定） */}
+                <div style={{ position: "absolute", left: `${barLeft}%`, width: `${barWidth}%`, height: 14, background: st.color + "22", borderRadius: 3, border: `1px solid ${st.color}44` }} />
+                {/* バー前景（実績） */}
+                <div style={{ position: "absolute", left: `${barLeft}%`, width: `${barWidth * task.progress / 100}%`, height: 14, background: st.color, borderRadius: 3, opacity: 0.85 }} />
+                {/* 進捗% */}
+                {task.progress > 0 && (
+                  <div style={{ position: "absolute", left: `${barLeft + barWidth / 2}%`, transform: "translateX(-50%)", fontSize: 8, color: task.progress > 50 ? "#fff" : st.color, fontFamily: "'DM Mono', monospace", fontWeight: 700, zIndex: 2, pointerEvents: "none" }}>
+                    {task.progress}%
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Gravity View（SVG直接描画）──
 function GravityView({ project }) {
   const [activeTab, setActiveTab] = useState("gravity");
@@ -1943,6 +2079,8 @@ export default function App() {
   const [createOpen, setCreateOpen] = useState(false);
   const [activeNavTab, setActiveNavTab] = useState("Dashboard");
   const [alertOpen, setAlertOpen] = useState(true);
+  const [selectedTask, setSelectedTask] = useState(null); // タスク詳細パネル用
+  const [taskEditBuf, setTaskEditBuf] = useState(null);
   const [ghostApplyTarget, setGhostApplyTarget] = useState(null); // {type, rows}
 
   useEffect(() => { const t = setInterval(() => setTime(new Date()), 1000); return () => clearInterval(t); }, []);
@@ -2142,7 +2280,12 @@ export default function App() {
             </div>
           </div>
 
-          {/* ── GRAVITY VIEW（赤枠の位置）── */}
+          {/* ── SCHEDULE VIEW ── */}
+          <div style={{ margin: "12px 14px 0" }}>
+            <GanttView project={p} onTaskSelect={(task) => { setSelectedTask(task); setTaskEditBuf({...task}); setAlertOpen(true); }} selectedTaskId={selectedTask?.id} />
+          </div>
+
+          {/* ── GRAVITY VIEW ── */}
           <div style={{ margin: "12px 14px 14px" }}>
             <GravityView project={p} />
           </div>
@@ -2150,6 +2293,72 @@ export default function App() {
 
         {/* RIGHT */}
         <div style={{ width: alertOpen ? 260 : 0, minWidth: alertOpen ? 260 : 0, overflow: "hidden", background: C.bgCard, borderLeft: alertOpen ? `1px solid ${C.border}` : "none", display: "flex", flexDirection: "column", transition: "width 0.22s ease, min-width 0.22s ease", flexShrink: 0 }}>
+          {/* タスク詳細パネル or Alerts */}
+          {selectedTask && taskEditBuf ? (
+            <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+              <div style={{ padding: "10px 14px", borderBottom: `1px solid ${C.border}`, flexShrink: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", flex: 1 }}>TASK DETAIL</div>
+                <button onClick={() => { setSelectedTask(null); setTaskEditBuf(null); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.textWeak, fontSize: 14 }}>✕</button>
+              </div>
+              <div style={{ flex: 1, overflowY: "auto", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
+                {/* タスク名 */}
+                <div>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 5 }}>タスク名</div>
+                  <input value={taskEditBuf.name} onChange={e => setTaskEditBuf(b => ({...b, name: e.target.value}))}
+                    style={{ width: "100%", padding: "6px 9px", border: `1px solid ${C.border}`, borderRadius: 5, fontSize: 12, color: C.text, background: C.bg, outline: "none", boxSizing: "border-box" }} />
+                </div>
+                {/* 担当者 */}
+                <div>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 5 }}>担当者</div>
+                  <input value={taskEditBuf.assignee} onChange={e => setTaskEditBuf(b => ({...b, assignee: e.target.value}))}
+                    style={{ width: "100%", padding: "6px 9px", border: `1px solid ${C.border}`, borderRadius: 5, fontSize: 12, color: C.text, background: C.bg, outline: "none", boxSizing: "border-box" }} />
+                </div>
+                {/* 開始日・終了日 */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  <div>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 5 }}>開始日</div>
+                    <input type="date" value={taskEditBuf.start} onChange={e => setTaskEditBuf(b => ({...b, start: e.target.value}))}
+                      style={{ width: "100%", padding: "6px 6px", border: `1px solid ${C.border}`, borderRadius: 5, fontSize: 11, color: C.text, background: C.bg, outline: "none", boxSizing: "border-box" }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 5 }}>終了日</div>
+                    <input type="date" value={taskEditBuf.end} onChange={e => setTaskEditBuf(b => ({...b, end: e.target.value}))}
+                      style={{ width: "100%", padding: "6px 6px", border: `1px solid ${C.border}`, borderRadius: 5, fontSize: 11, color: C.text, background: C.bg, outline: "none", boxSizing: "border-box" }} />
+                  </div>
+                </div>
+                {/* 進捗 */}
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase" }}>進捗</div>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: scoreColor(taskEditBuf.progress), fontFamily: "'DM Mono', monospace" }}>{taskEditBuf.progress}%</span>
+                  </div>
+                  <input type="range" min={0} max={100} value={taskEditBuf.progress} onChange={e => setTaskEditBuf(b => ({...b, progress: Number(e.target.value)}))}
+                    style={{ width: "100%", accentColor: C.strong }} />
+                </div>
+                {/* ステータス */}
+                <div>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>ステータス</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {Object.entries(TASK_STATUS).map(([k, v]) => (
+                      <button key={k} onClick={() => setTaskEditBuf(b => ({...b, status: k}))}
+                        style={{ fontSize: 10, fontWeight: 600, padding: "4px 10px", borderRadius: 5, border: `1px solid ${taskEditBuf.status === k ? v.color : C.border}`, background: taskEditBuf.status === k ? v.color : "transparent", color: taskEditBuf.status === k ? "#fff" : C.textMid, cursor: "pointer" }}>
+                        {v.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div style={{ padding: "10px 14px", borderTop: `1px solid ${C.border}`, flexShrink: 0 }}>
+                <button onClick={() => {
+                  setProjects(ps => ps.map(proj => proj.id === p.id ? { ...proj, tasks: proj.tasks.map(t => t.id === taskEditBuf.id ? taskEditBuf : t) } : proj));
+                  setSelected(s => ({ ...s, tasks: s.tasks.map(t => t.id === taskEditBuf.id ? taskEditBuf : t) }));
+                  setSelectedTask(taskEditBuf);
+                }} style={{ width: "100%", padding: "8px 0", background: C.strong, color: "#fff", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                  保存
+                </button>
+              </div>
+            </div>
+          ) : (
           <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>ACTIVE ALERTS</span>
@@ -2175,6 +2384,7 @@ export default function App() {
               })}
             </div>
           </div>
+          )}
           <div style={{ padding: "12px 14px", flex: 1 }}>
             <div style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", marginBottom: 10 }}>RECENT EVENTS</div>
             {p.events.map((e, i) => {
@@ -2202,6 +2412,7 @@ export default function App() {
               ))}
             </div>
           </div>
+          )}
         </div>
         </div>
         )}
