@@ -2044,7 +2044,7 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:10 }}>
           <div style={{ width:6, height:6, borderRadius:"50%", background:C.strong, boxShadow:`0 0 6px ${C.strong}` }} />
           <span style={{ fontSize:11, fontWeight:700, color:C.strong, fontFamily:"'DM Mono',monospace", letterSpacing:"0.06em" }}>SEMANTIC GHOST</span>
-          <span style={{ fontSize:10, color:C.textWeak, marginLeft:4 }}>{project.code} + Gravity を参照中</span>
+          <span style={{ fontSize:10, color:C.textWeak, marginLeft:4 }}>{project.code} を参照中</span>
           <div style={{ flex:1 }} />
           <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:C.textWeak, fontSize:18 }}>×</button>
         </div>
@@ -2053,7 +2053,7 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
         <div style={{ flex:1, overflow:"auto", padding:"14px 16px", display:"flex", flexDirection:"column", gap:12, minHeight:120 }}>
           {messages.length === 0 && (
             <div style={{ textAlign:"center", paddingTop:16 }}>
-              <div style={{ fontSize:11, color:C.textWeak, marginBottom:14 }}>Semantic Space + Gravity に問い合わせできます</div>
+              <div style={{ fontSize:11, color:C.textWeak, marginBottom:14 }}>Metis が状態を診断して回答します</div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:6, justifyContent:"center", marginBottom:14 }}>
                 {["承認ノードのGravityが高い理由は？","最もリスクの高い依存関係は？","Drift Viewのズレの原因は何？","どこに介入すれば最も効果的？"].map(hint => (
                   <button key={hint} onClick={()=>setQuery(hint)} style={{ fontSize:11, color:C.strong, background:"#EEEDFB", border:`1px solid ${C.mid}`, borderRadius:6, padding:"4px 10px", cursor:"pointer" }}>{hint}</button>
@@ -2111,7 +2111,7 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
             </label>
             <input ref={inputRef} value={query} onChange={e=>setQuery(e.target.value)}
               onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();handleSend();} }}
-              placeholder="Gravity・Semantic Spaceに質問する…"
+              placeholder="プロジェクトについて質問する…"
               style={{ flex:1, border:`1px solid ${C.border}`, borderRadius:8, padding:"8px 12px", fontSize:12, color:C.text, background:C.bgCard, outline:"none", fontFamily:"'Noto Sans JP',sans-serif" }}
               onFocus={e=>e.target.style.borderColor=C.strong} onBlur={e=>e.target.style.borderColor=C.border}/>
             <button onClick={handleSend} disabled={!query.trim()||loading}
