@@ -454,7 +454,7 @@ function OntologyGraph() {
       ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2);
       ctx.fillStyle=color+"22"; ctx.fill();
       ctx.strokeStyle=color; ctx.lineWidth=n.orbit===0?2.0:(isHov?1.8:0.9); ctx.stroke();
-      ctx.fillStyle=n.orbit===0?"#26215C":"#1a1833";
+      ctx.fillStyle="#26215C";
       ctx.textAlign="center"; ctx.textBaseline="middle";
       const label=n.label;
       if(label.length>5){
@@ -566,7 +566,7 @@ function OntologyGraph() {
 const DEFAULT_CHART = {
   nodes: [
     { id:"n1",  label:"プロジェクト\nオーナー",    row:0, col:4 },
-    { id:"n2",  label:"プロジェクト\nマネージャー",row:1, col:4 },
+    { id:"n2",  label:"PM",row:1, col:4 },
     { id:"n3",  label:"フロントエンド\nプロジェクト\nリーダー", row:2, col:2 },
     { id:"n4",  label:"バックエンド\nプロジェクト\nリーダー",  row:2, col:6 },
     { id:"n5",  label:"UI開発\nチームリーダー",    row:3, col:1 },
@@ -602,8 +602,8 @@ function StakeholderView() {
   // ── 初期データ ──
   const initNodes = () => [
     { id:"n1",  label:"プロジェクト\nオーナー",              row:0, col:4,  name:"", scope:"", note:"" },
-    { id:"n2",  label:"PM",                                   row:1, col:3,  name:"", scope:"", note:"" },
-    { id:"n3",  label:"PMO",                                  row:1, col:5,  name:"", scope:"", note:"" },
+    { id:"n2",  label:"PM",                                   row:1, col:4,  name:"", scope:"", note:"" },
+    { id:"n3",  label:"PMO",                                  row:1, col:7,  name:"", scope:"", note:"" },
     { id:"n4",  label:"フロントエンド\nリーダー",             row:2, col:2,  name:"", scope:"", note:"" },
     { id:"n5",  label:"バックエンド\nリーダー",               row:2, col:6,  name:"", scope:"", note:"" },
     { id:"n6",  label:"UI開発\nチームリーダー",               row:3, col:1,  name:"", scope:"", note:"" },
@@ -626,7 +626,7 @@ function StakeholderView() {
     { id:"n23", label:"PG",            row:5, col:7,  name:"", scope:"", note:"" },
   ];
   const initEdges = () => [
-    ["n1","n2"],["n1","n3"],
+    ["n1","n2"],["n2","n3"],
     ["n2","n4"],["n2","n5"],
     ["n4","n6"],["n4","n7"],["n4","n8"],
     ["n5","n9"],["n5","n10"],["n5","n11"],
@@ -829,10 +829,14 @@ function StakeholderView() {
               const a=nodes.find(n=>n.id===aId), b=nodes.find(n=>n.id===bId);
               if(!a||!b) return null;
               const pa=nodePos(a), pb=nodePos(b);
+              const sameRow = a.row === b.row;  // aとbはnodeオブジェクト
               const midY=(pa.y+BOX_H/2+pb.y-BOX_H/2)/2;
+              const pathD = sameRow
+                ? `M${pa.x+BOX_W/2},${pa.y} L${pb.x-BOX_W/2},${pb.y}`
+                : `M${pa.x},${pa.y+BOX_H/2} L${pa.x},${midY} L${pb.x},${midY} L${pb.x},${pb.y-BOX_H/2}`;
               return (
                 <g key={i} style={{cursor:"pointer"}} onClick={()=>editMode==="connect"&&toggleEdge(aId,bId)}>
-                  <path d={`M${pa.x},${pa.y+BOX_H/2} L${pa.x},${midY} L${pb.x},${midY} L${pb.x},${pb.y-BOX_H/2}`}
+                  <path d={pathD}
                     fill="none" stroke="#D8D5EE" strokeWidth={1} strokeLinecap="round"/>
                   {/* 削除ハンドル（接続編集モード時） */}
                   {editMode==="connect" && (
@@ -1266,7 +1270,7 @@ function GlossaryView() {
     return (
       <div style={rowBase}>
         <div style={{fontSize:14,fontWeight:600,color:C.text,lineHeight:1.5,paddingTop:1}}>{t.term}</div>
-        <div style={{fontSize:13,color:C.textMid,lineHeight:1.7}}>{t.def}</div>
+        <div style={{fontSize:11,color:C.textMid,lineHeight:1.7}}>{t.def}</div>
         <div style={{display:"flex",gap:6,justifyContent:"flex-end",paddingTop:2}}>
           <button onClick={()=>{setEditingId(t.id);setEditBuf({term:t.term,def:t.def});setAddingNew(false);}}
             style={{background:"none",border:"none",cursor:"pointer",color:C.textWeak,fontSize:13,padding:3}}>✎</button>
