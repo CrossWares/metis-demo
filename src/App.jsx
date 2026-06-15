@@ -7,7 +7,7 @@ const C = {
   human:    "#7B74D4",
   thing:    "#5DB99A",
   critical: "#8B3A5A",
-  bg:       "#EFEFF5",
+  bg:       "#EFEFEF",
   bgCard:   "#FFFFFF",
   border:   "#E8E6F4",
   text:     "#1A1833",
