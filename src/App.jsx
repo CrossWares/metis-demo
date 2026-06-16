@@ -1986,7 +1986,7 @@ function GhostPulse({ pulse, onDismiss, onExpand }) {
 
   return (
     <div style={{
-      position: "fixed", right: 16, zIndex: 300,
+      position: "relative", zIndex: 300,
       width: 300,
       background: C.bgCard,
       border: `1px solid ${s.color}30`,
@@ -2584,7 +2584,7 @@ export default function App() {
       <CreateProjectModal visible={createOpen} onClose={() => setCreateOpen(false)} onCreated={handleCreated} nextCode={nextCode} />
 
       {/* Ghost スライドイン通知スタック */}
-      <div style={{ position: "fixed", right: 16, bottom: 80, zIndex: 299, display: "flex", flexDirection: "column-reverse", gap: 10, pointerEvents: "none" }}>
+      <div style={{ position: "fixed", right: 16, bottom: 40, zIndex: 299, display: "flex", flexDirection: "column-reverse", gap: 10, pointerEvents: "none", maxHeight: "calc(100vh - 100px)", overflow: "visible" }}>
         {ghostPulses.map((pulse, i) => (
           <div key={pulse.id} style={{ pointerEvents: "auto", transform: `translateY(${i * -4}px)` }}>
             <GhostPulse
