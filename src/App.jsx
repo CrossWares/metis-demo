@@ -1942,7 +1942,105 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
   );
 }
 
-function GhostSearch({ project, visible, onClose, onApplyData }) {
+// ── Ghost 自動通知データ（プロジェクトごと）──
+const GHOST_PULSES = {
+  1: [
+    { id: 1, type: "semantic", text: "「完了」の定義がベンダーAと田中さんで異なっています", detail: "田中さん：コードマージ済み　／　ベンダーA：UAT承認・本番デプロイ完了", delay: 6000 },
+    { id: 2, type: "gravity",  text: "「承認」ノードへの依存が臨界点に近づいています", detail: "Coupling Score 5.0 — IT部長不在中のため連鎖リスクあり", delay: 22000 },
+    { id: 3, type: "drift",    text: "このペースでは完了予測が23日遅延します", detail: "現在の実績ライン vs 計画ラインの乖離が拡大中", delay: 40000 },
+  ],
+  2: [
+    { id: 4, type: "semantic", text: "「フェーズ完了」の定義が未登録です", detail: "Glossaryに登録することで認識ズレを防げます", delay: 8000 },
+  ],
+  3: [
+    { id: 5, type: "gravity",  text: "依存構造は健全です", detail: "全ノードのCoupling Scoreが基準値以下で推移しています", delay: 10000 },
+  ],
+};
+
+const PULSE_TYPE_STYLE = {
+  semantic: { color: C.strong,   bg: "#EEEDFB", icon: "◈", label: "意味の乖離" },
+  gravity:  { color: C.critical, bg: "#F9EEF3", icon: "⬡", label: "Gravity 警告" },
+  drift:    { color: C.human,    bg: "#EEEDFB", icon: "⟆", label: "Drift 検知" },
+};
+
+// ── Ghost スライドイン通知コンポーネント ──
+function GhostPulse({ pulse, onDismiss, onExpand }) {
+  const [visible, setVisible] = useState(false);
+  const [exiting, setExiting] = useState(false);
+  const s = PULSE_TYPE_STYLE[pulse.type];
+
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 50);
+    return () => clearTimeout(t);
+  }, []);
+
+  const dismiss = () => {
+    setExiting(true);
+    setTimeout(() => onDismiss(pulse.id), 550);
+  };
+
+  useEffect(() => {
+    const t = setTimeout(dismiss, 8000);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <div style={{
+      position: "fixed", right: 16, zIndex: 300,
+      width: 300,
+      background: C.bgCard,
+      border: `1px solid ${s.color}30`,
+      borderLeft: `3px solid ${s.color}`,
+      borderRadius: 10,
+      boxShadow: `0 8px 32px rgba(83,74,183,0.14), 0 1px 4px rgba(0,0,0,0.06)`,
+      padding: "10px 12px",
+      cursor: "pointer",
+      transform: exiting
+        ? "translateX(0) translateY(-18px)"
+        : visible
+          ? "translateX(0) translateY(0)"
+          : "translateX(330px) translateY(0)",
+      opacity: visible && !exiting ? 1 : 0,
+      filter: exiting ? "blur(3px)" : "blur(0px)",
+      transition: exiting
+        ? "transform 0.55s cubic-bezier(0.4,0,0.2,1), opacity 0.55s ease, filter 0.55s ease"
+        : "transform 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.32s ease",
+    }} onClick={() => { onExpand(pulse); dismiss(); }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+        <div style={{ position: "relative", flexShrink: 0, marginTop: 2 }}>
+          <div style={{ width: 7, height: 7, borderRadius: "50%", background: s.color,
+            boxShadow: `0 0 6px ${s.color}` }} />
+          <div style={{ position: "absolute", inset: -3, borderRadius: "50%",
+            border: `1px solid ${s.color}40`, animation: "ghostPing 2s ease-out infinite" }} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 3 }}>
+            <span style={{ fontSize: 9, fontWeight: 700, color: s.color, background: s.bg,
+              padding: "1px 6px", borderRadius: 3, fontFamily: "'DM Mono', monospace" }}>
+              Ghost　{s.icon}　{s.label}
+            </span>
+            <button onClick={e => { e.stopPropagation(); dismiss(); }}
+              style={{ background: "none", border: "none", color: C.textWeak, cursor: "pointer", fontSize: 14, lineHeight: 1, padding: "0 2px" }}>×</button>
+          </div>
+          <div style={{ fontSize: 11, color: C.text, fontWeight: 500, lineHeight: 1.5, marginBottom: 3 }}>{pulse.text}</div>
+          <div style={{ fontSize: 10, color: C.textWeak, lineHeight: 1.4 }}>{pulse.detail}</div>
+          <div style={{ fontSize: 9, color: C.textWeak, marginTop: 5, fontFamily: "'DM Mono', monospace" }}>
+            タップして詳細を確認
+          </div>
+        </div>
+      </div>
+      <style>{`
+        @keyframes ghostPing {
+          0%   { transform: scale(1);   opacity: 0.6; }
+          70%  { transform: scale(2.2); opacity: 0; }
+          100% { transform: scale(2.2); opacity: 0; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function GhostSearch({ project, visible, onClose, onApplyData, initialQuery }) {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -1956,6 +2054,10 @@ function GhostSearch({ project, visible, onClose, onApplyData }) {
     if (!visible) { setMessages([]); setQuery(""); setPendingAction(null); }
   }, [visible]);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  // Ghost通知からの展開時、初期クエリをセット
+  useEffect(() => {
+    if (visible && initialQuery) setQuery(initialQuery);
+  }, [visible, initialQuery]);
 
   const buildContext = (p) => `あなたはPMO Intelligence「Metis」のAIアシスタントです。以下のプロジェクトデータを参照して日本語・マークダウンなしで答えてください。
 ${p.code} ${p.name} / スコア${p.score}(S:${p.staticScore} D:${p.dynamicScore}) / ${p.status} / PM:${p.owner} / 残${p.daysLeft}日 / 進捗${p.progress}%
@@ -2142,8 +2244,29 @@ export default function App() {
   const [selectedTask, setSelectedTask] = useState(null); // タスク詳細パネル用
   const [taskEditBuf, setTaskEditBuf] = useState(null);
   const [ghostApplyTarget, setGhostApplyTarget] = useState(null); // {type, rows}
+  const [ghostPulses, setGhostPulses] = useState([]);   // 表示中の通知スタック
+  const [ghostContext, setGhostContext] = useState(null); // Ghost展開時の初期クエリ
+  const pulseTimers = useRef([]);
 
   useEffect(() => { const t = setInterval(() => setTime(new Date()), 1000); return () => clearInterval(t); }, []);
+
+  // プロジェクト切り替え時にGhostパルスをスケジュール
+  useEffect(() => {
+    pulseTimers.current.forEach(clearTimeout);
+    pulseTimers.current = [];
+    setGhostPulses([]);
+    const pulses = GHOST_PULSES[selected.id] || [];
+    pulses.forEach(pulse => {
+      const t = setTimeout(() => {
+        setGhostPulses(prev => {
+          if (prev.find(p => p.id === pulse.id)) return prev;
+          return [...prev, { ...pulse, stackIndex: prev.length }];
+        });
+      }, pulse.delay);
+      pulseTimers.current.push(t);
+    });
+    return () => pulseTimers.current.forEach(clearTimeout);
+  }, [selected.id]);
   useEffect(() => {
     const h = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); setGhostOpen(v => !v); }
@@ -2457,8 +2580,24 @@ export default function App() {
         <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>Metis　alpha　v0.2.0</span>
       </div>
 
-      <GhostSearch project={selected} visible={ghostOpen} onClose={() => setGhostOpen(false)} onApplyData={(type, rows) => { setGhostApplyTarget({ type, rows }); if(type === "stakeholders") setActiveNavTab("Stakeholders"); }} />
+      <GhostSearch project={selected} visible={ghostOpen} onClose={() => { setGhostOpen(false); setGhostContext(null); }} onApplyData={(type, rows) => { setGhostApplyTarget({ type, rows }); if(type === "stakeholders") setActiveNavTab("Stakeholders"); }} initialQuery={ghostContext} />
       <CreateProjectModal visible={createOpen} onClose={() => setCreateOpen(false)} onCreated={handleCreated} nextCode={nextCode} />
+
+      {/* Ghost スライドイン通知スタック */}
+      <div style={{ position: "fixed", right: 16, bottom: 80, zIndex: 299, display: "flex", flexDirection: "column-reverse", gap: 10, pointerEvents: "none" }}>
+        {ghostPulses.map((pulse, i) => (
+          <div key={pulse.id} style={{ pointerEvents: "auto", transform: `translateY(${i * -4}px)` }}>
+            <GhostPulse
+              pulse={pulse}
+              onDismiss={id => setGhostPulses(prev => prev.filter(p => p.id !== id))}
+              onExpand={pulse => {
+                setGhostContext(pulse.text);
+                setGhostOpen(true);
+              }}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
