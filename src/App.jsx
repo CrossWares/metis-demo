@@ -2059,7 +2059,8 @@ function GhostSearch({ project, visible, onClose, onApplyData, initialQuery }) {
     if (visible && initialQuery) setQuery(initialQuery);
   }, [visible, initialQuery]);
 
-  const buildContext = (p) => `あなたはPMO Intelligence「Metis」のAIアシスタントです。以下のプロジェクトデータを参照して日本語・マークダウンなしで答えてください。
+  const buildContext = (p) => `あなたはPMO Intelligence「Metis」のAIアシスタントです。以下のプロジェクトデータを参照して日本語で答えてください。
+読みやすさのため、2〜3文ごとに必ず改行（空行）を入れて段落分けしてください。一つの段落に詰め込みすぎず、要因が複数ある場合は段落ごとに分けて説明してください。マークダウンの見出しや装飾記号（#や**など）は使わないでください。
 ${p.code} ${p.name} / スコア${p.score}(S:${p.staticScore} D:${p.dynamicScore}) / ${p.status} / PM:${p.owner} / 残${p.daysLeft}日 / 進捗${p.progress}%
 Static: schedule${p.static.schedule} tasks${p.static.tasks} risk${p.static.risk}
 Dynamic: stakeholder${p.dynamic.stakeholder} team${p.dynamic.team} decision${p.dynamic.decision}
@@ -2126,6 +2127,7 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
   const handleSend = async () => {
     if (!query.trim() || loading) return;
     const q = query; setMessages(prev => [...prev, { role:"user", text:q }]); setQuery(""); setLoading(true);
+    if (inputRef.current) inputRef.current.style.height = "auto";
 
     // ストリーミング用の空アシスタントメッセージを先に追加
     const streamId = Date.now();
@@ -2229,7 +2231,7 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
             );
             return (
               <div key={i} style={{ display:"flex", justifyContent:m.role==="user"?"flex-end":"flex-start" }}>
-                <div style={{ maxWidth:"82%", padding:"8px 12px", borderRadius:m.role==="user"?"10px 10px 2px 10px":"10px 10px 10px 2px", background:m.role==="user"?C.strong:C.bgCard, color:m.role==="user"?"#fff":C.text, fontSize:12, lineHeight:1.65, border:m.role==="user"?"none":`1px solid ${C.border}` }}>
+                <div style={{ maxWidth:"82%", padding:"8px 12px", borderRadius:m.role==="user"?"10px 10px 2px 10px":"10px 10px 10px 2px", background:m.role==="user"?C.strong:C.bgCard, color:m.role==="user"?"#fff":C.text, fontSize:12, lineHeight:1.65, border:m.role==="user"?"none":`1px solid ${C.border}`, whiteSpace:"pre-wrap" }}>
                   {m.streaming && !m.text ? (
                     <span style={{ display:"flex", gap:4, padding:"2px 0" }}>{[0,1,2].map(d=><span key={d} style={{ width:5, height:5, borderRadius:"50%", background:C.mid, display:"inline-block", animation:`pulse 1.2s ease-in-out ${d*0.2}s infinite` }}/>)}</span>
                   ) : (
@@ -2257,11 +2259,13 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
               📎
               <input type="file" accept=".csv,.txt" style={{ display:"none" }} onChange={e=>handleFile(e.target.files[0])}/>
             </label>
-            <input ref={inputRef} value={query} onChange={e=>setQuery(e.target.value)}
+            <textarea ref={inputRef} value={query} onChange={e=>setQuery(e.target.value)}
               onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();handleSend();} }}
-              placeholder="プロジェクトについて質問する…"
-              style={{ flex:1, border:`1px solid ${C.border}`, borderRadius:8, padding:"8px 12px", fontSize:12, color:C.text, background:C.bgCard, outline:"none", fontFamily:"'Noto Sans JP',sans-serif" }}
-              onFocus={e=>e.target.style.borderColor=C.strong} onBlur={e=>e.target.style.borderColor=C.border}/>
+              placeholder="プロジェクトについて質問する…（Shift+Enterで改行）"
+              rows={1}
+              style={{ flex:1, border:`1px solid ${C.border}`, borderRadius:8, padding:"8px 12px", fontSize:12, color:C.text, background:C.bgCard, outline:"none", fontFamily:"'Noto Sans JP',sans-serif", resize:"none", lineHeight:1.5, maxHeight:120, overflowY:"auto" }}
+              onFocus={e=>e.target.style.borderColor=C.strong} onBlur={e=>e.target.style.borderColor=C.border}
+              onInput={e=>{ e.target.style.height="auto"; e.target.style.height=Math.min(e.target.scrollHeight,120)+"px"; }}/>
             <button onClick={handleSend} disabled={!query.trim()||loading}
               style={{ width:34, height:34, borderRadius:8, border:"none", background:query.trim()&&!loading?C.strong:C.border, cursor:query.trim()&&!loading?"pointer":"default", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M8 2l5 5-5 5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
