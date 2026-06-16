@@ -2126,14 +2126,48 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
   const handleSend = async () => {
     if (!query.trim() || loading) return;
     const q = query; setMessages(prev => [...prev, { role:"user", text:q }]); setQuery(""); setLoading(true);
+
+    // ストリーミング用の空アシスタントメッセージを先に追加
+    const streamId = Date.now();
+    setMessages(prev => [...prev, { role:"assistant", text:"", streaming:true, id:streamId }]);
+
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", { method:"POST", headers:{"Content-Type":"application/json", "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true"},
-        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000, system:buildContext(project),
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000, system:buildContext(project), stream:true,
           messages:[...messages.filter(m=>m.role==="user"||m.role==="assistant").map(m=>({ role:m.role==="user"?"user":"assistant", content:m.text })), { role:"user", content:q }] }) });
-      const data = await res.json();
-      setMessages(prev=>[...prev, { role:"assistant", text:data.content?.[0]?.text || "エラーが発生しました。" }]);
-    } catch { setMessages(prev=>[...prev, { role:"assistant", text:"エラーが発生しました。" }]); }
-    finally { setLoading(false); }
+
+      if (!res.body) throw new Error("no stream");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let fullText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop(); // 不完全な行は次回に回す
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const payload = line.slice(6);
+          if (payload === "[DONE]") continue;
+          try {
+            const evt = JSON.parse(payload);
+            if (evt.type === "content_block_delta" && evt.delta?.text) {
+              fullText += evt.delta.text;
+              setMessages(prev => prev.map(m => m.id === streamId ? { ...m, text: fullText } : m));
+            }
+          } catch {}
+        }
+      }
+      setMessages(prev => prev.map(m => m.id === streamId ? { ...m, streaming:false } : m));
+      if (!fullText) {
+        setMessages(prev => prev.map(m => m.id === streamId ? { ...m, text:"エラーが発生しました。", streaming:false } : m));
+      }
+    } catch {
+      setMessages(prev => prev.map(m => m.id === streamId ? { ...m, text:"エラーが発生しました。", streaming:false } : m));
+    } finally { setLoading(false); }
   };
 
   if (!visible) return null;
@@ -2195,11 +2229,19 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
             );
             return (
               <div key={i} style={{ display:"flex", justifyContent:m.role==="user"?"flex-end":"flex-start" }}>
-                <div style={{ maxWidth:"82%", padding:"8px 12px", borderRadius:m.role==="user"?"10px 10px 2px 10px":"10px 10px 10px 2px", background:m.role==="user"?C.strong:C.bgCard, color:m.role==="user"?"#fff":C.text, fontSize:12, lineHeight:1.65, border:m.role==="user"?"none":`1px solid ${C.border}` }}>{m.text}</div>
+                <div style={{ maxWidth:"82%", padding:"8px 12px", borderRadius:m.role==="user"?"10px 10px 2px 10px":"10px 10px 10px 2px", background:m.role==="user"?C.strong:C.bgCard, color:m.role==="user"?"#fff":C.text, fontSize:12, lineHeight:1.65, border:m.role==="user"?"none":`1px solid ${C.border}` }}>
+                  {m.streaming && !m.text ? (
+                    <span style={{ display:"flex", gap:4, padding:"2px 0" }}>{[0,1,2].map(d=><span key={d} style={{ width:5, height:5, borderRadius:"50%", background:C.mid, display:"inline-block", animation:`pulse 1.2s ease-in-out ${d*0.2}s infinite` }}/>)}</span>
+                  ) : (
+                    <>
+                      {m.text}
+                      {m.streaming && <span style={{ display:"inline-block", width:2, height:12, background:C.strong, marginLeft:2, verticalAlign:"middle", animation:"blink 0.9s step-end infinite" }} />}
+                    </>
+                  )}
+                </div>
               </div>
             );
           })}
-          {loading && <div style={{ display:"flex", gap:4, padding:"8px 12px" }}>{[0,1,2].map(i=><div key={i} style={{ width:5, height:5, borderRadius:"50%", background:C.mid, animation:`pulse 1.2s ease-in-out ${i*0.2}s infinite` }}/>)}</div>}
           <div ref={bottomRef} />
         </div>
 
@@ -2226,7 +2268,7 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
             </button>
           </div>
         </div>
-        <style>{`@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}`}</style>
+        <style>{`@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}} @keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}`}</style>
       </div>
     </>
   );
