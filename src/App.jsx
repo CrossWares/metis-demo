@@ -1823,7 +1823,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
       const text = await file.text();
       const snippet = text.slice(0, 4000);
       const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json", "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000,
           system: `プロジェクト情報を以下のJSON形式で抽出。見つからない項目は空文字。JSONのみ返す。{"name":"","due":"","scope":"","assumption":"","success":"","owner":"","stakeholders":"","approver":"","team":"","risks":""}`,
           messages: [{ role: "user", content: `以下のファイルからプロジェクト情報を抽出:\n\n${snippet}` }] }),
@@ -2079,7 +2079,7 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
     setLoading(true);
 
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", { method:"POST", headers:{"Content-Type":"application/json"},
+      const res = await fetch("https://api.anthropic.com/v1/messages", { method:"POST", headers:{"Content-Type":"application/json", "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true"},
         body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000,
           system:`あなたはCSVファイルの用途を判定するAIです。ヘッダー情報からファイルの種類を判定し、必ずJSONのみで返してください。
 判定結果は以下のいずれか: "schedule"（WBS・ガントチャート・スケジュール）, "stakeholders"（体制図・組織図・役割一覧）, "unknown"（判定不能）
@@ -2127,7 +2127,7 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
     if (!query.trim() || loading) return;
     const q = query; setMessages(prev => [...prev, { role:"user", text:q }]); setQuery(""); setLoading(true);
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", { method:"POST", headers:{"Content-Type":"application/json"},
+      const res = await fetch("https://api.anthropic.com/v1/messages", { method:"POST", headers:{"Content-Type":"application/json", "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true"},
         body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000, system:buildContext(project),
           messages:[...messages.filter(m=>m.role==="user"||m.role==="assistant").map(m=>({ role:m.role==="user"?"user":"assistant", content:m.text })), { role:"user", content:q }] }) });
       const data = await res.json();
