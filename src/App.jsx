@@ -4,10 +4,10 @@ const C = {
   strong:   "#534AB7",
   mid:      "#AFA9EC",
   weak:     "#C8EDE3",
-  human:    "#7B74D4",
-  thing:    "#5DB99A",
+  human:    "#5DB99A",
+  thing:    "#6C5CE7",
   critical: "#8B3A5A",
-  bg:       "#EFEFEF",
+  bg:       "#EFEFF5",
   bgCard:   "#FFFFFF",
   border:   "#E8E6F4",
   text:     "#1A1833",
@@ -22,13 +22,6 @@ const INITIAL_PROJECTS = [
     score: 42, staticScore: 35, dynamicScore: 49, status: "critical",
     owner: "田中 誠", due: "2025-08-31", daysLeft: 113, progress: 38, team: 14,
     trend: [68, 65, 61, 58, 54, 50, 46, 42],
-    tasks: [
-      { id:"t1", name:"要件定義", assignee:"田中 誠",   start:"2025-02-01", end:"2025-03-31", progress:100, status:"done" },
-      { id:"t2", name:"基本設計", assignee:"田中 誠",   start:"2025-03-15", end:"2025-04-30", progress:100, status:"done" },
-      { id:"t3", name:"製造",     assignee:"ベンダーA", start:"2025-05-01", end:"2025-07-31", progress:42,  status:"delay" },
-      { id:"t4", name:"テスト",   assignee:"田中 誠",   start:"2025-07-15", end:"2025-08-20", progress:0,   status:"pending" },
-      { id:"t5", name:"リリース", assignee:"田中 誠",   start:"2025-08-31", end:"2025-08-31", progress:0,   status:"pending" },
-    ],
     static:  { schedule: 35, tasks: 40, risk: 28 },
     dynamic: { stakeholder: 55, team: 50, decision: 42 },
     alerts: [
@@ -52,40 +45,20 @@ const INITIAL_PROJECTS = [
     ],
     gravity: {
       nodes: [
-        { id:"プロジェクト", coupling:4.1, depStr:3.3, changeProb:55, commFreq:56, orbit:0, type:"concept" },
-        { id:"PM", coupling:3.1, depStr:2.9, changeProb:31, commFreq:79, orbit:1, type:"human" },
-        { id:"リスク管理", coupling:2.6, depStr:2.1, changeProb:49, commFreq:89, orbit:1, type:"concept" },
-        { id:"フェーズ", coupling:4.0, depStr:3.6, changeProb:73, commFreq:53, orbit:1, type:"concept" },
-        { id:"PMO", coupling:3.6, depStr:3.1, changeProb:20, commFreq:45, orbit:2, type:"human" },
-        { id:"完了定義", coupling:4.2, depStr:3.6, changeProb:39, commFreq:52, orbit:2, type:"concept" },
-        { id:"課題対応", coupling:4.9, depStr:4.2, changeProb:31, commFreq:73, orbit:2, type:"signal" },
-        { id:"意味共有", coupling:2.7, depStr:2.6, changeProb:53, commFreq:30, orbit:2, type:"concept" },
-        { id:"情報ハブ", coupling:4.3, depStr:3.9, changeProb:68, commFreq:35, orbit:3, type:"human" },
-        { id:"ステークホルダー", coupling:3.9, depStr:3.8, changeProb:66, commFreq:49, orbit:3, type:"human" },
-        { id:"暗黙知", coupling:4.3, depStr:3.5, changeProb:49, commFreq:62, orbit:3, type:"concept" },
-        { id:"シグナル", coupling:5.0, depStr:4.9, changeProb:32, commFreq:73, orbit:3, type:"signal" },
-        { id:"承認フロー", coupling:3.2, depStr:3.0, changeProb:66, commFreq:45, orbit:3, type:"proc" },
-        { id:"キーマン", coupling:3.4, depStr:2.9, changeProb:54, commFreq:34, orbit:4, type:"human" },
-        { id:"ベンダー", coupling:4.0, depStr:3.3, changeProb:51, commFreq:45, orbit:4, type:"org" },
-        { id:"組織文化", coupling:3.7, depStr:3.2, changeProb:48, commFreq:66, orbit:4, type:"org" },
-        { id:"WBS", coupling:4.6, depStr:4.4, changeProb:49, commFreq:29, orbit:4, type:"proc" },
-        { id:"変更管理", coupling:4.5, depStr:4.0, changeProb:28, commFreq:52, orbit:4, type:"proc" },
-        { id:"形式知", coupling:4.8, depStr:4.4, changeProb:60, commFreq:52, orbit:4, type:"concept" },
-        { id:"外部知見", coupling:4.1, depStr:3.6, changeProb:78, commFreq:43, orbit:5, type:"human" },
-        { id:"クライアント", coupling:3.2, depStr:2.7, changeProb:53, commFreq:79, orbit:5, type:"org" },
-        { id:"ベンダ体制", coupling:4.7, depStr:4.1, changeProb:48, commFreq:42, orbit:5, type:"org" },
-        { id:"エスカレーション", coupling:3.8, depStr:3.1, changeProb:26, commFreq:39, orbit:5, type:"proc" },
-        { id:"報告", coupling:2.9, depStr:2.4, changeProb:74, commFreq:33, orbit:5, type:"proc" },
-        { id:"会議", coupling:3.5, depStr:3.2, changeProb:79, commFreq:92, orbit:5, type:"proc" },
-        { id:"レポートライン", coupling:3.1, depStr:2.8, changeProb:21, commFreq:39, orbit:5, type:"proc" },
-        { id:"スコープクリープ", coupling:4.2, depStr:3.8, changeProb:54, commFreq:68, orbit:5, type:"signal" },
-        { id:"工程未完了", coupling:2.8, depStr:2.5, changeProb:78, commFreq:25, orbit:5, type:"signal" },
+        { id: "承認",      coupling: 5.0, depStr: 4.8, changeProb: 72, commFreq: 88, x: 150, y: 70,  r: 28, type: "D" },
+        { id: "PM/PMO",   coupling: 4.6, depStr: 4.5, changeProb: 55, commFreq: 95, x: 58,  y: 145, r: 24, type: "D" },
+        { id: "スケジュール", coupling: 4.2, depStr: 4.0, changeProb: 60, commFreq: 70, x: 242, y: 145, r: 21, type: "S" },
+        { id: "前提条件",  coupling: 3.5, depStr: 3.8, changeProb: 48, commFreq: 52, x: 98,  y: 215, r: 17, type: "S" },
+        { id: "リスク",   coupling: 3.2, depStr: 3.0, changeProb: 65, commFreq: 60, x: 202, y: 215, r: 16, type: "S" },
+        { id: "WBS",      coupling: 2.8, depStr: 2.5, changeProb: 40, commFreq: 45, x: 52,  y: 50,  r: 14, type: "S" },
+        { id: "SHマップ",  coupling: 2.4, depStr: 2.2, changeProb: 35, commFreq: 38, x: 258, y: 50,  r: 12, type: "D" },
+        { id: "要件",     coupling: 2.0, depStr: 2.0, changeProb: 50, commFreq: 30, x: 150, y: 172, r: 11, type: "S" },
       ],
       edges: [
-        { s:0,t:1,w:3.1 },{ s:0,t:2,w:2.6 },{ s:0,t:3,w:4.0 },{ s:0,t:6,w:4.9 },
-        { s:1,t:4,w:3.6 },{ s:1,t:8,w:4.3 },{ s:1,t:12,w:3.2 },
-        { s:4,t:9,w:3.9 },{ s:6,t:11,w:5.0 },{ s:6,t:25,w:2.9 },
-        { s:11,t:23,w:2.9 },{ s:11,t:24,w:3.5 },{ s:16,t:17,w:4.5 },{ s:18,t:7,w:2.7 },
+        { s: 0, t: 1, w: 4.8 }, { s: 0, t: 2, w: 4.0 }, { s: 0, t: 4, w: 3.2 },
+        { s: 1, t: 3, w: 3.8 }, { s: 1, t: 5, w: 2.5 }, { s: 1, t: 7, w: 2.0 },
+        { s: 2, t: 4, w: 3.0 }, { s: 2, t: 6, w: 2.2 }, { s: 3, t: 7, w: 2.0 },
+        { s: 5, t: 7, w: 1.8 },
       ],
       drift: {
         labels: ["W1","W2","W3","W4","W5","W6","W7","W8","W9","W10"],
@@ -99,13 +72,6 @@ const INITIAL_PROJECTS = [
     score: 71, staticScore: 72, dynamicScore: 70, status: "warn",
     owner: "佐藤 麻衣", due: "2025-11-30", daysLeft: 204, progress: 52, team: 8,
     trend: [68, 70, 69, 72, 71, 73, 71, 71],
-    tasks: [
-      { id:"t1", name:"要件定義", assignee:"佐藤 麻衣", start:"2025-03-01", end:"2025-04-30", progress:100, status:"done" },
-      { id:"t2", name:"基本設計", assignee:"佐藤 麻衣", start:"2025-04-15", end:"2025-05-31", progress:100, status:"done" },
-      { id:"t3", name:"製造",     assignee:"ベンダーC", start:"2025-06-01", end:"2025-09-30", progress:25,  status:"active" },
-      { id:"t4", name:"テスト",   assignee:"佐藤 麻衣", start:"2025-09-01", end:"2025-10-31", progress:0,   status:"pending" },
-      { id:"t5", name:"リリース", assignee:"佐藤 麻衣", start:"2025-11-30", end:"2025-11-30", progress:0,   status:"pending" },
-    ],
     static:  { schedule: 72, tasks: 75, risk: 65 },
     dynamic: { stakeholder: 80, team: 68, decision: 62 },
     alerts: [
@@ -123,39 +89,19 @@ const INITIAL_PROJECTS = [
     ],
     gravity: {
       nodes: [
-        { id:"プロジェクト", coupling:2.4, depStr:2.2, changeProb:21, commFreq:58, orbit:0, type:"concept" },
-        { id:"PM", coupling:3.8, depStr:3.7, changeProb:45, commFreq:58, orbit:1, type:"human" },
-        { id:"リスク管理", coupling:2.0, depStr:1.8, changeProb:44, commFreq:89, orbit:1, type:"concept" },
-        { id:"フェーズ", coupling:1.8, depStr:1.7, changeProb:66, commFreq:83, orbit:1, type:"concept" },
-        { id:"PMO", coupling:3.3, depStr:2.9, changeProb:41, commFreq:29, orbit:2, type:"human" },
-        { id:"完了定義", coupling:2.5, depStr:2.0, changeProb:44, commFreq:44, orbit:2, type:"concept" },
-        { id:"課題対応", coupling:2.4, depStr:2.3, changeProb:77, commFreq:37, orbit:2, type:"signal" },
-        { id:"意味共有", coupling:3.8, depStr:3.5, changeProb:51, commFreq:43, orbit:2, type:"concept" },
-        { id:"情報ハブ", coupling:2.1, depStr:2.0, changeProb:85, commFreq:70, orbit:3, type:"human" },
-        { id:"ステークホルダー", coupling:2.4, depStr:1.9, changeProb:64, commFreq:51, orbit:3, type:"human" },
-        { id:"暗黙知", coupling:2.6, depStr:2.1, changeProb:51, commFreq:37, orbit:3, type:"concept" },
-        { id:"シグナル", coupling:2.4, depStr:2.1, changeProb:83, commFreq:70, orbit:3, type:"signal" },
-        { id:"承認フロー", coupling:2.4, depStr:2.0, changeProb:58, commFreq:52, orbit:3, type:"proc" },
-        { id:"キーマン", coupling:2.1, depStr:1.9, changeProb:61, commFreq:58, orbit:4, type:"human" },
-        { id:"ベンダー", coupling:2.0, depStr:1.9, changeProb:53, commFreq:28, orbit:4, type:"org" },
-        { id:"組織文化", coupling:1.9, depStr:1.6, changeProb:80, commFreq:66, orbit:4, type:"org" },
-        { id:"WBS", coupling:3.2, depStr:2.9, changeProb:84, commFreq:64, orbit:4, type:"proc" },
-        { id:"変更管理", coupling:3.7, depStr:3.2, changeProb:38, commFreq:31, orbit:4, type:"proc" },
-        { id:"形式知", coupling:2.8, depStr:2.5, changeProb:36, commFreq:36, orbit:4, type:"concept" },
-        { id:"外部知見", coupling:2.2, depStr:2.0, changeProb:55, commFreq:84, orbit:5, type:"human" },
-        { id:"クライアント", coupling:2.7, depStr:2.3, changeProb:68, commFreq:93, orbit:5, type:"org" },
-        { id:"ベンダ体制", coupling:3.2, depStr:3.0, changeProb:83, commFreq:25, orbit:5, type:"org" },
-        { id:"エスカレーション", coupling:3.7, depStr:3.3, changeProb:78, commFreq:63, orbit:5, type:"proc" },
-        { id:"報告", coupling:3.1, depStr:2.8, changeProb:57, commFreq:26, orbit:5, type:"proc" },
-        { id:"会議", coupling:1.9, depStr:1.7, changeProb:61, commFreq:56, orbit:5, type:"proc" },
-        { id:"レポートライン", coupling:2.5, depStr:2.4, changeProb:39, commFreq:82, orbit:5, type:"proc" },
-        { id:"スコープクリープ", coupling:3.2, depStr:2.9, changeProb:64, commFreq:86, orbit:5, type:"signal" },
-        { id:"工程未完了", coupling:1.9, depStr:1.7, changeProb:56, commFreq:64, orbit:5, type:"signal" },
+        { id: "承認",     coupling: 3.8, depStr: 3.5, changeProb: 45, commFreq: 60, x: 150, y: 70,  r: 22, type: "D" },
+        { id: "PM/PMO",  coupling: 3.5, depStr: 3.2, changeProb: 40, commFreq: 75, x: 65,  y: 145, r: 20, type: "D" },
+        { id: "スケジュール",coupling: 3.2, depStr: 3.0, changeProb: 50, commFreq: 55, x: 235, y: 145, r: 18, type: "S" },
+        { id: "要件",    coupling: 2.8, depStr: 2.5, changeProb: 60, commFreq: 40, x: 150, y: 165, r: 15, type: "S" },
+        { id: "API連携", coupling: 2.5, depStr: 2.8, changeProb: 70, commFreq: 35, x: 95,  y: 210, r: 14, type: "S" },
+        { id: "WBS",     coupling: 2.2, depStr: 2.0, changeProb: 35, commFreq: 40, x: 205, y: 210, r: 13, type: "S" },
+        { id: "SHマップ", coupling: 1.8, depStr: 1.5, changeProb: 30, commFreq: 30, x: 258, y: 55,  r: 11, type: "D" },
       ],
       edges: [
-        { s:0,t:1,w:3.8 },{ s:0,t:2,w:2.0 },{ s:1,t:4,w:3.3 },{ s:1,t:12,w:2.4 },
-        { s:4,t:9,w:2.4 },{ s:6,t:11,w:2.4 },{ s:7,t:10,w:2.6 },
-        { s:16,t:17,w:3.7 },{ s:17,t:21,w:3.2 },{ s:22,t:23,w:3.1 },
+        { s: 0, t: 1, w: 3.5 }, { s: 0, t: 2, w: 3.0 },
+        { s: 1, t: 4, w: 2.8 }, { s: 1, t: 3, w: 2.5 },
+        { s: 2, t: 5, w: 2.0 }, { s: 3, t: 4, w: 2.2 },
+        { s: 2, t: 6, w: 1.5 },
       ],
       drift: {
         labels: ["W1","W2","W3","W4","W5","W6","W7","W8"],
@@ -169,13 +115,6 @@ const INITIAL_PROJECTS = [
     score: 88, staticScore: 90, dynamicScore: 86, status: "healthy",
     owner: "木村 隆", due: "2025-07-15", daysLeft: 66, progress: 78, team: 5,
     trend: [78, 80, 82, 83, 85, 86, 88, 88],
-    tasks: [
-      { id:"t1", name:"要件定義", assignee:"木村 隆", start:"2025-01-15", end:"2025-02-28", progress:100, status:"done" },
-      { id:"t2", name:"基本設計", assignee:"木村 隆", start:"2025-03-01", end:"2025-03-31", progress:100, status:"done" },
-      { id:"t3", name:"製造",     assignee:"木村 隆", start:"2025-04-01", end:"2025-06-15", progress:97,  status:"active" },
-      { id:"t4", name:"テスト",   assignee:"HR部長",  start:"2025-06-15", end:"2025-07-05", progress:20,  status:"active" },
-      { id:"t5", name:"リリース", assignee:"木村 隆", start:"2025-07-15", end:"2025-07-15", progress:0,   status:"pending" },
-    ],
     static:  { schedule: 90, tasks: 92, risk: 88 },
     dynamic: { stakeholder: 92, team: 86, decision: 80 },
     alerts: [{ level: "info", axis: "S", text: "UAT開始まで10日・テストシナリオ最終確認推奨" }],
@@ -190,39 +129,17 @@ const INITIAL_PROJECTS = [
     ],
     gravity: {
       nodes: [
-        { id:"プロジェクト", coupling:1.7, depStr:1.4, changeProb:43, commFreq:26, orbit:0, type:"concept" },
-        { id:"PM", coupling:1.9, depStr:1.8, changeProb:63, commFreq:84, orbit:1, type:"human" },
-        { id:"リスク管理", coupling:1.2, depStr:1.2, changeProb:35, commFreq:42, orbit:1, type:"concept" },
-        { id:"フェーズ", coupling:2.1, depStr:1.9, changeProb:61, commFreq:80, orbit:1, type:"concept" },
-        { id:"PMO", coupling:1.3, depStr:1.1, changeProb:79, commFreq:68, orbit:2, type:"human" },
-        { id:"完了定義", coupling:1.1, depStr:1.1, changeProb:51, commFreq:81, orbit:2, type:"concept" },
-        { id:"課題対応", coupling:2.6, depStr:2.2, changeProb:21, commFreq:55, orbit:2, type:"signal" },
-        { id:"意味共有", coupling:2.8, depStr:2.6, changeProb:78, commFreq:92, orbit:2, type:"concept" },
-        { id:"情報ハブ", coupling:1.0, depStr:0.9, changeProb:68, commFreq:90, orbit:3, type:"human" },
-        { id:"ステークホルダー", coupling:1.7, depStr:1.5, changeProb:82, commFreq:43, orbit:3, type:"human" },
-        { id:"暗黙知", coupling:1.7, depStr:1.4, changeProb:74, commFreq:64, orbit:3, type:"concept" },
-        { id:"シグナル", coupling:2.3, depStr:2.1, changeProb:37, commFreq:38, orbit:3, type:"signal" },
-        { id:"承認フロー", coupling:2.0, depStr:1.6, changeProb:56, commFreq:68, orbit:3, type:"proc" },
-        { id:"キーマン", coupling:2.3, depStr:2.3, changeProb:66, commFreq:90, orbit:4, type:"human" },
-        { id:"ベンダー", coupling:1.0, depStr:0.9, changeProb:65, commFreq:66, orbit:4, type:"org" },
-        { id:"組織文化", coupling:2.1, depStr:1.9, changeProb:40, commFreq:69, orbit:4, type:"org" },
-        { id:"WBS", coupling:1.6, depStr:1.4, changeProb:62, commFreq:77, orbit:4, type:"proc" },
-        { id:"変更管理", coupling:1.9, depStr:1.8, changeProb:75, commFreq:53, orbit:4, type:"proc" },
-        { id:"形式知", coupling:2.7, depStr:2.6, changeProb:24, commFreq:31, orbit:4, type:"concept" },
-        { id:"外部知見", coupling:1.6, depStr:1.4, changeProb:77, commFreq:61, orbit:5, type:"human" },
-        { id:"クライアント", coupling:1.1, depStr:0.9, changeProb:59, commFreq:43, orbit:5, type:"org" },
-        { id:"ベンダ体制", coupling:1.1, depStr:1.0, changeProb:45, commFreq:53, orbit:5, type:"org" },
-        { id:"エスカレーション", coupling:2.3, depStr:2.0, changeProb:80, commFreq:42, orbit:5, type:"proc" },
-        { id:"報告", coupling:2.2, depStr:1.8, changeProb:85, commFreq:42, orbit:5, type:"proc" },
-        { id:"会議", coupling:2.3, depStr:2.2, changeProb:81, commFreq:63, orbit:5, type:"proc" },
-        { id:"レポートライン", coupling:2.2, depStr:2.0, changeProb:31, commFreq:61, orbit:5, type:"proc" },
-        { id:"スコープクリープ", coupling:2.0, depStr:1.8, changeProb:76, commFreq:49, orbit:5, type:"signal" },
-        { id:"工程未完了", coupling:1.5, depStr:1.2, changeProb:61, commFreq:46, orbit:5, type:"signal" },
+        { id: "承認",    coupling: 2.8, depStr: 2.5, changeProb: 25, commFreq: 50, x: 150, y: 70,  r: 18, type: "D" },
+        { id: "PM/PMO", coupling: 2.5, depStr: 2.2, changeProb: 20, commFreq: 60, x: 70,  y: 140, r: 16, type: "D" },
+        { id: "UAT",    coupling: 2.2, depStr: 2.0, changeProb: 30, commFreq: 45, x: 230, y: 140, r: 14, type: "S" },
+        { id: "要件",   coupling: 1.8, depStr: 1.5, changeProb: 20, commFreq: 30, x: 150, y: 165, r: 12, type: "S" },
+        { id: "WBS",    coupling: 1.5, depStr: 1.2, changeProb: 15, commFreq: 25, x: 95,  y: 205, r: 10, type: "S" },
+        { id: "SHマップ",coupling: 1.2, depStr: 1.0, changeProb: 10, commFreq: 20, x: 205, y: 205, r: 9,  type: "D" },
       ],
       edges: [
-        { s:0,t:1,w:1.9 },{ s:0,t:3,w:2.1 },{ s:1,t:4,w:1.3 },{ s:1,t:12,w:2.0 },
-        { s:6,t:11,w:2.3 },{ s:7,t:10,w:1.7 },{ s:12,t:5,w:1.1 },
-        { s:16,t:17,w:1.9 },{ s:18,t:7,w:2.8 },
+        { s: 0, t: 1, w: 2.5 }, { s: 0, t: 2, w: 2.0 },
+        { s: 1, t: 4, w: 1.5 }, { s: 2, t: 3, w: 1.8 },
+        { s: 3, t: 4, w: 1.2 }, { s: 0, t: 5, w: 1.0 },
       ],
       drift: {
         labels: ["W1","W2","W3","W4","W5","W6","W7","W8"],
@@ -239,8 +156,8 @@ const STATUS = {
   healthy:  { label: "健全",   color: C.thing,    bg: "#EAF8F3", border: "#A8DECE" },
 };
 const AXIS = {
-  S: { label: "Static",  color: C.thing, bg: "#EAF8F3" },
-  D: { label: "Dynamic", color: C.human, bg: "#EEEDFB" },
+  S: { label: "Static",  color: C.thing, bg: "#EEEDFB" },
+  D: { label: "Dynamic", color: C.human, bg: "#EAF8F3" },
 };
 
 function Sparkline({ data, color, w = 80, h = 28 }) {
@@ -295,7 +212,7 @@ function AxisBlock({ axis, scores, items }) {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
             <div style={{ width: 3, height: 14, background: ax.color, borderRadius: 2 }} />
-            <span style={{ fontSize: 10, fontWeight: 700, color: ax.color, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: ax.color, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>
               {axis === "S" ? "STATIC AXIS" : "DYNAMIC AXIS"}
             </span>
           </div>
@@ -454,7 +371,7 @@ function OntologyGraph() {
       ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2);
       ctx.fillStyle=color+"22"; ctx.fill();
       ctx.strokeStyle=color; ctx.lineWidth=n.orbit===0?2.0:(isHov?1.8:0.9); ctx.stroke();
-      ctx.fillStyle="#26215C";
+      ctx.fillStyle=n.orbit===0?"#26215C":"#1a1833";
       ctx.textAlign="center"; ctx.textBaseline="middle";
       const label=n.label;
       if(label.length>5){
@@ -566,7 +483,7 @@ function OntologyGraph() {
 const DEFAULT_CHART = {
   nodes: [
     { id:"n1",  label:"プロジェクト\nオーナー",    row:0, col:4 },
-    { id:"n2",  label:"PM",row:1, col:4 },
+    { id:"n2",  label:"プロジェクト\nマネージャー",row:1, col:4 },
     { id:"n3",  label:"フロントエンド\nプロジェクト\nリーダー", row:2, col:2 },
     { id:"n4",  label:"バックエンド\nプロジェクト\nリーダー",  row:2, col:6 },
     { id:"n5",  label:"UI開発\nチームリーダー",    row:3, col:1 },
@@ -599,395 +516,174 @@ const DEFAULT_CHART = {
 };
 
 function StakeholderView() {
-  // ── 初期データ ──
-  const initNodes = () => [
-    { id:"n1",  label:"プロジェクト\nオーナー",              row:0, col:4,  name:"", scope:"", note:"" },
-    { id:"n2",  label:"PM",                                   row:1, col:4,  name:"", scope:"", note:"" },
-    { id:"n3",  label:"PMO",                                  row:1, col:7,  name:"", scope:"", note:"" },
-    { id:"n4",  label:"フロントエンド\nリーダー",             row:2, col:2,  name:"", scope:"", note:"" },
-    { id:"n5",  label:"バックエンド\nリーダー",               row:2, col:6,  name:"", scope:"", note:"" },
-    { id:"n6",  label:"UI開発\nチームリーダー",               row:3, col:1,  name:"", scope:"", note:"" },
-    { id:"n7",  label:"サイトデザイン\nチームリーダー",       row:3, col:2,  name:"", scope:"", note:"" },
-    { id:"n8",  label:"SEO対策コンテンツ\nチームリーダー",    row:3, col:3,  name:"", scope:"", note:"" },
-    { id:"n9",  label:"サーバー開発\nチームリーダー",         row:3, col:5,  name:"", scope:"", note:"" },
-    { id:"n10", label:"データベース\nチームリーダー",         row:3, col:6,  name:"", scope:"", note:"" },
-    { id:"n11", label:"クラウド開発\nチームリーダー",         row:3, col:7,  name:"", scope:"", note:"" },
-    { id:"n12", label:"SE",            row:4, col:1,  name:"", scope:"", note:"" },
-    { id:"n13", label:"ディレクター",  row:4, col:2,  name:"", scope:"", note:"" },
-    { id:"n14", label:"エディター",    row:4, col:3,  name:"", scope:"", note:"" },
-    { id:"n15", label:"SE",            row:4, col:5,  name:"", scope:"", note:"" },
-    { id:"n16", label:"SE",            row:4, col:6,  name:"", scope:"", note:"" },
-    { id:"n17", label:"SE",            row:4, col:7,  name:"", scope:"", note:"" },
-    { id:"n18", label:"PG",            row:5, col:1,  name:"", scope:"", note:"" },
-    { id:"n19", label:"Webデザイナー", row:5, col:2,  name:"", scope:"", note:"" },
-    { id:"n20", label:"ライター",      row:5, col:3,  name:"", scope:"", note:"" },
-    { id:"n21", label:"PG",            row:5, col:5,  name:"", scope:"", note:"" },
-    { id:"n22", label:"PG",            row:5, col:6,  name:"", scope:"", note:"" },
-    { id:"n23", label:"PG",            row:5, col:7,  name:"", scope:"", note:"" },
-  ];
-  const initEdges = () => [
-    ["n1","n2"],["n2","n3"],
-    ["n2","n4"],["n2","n5"],
-    ["n4","n6"],["n4","n7"],["n4","n8"],
-    ["n5","n9"],["n5","n10"],["n5","n11"],
-    ["n6","n12"],["n7","n13"],["n8","n14"],
-    ["n9","n15"],["n10","n16"],["n11","n17"],
-    ["n12","n18"],["n13","n19"],["n14","n20"],
-    ["n15","n21"],["n16","n22"],["n17","n23"],
-  ];
-
-  const [nodes, setNodes] = useState(initNodes);
-  const [edges, setEdges] = useState(initEdges);
+  const initDetail = () => {
+    const d={};
+    DEFAULT_CHART.nodes.forEach(n=>{ d[n.id]={name:"",scope:"",note:""}; });
+    return d;
+  };
+  const [nodes, setNodes] = useState(DEFAULT_CHART.nodes.map(n=>({...n})));
+  const [edges] = useState(DEFAULT_CHART.edges);
   const [selectedId, setSelectedId] = useState(null);
+  const [details, setDetails] = useState(initDetail);
   const [saved, setSaved] = useState({});
-  // 編集モード: null | "move" | "connect"
-  const [editMode, setEditMode] = useState(null);
-  const [connectFrom, setConnectFrom] = useState(null);
-  const [dragInfo, setDragInfo] = useState(null);
 
-  const COL_W=110, ROW_H=88, PAD_X=20, PAD_Y=24, BOX_W=94, BOX_H=60;
-  const maxCol = Math.max(...nodes.map(n=>n.col), 0);
-  const maxRow = Math.max(...nodes.map(n=>n.row), 0);
-  const SVG_W = (maxCol+2)*COL_W + PAD_X*2;
-  const SVG_H = (maxRow+2)*ROW_H + PAD_Y*2;
+  const COL_W=110, ROW_H=88, PAD_X=20, PAD_Y=24;
+  const BOX_W=94, BOX_H=60;
+  const maxCol=Math.max(...nodes.map(n=>n.col));
+  const maxRow=Math.max(...nodes.map(n=>n.row));
+  const SVG_W=(maxCol+1)*COL_W+PAD_X*2;
+  const SVG_H=(maxRow+1)*ROW_H+PAD_Y*2+20;
 
-  // 複雑性スコア
-  const layerCount = maxRow + 1;
-  const nodeCount  = nodes.length;
-  const complexity = Math.round((layerCount * 1.5 + nodeCount * 0.5) * 10) / 10;
-
-  function nodePos(n){ return { x: PAD_X+n.col*COL_W+COL_W/2, y: PAD_Y+n.row*ROW_H+ROW_H/2 }; }
-  function genId(){ return "n"+Date.now()+Math.floor(Math.random()*1000); }
+  function nodePos(n){ return { x:PAD_X+n.col*COL_W+COL_W/2, y:PAD_Y+n.row*ROW_H+ROW_H/2 }; }
 
   const selectedNode = nodes.find(n=>n.id===selectedId);
+  const det = selectedId ? details[selectedId] : null;
 
-  // ── ノード操作 ──
-  function addNode() {
-    const newId = genId();
-    setNodes(ns=>[...ns, { id:newId, label:"新しいロール", row:maxRow+1, col:Math.floor((maxCol+1)/2), name:"", scope:"", note:"" }]);
-    setSelectedId(newId);
+  function updateDet(field, val){
+    setDetails(d=>({...d,[selectedId]:{...d[selectedId],[field]:val}}));
   }
-  function deleteNode(id) {
-    setNodes(ns=>ns.filter(n=>n.id!==id));
-    setEdges(es=>es.filter(([a,b])=>a!==id&&b!==id));
-    setSelectedId(null);
+  function saveDet(){
+    setSaved(s=>({...s,[selectedId]:true}));
+    setTimeout(()=>setSaved(s=>({...s,[selectedId]:false})),1800);
   }
-  function updateNode(id, field, val) {
-    setNodes(ns=>ns.map(n=>n.id===id?{...n,[field]:val}:n));
-  }
-  function moveNode(id, drow, dcol) {
-    setNodes(ns=>ns.map(n=>n.id===id?{...n, row:Math.max(0,n.row+drow), col:Math.max(0,n.col+dcol)}:n));
-  }
-  function saveDet(id) {
-    setSaved(s=>({...s,[id]:true}));
-    setTimeout(()=>setSaved(s=>({...s,[id]:false})),1800);
+  function updateLabel(val){
+    setNodes(ns=>ns.map(n=>n.id===selectedId?{...n,label:val}:n));
   }
 
-  // ── エッジ操作 ──
-  function toggleEdge(fromId, toId) {
-    if(fromId===toId) return;
-    const exists = edges.some(([a,b])=>a===fromId&&b===toId);
-    if(exists) setEdges(es=>es.filter(([a,b])=>!(a===fromId&&b===toId)));
-    else setEdges(es=>[...es,[fromId,toId]]);
-  }
-
-  // ── CSVインポート ──
-  function handleCSV(e) {
-    const file = e.target.files[0]; if(!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const lines = ev.target.result.split("\n").map(l=>l.trim()).filter(Boolean);
-      const header = lines[0].split(",").map(s=>s.trim());
-      const ri=header.indexOf("role"), ni=header.indexOf("name"), pi=header.indexOf("parent");
-      if(ri<0||pi<0){ alert("CSVに role, parent 列が必要です"); return; }
-      const rows = lines.slice(1).map(l=>{ const c=l.split(","); return { role:c[ri]?.trim()||"", name:c[ni]?.trim()||"", parent:c[pi]?.trim()||"" }; });
-      // 木構造から row/col を計算
-      const nodeMap={};
-      const newNodes=[], newEdges=[];
-      const colCount={};
-      rows.forEach((r,i)=>{ nodeMap[r.role]={id:"csv"+i, label:r.role.replace(/\\s+/g,"\n"), name:r.name, row:0, col:0, scope:"", note:""}; });
-      // BFSで層を決定
-      const roots = rows.filter(r=>!r.parent||!nodeMap[r.parent]);
-      const queue=[...roots.map(r=>({role:r.role,row:0}))];
-      const visited={};
-      while(queue.length){
-        const {role,row}=queue.shift();
-        if(visited[role]) continue;
-        visited[role]=true;
-        if(!nodeMap[role]) continue;
-        colCount[row]=(colCount[row]||0);
-        nodeMap[role].row=row;
-        nodeMap[role].col=colCount[row];
-        colCount[row]++;
-        rows.filter(r=>r.parent===role).forEach(child=>queue.push({role:child.role,row:row+1}));
-      }
-      Object.values(nodeMap).forEach(n=>newNodes.push(n));
-      rows.forEach(r=>{ if(r.parent&&nodeMap[r.parent]&&nodeMap[r.role]) newEdges.push([nodeMap[r.parent].id, nodeMap[r.role].id]); });
-      setNodes(newNodes);
-      setEdges(newEdges);
-      setSelectedId(null);
-    };
-    reader.readAsText(file);
-    e.target.value="";
-  }
-
-  // ── CSVエクスポート ──
-  function exportCSV() {
-    const lines=["role,name,parent"];
-    const parentMap={};
-    edges.forEach(([a,b])=>{ parentMap[b]=a; });
-    nodes.forEach(n=>{
-      const parentNode=parentMap[n.id]?nodes.find(x=>x.id===parentMap[n.id]):null;
-      lines.push(`${n.label.replace(/\n/g," ")},${n.name||""},${parentNode?parentNode.label.replace(/\n/g," "):""}`);
-    });
-    const blob=new Blob([lines.join("\n")],{type:"text/csv"});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a"); a.href=url; a.download="stakeholders.csv"; a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  // ── ノードクリック処理 ──
-  function handleNodeClick(n) {
-    if(editMode==="connect") {
-      if(!connectFrom) { setConnectFrom(n.id); return; }
-      if(connectFrom!==n.id) toggleEdge(connectFrom, n.id);
-      setConnectFrom(null);
-    } else {
-      setSelectedId(selectedId===n.id?null:n.id);
-    }
-  }
+  const PANEL_W=300;
+  const hasDetail=(id)=>{ const d=details[id]; return d&&(d.name||d.scope||d.note); };
 
   return (
     <div style={{display:"flex",flex:1,overflow:"hidden",background:C.bg}}>
 
       {/* 体制図エリア */}
-      <div style={{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",minWidth:0}}>
-
+      <div style={{flex:1,overflow:"auto",display:"flex",flexDirection:"column",minWidth:0}}>
         {/* ヘッダー */}
-        <div style={{padding:"10px 16px",borderBottom:`1px solid ${C.border}`,background:C.bgCard,display:"flex",alignItems:"center",gap:8,flexShrink:0,flexWrap:"wrap"}}>
-          <div style={{width:7,height:7,borderRadius:"50%",background:C.human,flexShrink:0}}/>
+        <div style={{padding:"12px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",gap:10,flexShrink:0,background:C.bgCard}}>
+          <div style={{width:7,height:7,borderRadius:"50%",background:C.human}}/>
           <span style={{fontSize:11,fontWeight:700,color:C.human,fontFamily:"'DM Mono',monospace",letterSpacing:"0.08em"}}>STAKEHOLDERS</span>
-
-          {/* 複雑性スコア */}
-          <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:8,padding:"2px 10px",background:C.bg,borderRadius:5,border:`1px solid ${C.border}`}}>
-            <span style={{fontSize:9,color:C.textWeak,fontFamily:"'DM Mono',monospace"}}>層数</span>
-            <span style={{fontSize:12,fontWeight:700,color:layerCount>=7?C.critical:layerCount>=5?C.strong:C.thing}}>{layerCount}</span>
-            <span style={{fontSize:9,color:C.border}}>|</span>
-            <span style={{fontSize:9,color:C.textWeak,fontFamily:"'DM Mono',monospace"}}>ノード</span>
-            <span style={{fontSize:12,fontWeight:700,color:C.text}}>{nodeCount}</span>
-            <span style={{fontSize:9,color:C.border}}>|</span>
-            <span style={{fontSize:9,color:C.textWeak,fontFamily:"'DM Mono',monospace"}}>複雑性</span>
-            <span style={{fontSize:12,fontWeight:700,color:complexity>=20?C.critical:complexity>=12?C.strong:C.thing}}>{complexity}</span>
-          </div>
-
-          <div style={{flex:1}}/>
-
-          {/* 編集モードトグル */}
-          <div style={{display:"flex",gap:4}}>
-            <button onClick={()=>{setEditMode(editMode==="connect"?null:"connect");setConnectFrom(null);}}
-              style={{fontSize:10,fontWeight:600,padding:"4px 10px",borderRadius:5,border:`1px solid ${C.border}`,
-                background:editMode==="connect"?C.human:"transparent",
-                color:editMode==="connect"?"#fff":C.textMid,cursor:"pointer"}}>
-              {editMode==="connect"?`接続中 ${connectFrom?"→ クリックして接続先を選択":"→ 起点を選択"}`:  "線を編集"}
-            </button>
-            <button onClick={addNode}
-              style={{fontSize:10,fontWeight:600,padding:"4px 10px",borderRadius:5,border:`1px solid ${C.human}`,background:"transparent",color:C.human,cursor:"pointer"}}>
-              ＋ ロール追加
-            </button>
-          </div>
-
-          {/* CSV操作 */}
-          <label style={{fontSize:10,fontWeight:600,padding:"4px 10px",borderRadius:5,border:`1px solid ${C.border}`,background:"transparent",color:C.textMid,cursor:"pointer"}}>
-            📁 CSVインポート
-            <input type="file" accept=".csv" onChange={handleCSV} style={{display:"none"}}/>
-          </label>
-          <button onClick={exportCSV}
-            style={{fontSize:10,fontWeight:600,padding:"4px 10px",borderRadius:5,border:`1px solid ${C.border}`,background:"transparent",color:C.textMid,cursor:"pointer"}}>
-            ↓ エクスポート
-          </button>
+          <span style={{fontSize:10,color:C.textWeak,marginLeft:4}}>プロジェクト体制図</span>
+          <span style={{fontSize:10,color:C.textWeak,marginLeft:"auto"}}>ボックスをクリックして詳細を定義</span>
         </div>
 
-        {/* SVG体制図 */}
-        <div style={{flex:1,overflow:"auto",padding:"16px 20px",background:C.bgCard}}>
+        <div style={{flex:1,overflow:"auto",padding:"24px 28px",background:C.bgCard}}>
           <svg width={SVG_W} height={SVG_H} style={{display:"block",minWidth:SVG_W}}>
-
-            {/* グリッドガイド（薄く） */}
-            {Array.from({length:maxRow+2}).map((_,r)=>(
-              <line key={"r"+r} x1={0} y1={PAD_Y+r*ROW_H} x2={SVG_W} y2={PAD_Y+r*ROW_H}
-                stroke={C.border} strokeWidth={0.5} strokeDasharray="3 4" opacity={0.4}/>
-            ))}
-            {/* 層ラベル */}
-            {Array.from({length:maxRow+1}).map((_,r)=>(
-              <text key={"rl"+r} x={8} y={PAD_Y+r*ROW_H+ROW_H/2}
-                fontSize={8} fill={C.textWeak} fontFamily="'DM Mono',monospace"
-                dominantBaseline="middle">L{r}</text>
-            ))}
-
-            {/* エッジ（ノードより先に描画してボックスが上レイヤーになる） */}
-            <g>
+            {/* エッジ */}
             {edges.map(([aId,bId],i)=>{
               const a=nodes.find(n=>n.id===aId), b=nodes.find(n=>n.id===bId);
               if(!a||!b) return null;
               const pa=nodePos(a), pb=nodePos(b);
-              const sameRow = a.row === b.row;  // aとbはnodeオブジェクト
               const midY=(pa.y+BOX_H/2+pb.y-BOX_H/2)/2;
-              const pathD = sameRow
-                ? `M${pa.x+BOX_W/2},${pa.y} L${pb.x-BOX_W/2},${pb.y}`
-                : `M${pa.x},${pa.y+BOX_H/2} L${pa.x},${midY} L${pb.x},${midY} L${pb.x},${pb.y-BOX_H/2}`;
               return (
-                <g key={i} style={{cursor:"pointer"}} onClick={()=>editMode==="connect"&&toggleEdge(aId,bId)}>
-                  <path d={pathD}
-                    fill="none" stroke="#D8D5EE" strokeWidth={1} strokeLinecap="round"/>
-                  {/* 削除ハンドル（接続編集モード時） */}
-                  {editMode==="connect" && (
-                    <g onClick={e=>{e.stopPropagation();toggleEdge(aId,bId);}}>
-                      <circle cx={(pa.x+pb.x)/2} cy={midY} r={8} fill={C.bgCard} stroke={C.critical} strokeWidth={1}/>
-                      <text x={(pa.x+pb.x)/2} y={midY} textAnchor="middle" dominantBaseline="middle" fontSize={10} fill={C.critical}>✕</text>
-                    </g>
-                  )}
-                </g>
+                <path key={i}
+                  d={`M${pa.x},${pa.y+BOX_H/2} L${pa.x},${midY} L${pb.x},${midY} L${pb.x},${pb.y-BOX_H/2}`}
+                  fill="none" stroke={C.border} strokeWidth={1.5} strokeLinecap="round"/>
               );
             })}
-            </g>
 
-            {/* connectFrom プレビュー */}
-            {connectFrom && editMode==="connect" && (()=>{
-              const fn=nodes.find(n=>n.id===connectFrom);
-              if(!fn) return null;
-              const p=nodePos(fn);
-              return <circle cx={p.x} cy={p.y} r={BOX_W/2+4} fill="none" stroke={C.human} strokeWidth={2} strokeDasharray="4 2" opacity={0.7}/>;
-            })()}
-
-            {/* ノード（エッジより後に描画して常に上レイヤー） */}
-            <g>
+            {/* ノード */}
             {nodes.map(n=>{
               const {x,y}=nodePos(n);
               const bx=x-BOX_W/2, by=y-BOX_H/2;
               const isSelected=selectedId===n.id;
-              const isConnectFrom=connectFrom===n.id;
-              const hasDetail=n.name||n.scope||n.note;
+              const hasDet=hasDetail(n.id);
               const lines=n.label.split("\n");
-              const lineH=15, totalH=lines.length*lineH;
+              const lineH=15;
+              const totalH=lines.length*lineH;
               const startY=y-totalH/2+lineH*0.5;
               return (
-                <g key={n.id} style={{cursor:"pointer"}} onClick={()=>handleNodeClick(n)}>
-                  {(isSelected||isConnectFrom) && <rect x={bx-3} y={by-3} width={BOX_W+6} height={BOX_H+6} rx={9} fill="none" stroke={isConnectFrom?C.thing:C.human} strokeWidth={1.5} strokeDasharray="4 2" opacity={0.8}/>}
+                <g key={n.id} style={{cursor:"pointer"}} onClick={()=>setSelectedId(isSelected?null:n.id)}>
+                  {isSelected && <rect x={bx-3} y={by-3} width={BOX_W+6} height={BOX_H+6} rx={9} fill="none" stroke={C.human} strokeWidth={1.5} strokeDasharray="4 2" opacity={0.7}/>}
                   <rect x={bx} y={by} width={BOX_W} height={BOX_H} rx={6}
-                    fill={isSelected?C.human+"30":"#F4F3FB"}
-                    stroke={isSelected?C.human:isConnectFrom?C.thing:"#C8C4E8"}
-                    strokeWidth={isSelected||isConnectFrom?1.5:0.8}/>
-                  {hasDetail && <circle cx={bx+BOX_W-5} cy={by+5} r={4} fill={C.thing}/>}
+                    fill={isSelected?C.human+"30":C.human+"18"}
+                    stroke={isSelected?C.human:C.human+"88"} strokeWidth={isSelected?1.5:1}/>
+                  {hasDet && <circle cx={bx+BOX_W-5} cy={by+5} r={4} fill={C.thing}/>}
                   {lines.map((line,li)=>(
                     <text key={li} x={x} y={startY+li*lineH}
                       textAnchor="middle" dominantBaseline="middle"
                       fontSize={10} fontFamily="Noto Sans JP,sans-serif"
-                      fontWeight={isSelected?600:400}
-                      fill={isSelected?C.human:"#9B97C4"}>{line}</text>
-                  ))}
-                  {/* 移動ボタン（選択時） */}
-                  {isSelected && !editMode && [
-                    {dr:-1,dc:0,label:"↑",dx:0,dy:-BOX_H/2-14},
-                    {dr:1, dc:0,label:"↓",dx:0,dy:BOX_H/2+14},
-                    {dr:0, dc:-1,label:"←",dx:-BOX_W/2-14,dy:0},
-                    {dr:0, dc:1, label:"→",dx:BOX_W/2+14,dy:0},
-                  ].map(({dr,dc,label,dx,dy})=>(
-                    <g key={label} onClick={e=>{e.stopPropagation();moveNode(n.id,dr,dc);}}>
-                      <circle cx={x+dx} cy={y+dy} r={10} fill={C.bgCard} stroke={C.human} strokeWidth={1}/>
-                      <text x={x+dx} y={y+dy} textAnchor="middle" dominantBaseline="middle" fontSize={10} fill={C.human}>{label}</text>
-                    </g>
+                      fontWeight={isSelected?600:500} fill={isSelected?C.human:C.text}
+                    >{line}</text>
                   ))}
                 </g>
               );
             })}
-            </g>
           </svg>
         </div>
       </div>
 
-      {/* 右パネル */}
-      <div style={{width:selectedNode?300:0,minWidth:selectedNode?300:0,overflow:"hidden",borderLeft:`1px solid ${C.border}`,background:C.bgCard,display:"flex",flexDirection:"column",flexShrink:0,transition:"width 0.2s ease,min-width 0.2s ease"}}>
-        {selectedNode && (
-          <div style={{width:300,display:"flex",flexDirection:"column",height:"100%",overflow:"hidden"}}>
+      {/* 右パネル — スライドイン */}
+      <div style={{
+        width: selectedId ? PANEL_W : 0,
+        minWidth: selectedId ? PANEL_W : 0,
+        transition:"width 0.22s ease, min-width 0.22s ease",
+        overflow:"hidden",
+        borderLeft:`1px solid ${C.border}`,
+        background:C.bgCard,
+        display:"flex",flexDirection:"column",
+        flexShrink:0,
+      }}>
+        {selectedNode && det && (
+          <div style={{width:PANEL_W,display:"flex",flexDirection:"column",height:"100%",overflow:"hidden"}}>
             {/* パネルヘッダー */}
-            <div style={{padding:"12px 16px",borderBottom:`1px solid ${C.border}`,flexShrink:0,display:"flex",alignItems:"center",gap:8}}>
+            <div style={{padding:"14px 18px 12px",borderBottom:`1px solid ${C.border}`,flexShrink:0,display:"flex",alignItems:"center",gap:8}}>
               <div style={{flex:1}}>
-                <div style={{fontSize:9,color:C.textWeak,fontFamily:"'DM Mono',monospace",letterSpacing:"0.08em",marginBottom:3}}>ROLE DEFINITION</div>
-                <div style={{fontSize:13,fontWeight:700,color:C.human,lineHeight:1.3}}>{selectedNode.label.replace(/\n/g," ")}</div>
+                <div style={{fontSize:9,color:C.textWeak,fontFamily:"'DM Mono',monospace",letterSpacing:"0.08em",marginBottom:4}}>ROLE DEFINITION</div>
+                <div style={{fontSize:14,fontWeight:700,color:C.human}}>{selectedNode.label.replace(/\n/g," ")}</div>
               </div>
-              <button onClick={()=>setSelectedId(null)} style={{background:"none",border:"none",cursor:"pointer",color:C.textWeak,fontSize:14,padding:3}}>✕</button>
+              <button onClick={()=>setSelectedId(null)}
+                style={{background:"none",border:"none",cursor:"pointer",color:C.textWeak,fontSize:16,padding:4,lineHeight:1}}>✕</button>
             </div>
 
-            <div style={{flex:1,overflowY:"auto",padding:"14px 16px",display:"flex",flexDirection:"column",gap:14}}>
+            {/* フォーム */}
+            <div style={{flex:1,overflowY:"auto",padding:"16px 18px",display:"flex",flexDirection:"column",gap:16}}>
 
-              {/* ロール名 */}
+              {/* ロール名称 */}
               <div>
-                <label style={{fontSize:9,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:5}}>ロール名</label>
+                <label style={{fontSize:10,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:6}}>ロール名称</label>
                 <input value={selectedNode.label.replace(/\n/g," ")}
-                  onChange={e=>updateNode(selectedNode.id,"label",e.target.value)}
-                  style={{width:"100%",padding:"7px 9px",border:`1px solid ${C.border}`,borderRadius:5,fontSize:12,color:C.text,background:C.bg,outline:"none",boxSizing:"border-box"}}/>
+                  onChange={e=>updateLabel(e.target.value)}
+                  placeholder="例：プロジェクトマネージャー"
+                  style={{width:"100%",padding:"8px 10px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:12,color:C.text,background:C.bg,outline:"none",boxSizing:"border-box"}}/>
               </div>
 
               {/* 担当者名 */}
               <div>
-                <label style={{fontSize:9,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:5}}>担当者名</label>
-                <input value={selectedNode.name||""}
-                  onChange={e=>updateNode(selectedNode.id,"name",e.target.value)}
+                <label style={{fontSize:10,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:6}}>担当者名</label>
+                <input value={det.name} onChange={e=>updateDet("name",e.target.value)}
                   placeholder="例：山田 太郎"
-                  style={{width:"100%",padding:"7px 9px",border:`1px solid ${C.border}`,borderRadius:5,fontSize:12,color:C.text,background:C.bg,outline:"none",boxSizing:"border-box"}}/>
-              </div>
-
-              {/* 層・列位置 */}
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-                <div>
-                  <label style={{fontSize:9,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:5}}>層（行）</label>
-                  <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    <button onClick={()=>moveNode(selectedNode.id,-1,0)} style={{padding:"3px 8px",border:`1px solid ${C.border}`,borderRadius:4,background:"transparent",cursor:"pointer",color:C.textMid,fontSize:12}}>↑</button>
-                    <span style={{fontSize:13,fontWeight:600,color:C.text,minWidth:20,textAlign:"center"}}>{selectedNode.row}</span>
-                    <button onClick={()=>moveNode(selectedNode.id,1,0)} style={{padding:"3px 8px",border:`1px solid ${C.border}`,borderRadius:4,background:"transparent",cursor:"pointer",color:C.textMid,fontSize:12}}>↓</button>
-                  </div>
-                </div>
-                <div>
-                  <label style={{fontSize:9,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:5}}>列</label>
-                  <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    <button onClick={()=>moveNode(selectedNode.id,0,-1)} style={{padding:"3px 8px",border:`1px solid ${C.border}`,borderRadius:4,background:"transparent",cursor:"pointer",color:C.textMid,fontSize:12}}>←</button>
-                    <span style={{fontSize:13,fontWeight:600,color:C.text,minWidth:20,textAlign:"center"}}>{selectedNode.col}</span>
-                    <button onClick={()=>moveNode(selectedNode.id,0,1)} style={{padding:"3px 8px",border:`1px solid ${C.border}`,borderRadius:4,background:"transparent",cursor:"pointer",color:C.textMid,fontSize:12}}>→</button>
-                  </div>
-                </div>
+                  style={{width:"100%",padding:"8px 10px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:12,color:C.text,background:C.bg,outline:"none",boxSizing:"border-box"}}/>
               </div>
 
               {/* 業務スコープ */}
               <div>
-                <label style={{fontSize:9,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:5}}>業務スコープ</label>
-                <textarea value={selectedNode.scope||""}
-                  onChange={e=>updateNode(selectedNode.id,"scope",e.target.value)}
-                  placeholder={"・担当範囲\n・責任境界\n・権限レベル"}
-                  rows={5}
-                  style={{width:"100%",padding:"7px 9px",border:`1px solid ${C.border}`,borderRadius:5,fontSize:12,color:C.text,background:C.bg,outline:"none",resize:"vertical",fontFamily:"Noto Sans JP,sans-serif",lineHeight:1.7,boxSizing:"border-box"}}/>
+                <label style={{fontSize:10,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:6}}>業務スコープ</label>
+                <textarea value={det.scope} onChange={e=>updateDet("scope",e.target.value)}
+                  placeholder={"例：\n・フロントエンド開発の進捗管理\n・メンバーへのタスクアサイン\n・クライアントとの週次定例"}
+                  rows={6}
+                  style={{width:"100%",padding:"8px 10px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:12,color:C.text,background:C.bg,outline:"none",resize:"vertical",fontFamily:"Noto Sans JP,sans-serif",lineHeight:1.7,boxSizing:"border-box"}}/>
               </div>
 
               {/* 備考 */}
               <div>
-                <label style={{fontSize:9,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:5}}>備考</label>
-                <textarea value={selectedNode.note||""}
-                  onChange={e=>updateNode(selectedNode.id,"note",e.target.value)}
-                  placeholder="承認権限・例外・注意事項など"
+                <label style={{fontSize:10,fontWeight:700,color:C.textWeak,letterSpacing:"0.06em",textTransform:"uppercase",display:"block",marginBottom:6}}>備考・注意事項</label>
+                <textarea value={det.note} onChange={e=>updateDet("note",e.target.value)}
+                  placeholder="例：承認権限はPMまで。スコープ変更はオーナー承認が必要。"
                   rows={3}
-                  style={{width:"100%",padding:"7px 9px",border:`1px solid ${C.border}`,borderRadius:5,fontSize:12,color:C.text,background:C.bg,outline:"none",resize:"vertical",fontFamily:"Noto Sans JP,sans-serif",lineHeight:1.7,boxSizing:"border-box"}}/>
+                  style={{width:"100%",padding:"8px 10px",border:`1px solid ${C.border}`,borderRadius:6,fontSize:12,color:C.text,background:C.bg,outline:"none",resize:"vertical",fontFamily:"Noto Sans JP,sans-serif",lineHeight:1.7,boxSizing:"border-box"}}/>
               </div>
-
-              {/* 削除 */}
-              <button onClick={()=>deleteNode(selectedNode.id)}
-                style={{padding:"7px 0",background:"transparent",color:C.textWeak,border:`1px solid ${C.border}`,borderRadius:6,fontSize:11,cursor:"pointer",marginTop:4}}>
-                このロールを削除
-              </button>
             </div>
 
-            {/* 保存 */}
-            <div style={{padding:"10px 16px",borderTop:`1px solid ${C.border}`,flexShrink:0}}>
-              <button onClick={()=>saveDet(selectedNode.id)}
-                style={{width:"100%",padding:"8px 0",background:saved[selectedNode.id]?C.thing:C.human,color:"#fff",border:"none",borderRadius:6,fontSize:12,fontWeight:600,cursor:"pointer",transition:"background 0.3s"}}>
-                {saved[selectedNode.id]?"✓ 保存しました":"定義を保存"}
+            {/* 保存ボタン */}
+            <div style={{padding:"12px 18px",borderTop:`1px solid ${C.border}`,flexShrink:0}}>
+              <button onClick={saveDet} style={{
+                width:"100%",padding:"9px 0",
+                background:saved[selectedId]?C.thing:C.human,
+                color:"#fff",border:"none",borderRadius:7,
+                fontSize:12,fontWeight:600,cursor:"pointer",
+                transition:"background 0.3s",
+              }}>
+                {saved[selectedId]?"✓ 保存しました":"定義を保存"}
               </button>
             </div>
           </div>
@@ -1000,56 +696,68 @@ function StakeholderView() {
 // ── Glossary View ──
 const GLOSSARY_DATA = {
   "スコープ管理": [
-    { term:"プロジェクト", def:"独自の製品、サービス、または所産を創出するために実施される有期的な業務。" },
-    { term:"プロジェクト憲章", def:"プロジェクトの存在を公式に認可し、プロジェクト・マネジャーにプロジェクト活動に組織の資源を適用する権限を与える文書。" },
+    { term:"プロジェクト", def:"独自のプロダクト、サービス、所産を創造するために実施される有期的な業務。" },
+    { term:"プロジェクト憲章", def:"プロジェクトの存在を正式に認可する文書。プロジェクトのイニシエーターまたはスポンサーが発行する。これによって、プロジェクト・マネジャーは母体組織の資源をプロジェクト活動のために使う権限を得る。" },
     { term:"プロジェクトマネジメント計画書", def:"プロジェクトを実行し、監視し、コントロールし、終結する方法を記述した文書。" },
-    { term:"WBS（ワーク・ブレークダウン・ストラクチャー）", def:"プロジェクト目標を達成し、必要な成果物を作成するために、プロジェクトチームが実行する全作業範囲を階層的に分解したもの。" },
+    { term:"WBS（ワーク・ブレークダウン・ストラクチャー）", def:"プロジェクト目標を達成し、必要な成果物を作成するために、プロジェクト・チームが実行する全作業範囲を階層的に分解したもの。" },
     { term:"WBS辞書", def:"WBSの各コンポーネントに関する詳細な成果物、アクティビティ、およびスケジュール情報を記載した文書。" },
-    { term:"ワーク・パッケージ", def:"ワーク・ブレークダウン・ストラクチャーの最下位のレベルに定義される作業。" },
+    { term:"ワーク・パッケージ", def:"ワーク・ブレークダウン・ストラクチャーの最下位のレベルに定義される作業。この作業に要するコストと所要期間を見積もり、マネジメントする。" },
     { term:"プロジェクト・スコープ", def:"特定の特性やフィーチャーを持つプロダクト、サービス、所産を生み出すために実行する作業。" },
     { term:"プロジェクト・スコープ記述書", def:"プロジェクトのスコープ、主要な成果物、除外事項を記述した文書。" },
-    { term:"スコープ・クリープ", def:"プロジェクトのスコープが計画外に拡大していく現象。" },
     { term:"アウトプット", def:"プロセスによって生成されるプロダクト、所産、サービス。後続プロセスへのインプットとなることがある。" },
-    { term:"所産", def:"プロジェクトマネジメントのプロセスとアクティビティを実行して得られるアウトプット。" },
-    { term:"プロダクト", def:"生産され、定量化可能で、それ自体が最終生産物やその構成要素となる作成物。" },
-    { term:"成果物", def:"プロジェクトの完了時に提供される製品、サービス、または所産。" },
+    { term:"所産", def:"プロジェクトマネジメントのプロセスとアクティビティを実行して得られるアウトプット。所産には成果（例：統合されたシステム、改定されたプロセス、再構築された組織、テスト、トレーニングを受けた要員など）と文書（例：方針書、計画書、調査報告書、手続き書、仕様書、報告書など）がある。" },
+    { term:"プロダクト", def:"生産され、定量化可能で、それ自体が最終生産物やその構成要素となる作成物。プロダクトを表す別の用語として「物資」と「物品」がある。" },
+    { term:"成果物", def:"プロセス、フェーズ、またはプロジェクトを完了するために生成することが求められる固有で検証可能なプロダクト、所産、または能力。" },
     { term:"受入れ", def:"スポンサーや顧客が、成果物の完了を認めること。" },
     { term:"受入基準", def:"成果物が受け入れられる前に満たしておく必要がある条件。" },
     { term:"要求", def:"ビジネス・ニーズを満たすために、プロダクト、サービス、所産が備える必要がある条件や能力。" },
     { term:"要求事項トレーサビリティ・マトリックス", def:"プロダクトの要求事項を、その発生元からそれを満たす成果物にまで結び付けて格子状に示した図。" },
     { term:"要求事項文書", def:"個々の要求事項がプロジェクトのビジネス・ニーズをどのように満たすかについて記述した文書。" },
-    { term:"要求事項マネジメント計画書", def:"要求事項の分析、文書化、マネジメントの方法を文書化したもの。" },
+    { term:"要求事項マネジメント計画書", def:"プロジェクトマネジメント計画書またはプログラムマネジメント計画書の構成要素の1つで、要求事項の分析、文書化、マネジメントの方法を文書化したもの。" },
     { term:"要素分解", def:"プロジェクト・スコープやプロジェクト成果物を、より小さくマネジメントしやすい部分に分解し、さらに細分化する技法。" },
-    { term:"エピック", def:"一群の要求事項を階層的に整理し、特定のビジネス成果を実現することを目的とした、大規模かつ関連する一連の作業。" },
-    { term:"ユーザー・ストーリー", def:"特定のユーザーにとっての成果を簡潔に記述したもの。詳細を明確化するために会話をする約束である。" },
-    { term:"プロダクト・バックログ", def:"プロダクトの改善に必要なすべての事項の優先順位付きリスト。スクラムにおいてプロダクト・オーナーが管理する。" },
+    { term:"エピック", def:"一群の要求事項を階層的に整理し、特定のビジネス成果を実現することを目的とした、大規模で関連する一連の作業。" },
+    { term:"ユーザー・ストーリー", def:"特定のユーザーにとっての成果を簡潔に記述したもの。それは、詳細を明確化するために会話をする約束である。" },
+    { term:"プロダクト・バックログ", def:"顧客から要求されている機能の優先順位を付けたリスト。" },
     { term:"バックログ", def:"あるプロダクトのためにチームが維持する、ユーザー中心の要求事項を優先順位付けしたリスト。" },
     { term:"ビジネス・アナリシス", def:"ビジネス目標と一致し、継続的な価値を組織にもたらすようなソリューションの実現を支援するために実施される一群の活動。" },
     { term:"ビジネス・アナリスト", def:"ビジネス・アナリシスの作業を行う人。" },
+    { term:"スコープ", def:"プロジェクトが提供するプロダクト、サービス、所産の総体。" },
+    { term:"スコープ記述書", def:"プロジェクトのスコープを記述したもの。" },
+    { term:"スコープ定義", def:"プロジェクトの主要な要素成果物をより小さく管理可能な構成要素に分割する作業。" },
+    { term:"スコープ・ベースライン", def:"スコープ記述書、WBS（ワーク・ブレークダウン・ストラクチャー）、およびWBSに付随するWBS辞書の承認済み版。変更は必ず正式な変更管理手順を通して行い、実績値と比較する基準として用いる。" },
+    { term:"スコープ・マネジメント", def:"プロジェクトに含むものと含まないものを定義しコントロールするためのプロセス。" },
+    { term:"スコープ・マネジメント計画書", def:"プロジェクトマネジメント計画書またはプログラムマネジメント計画書の構成要素の1つ。スコープの定義、策定、監視、コントロール、および妥当性確認の方法を記述する。" },
+    { term:"プロダクト・スコープ", def:"プロダクト、サービス、所産を特徴付けるフィーチャーや機能。" },
+    { term:"プロダクト分析", def:"プロダクトを成果物とするプロジェクトでのスコープ定義のツールの1つ。一般には、あるプロダクトに関する問いを立て回答することで、これから生成するものの用途、特性、その他の側面について記述することを意味する。" },
+    { term:"上流設計", def:"プロジェクト初期段階で行う方針・構想・要件の設計。後続の詳細設計や開発の前提となる。", isMetisOriginal:true },
+    { term:"条件付き完了", def:"一部の条件や課題を残したまま、便宜上「完了」と判断された状態。", isMetisOriginal:true },
+    { term:"スコープ・クリープ", def:"正式な合意を経ないまま、業務範囲が段階的に拡大していく現象。", isMetisOriginal:true },
+    { term:"スコープ変更", def:"プロジェクトの対象範囲に加えられる変更。正式な合意プロセスを経て行われる点でスコープ・クリープと区別される。", isMetisOriginal:true },
+    { term:"プロジェクト設計", def:"プロジェクト全体の進め方や構造をあらかじめ設計すること。体制・スケジュール・意思決定プロセスなどを含む。", isMetisOriginal:true },
+    { term:"プロジェクト設計図", def:"プロジェクトの運営全体像を一覧できる形で示した設計情報。", isMetisOriginal:true },
+    { term:"要件変更", def:"要件定義が完了した後に発生する、要求内容の変更。", isMetisOriginal:true },
   ],
   "スケジュール管理": [
     { term:"プロジェクト・ライフサイクル", def:"プロジェクトがたどる開始から完了に至る一連のフェーズ。" },
     { term:"プロジェクト・フェーズ", def:"論理的に関連のあるプロジェクト活動の集合。1つ以上の成果物の完了によって終了する。" },
-    { term:"フェーズ", def:"プロジェクトライフサイクルを構成する、関連するプロジェクト活動の論理的なグループ。" },
-    { term:"フェーズ・ゲート", def:"フェーズの終わりに実施されるレビュー。次フェーズへ進むか、継続するか、終了するかを決定する。" },
+    { term:"フェーズ・ゲート", def:"フェーズの終結時点で実施するレビュー。次のフェーズに進むか、一部修正して進むか、あるいはプロジェクトやプログラムを中止するかを判断する。「キル・ポイント」とも呼ばれる。" },
     { term:"立上げ", def:"プロジェクトの開始または次のフェーズへの移行を組織にコミットする活動。" },
-    { term:"スケジュール・ベースライン", def:"プロジェクトの進捗管理をするための基準となる承認済みのスケジュール。" },
+    { term:"スケジュール・ベースライン", def:"プロジェクトの進捗管理をするための基準となる承認済みのスケジュール。変更は必ず正式な変更管理手順に従って行う。実績値と比較する基準として用いる。" },
     { term:"プロジェクト・スケジュール", def:"スケジュール・モデルのアウトプットの1つ。関連性のあるアクティビティを、予定日、所要期間、マイルストーン、資源と共に示す。" },
     { term:"プロジェクト・スケジュール・ネットワーク図", def:"プロジェクトのスケジュール・アクティビティ間の論理的順序関係を示す図。" },
     { term:"アクティビティ", def:"プロジェクトの過程において実施されるべくスケジュールに組み込まれた個々の作業。" },
     { term:"アクティビティ所要期間", def:"あるスケジュール・アクティビティの開始から終了までの期間をカレンダーでの単位で示したもの。" },
     { term:"アクティビティ所要期間見積り", def:"アクティビティの完了に必要と想定される期間を定量的に評価すること。" },
-    { term:"アクティビティ属性", def:"アクティビティ・リストに含まれる、各スケジュール・アクティビティに関連する複数の属性。" },
+    { term:"アクティビティ属性", def:"アクティビティ・リストに含まれる、各スケジュール・アクティビティに関連する複数の属性。アクティビティコード、先行アクティビティ、後続アクティビティ、論理的順序関係、リードとラグ、資源要求事項、指定日、制約条件、前提条件などがある。" },
     { term:"マイルストーン", def:"プロジェクトプログラム、ポートフォリオにおいて重要な意味を持つ時点やイベント。" },
     { term:"マイルストーン・チャート", def:"予定日とマイルストーンを示すスケジュールのタイプ。" },
-    { term:"クリティカルパス", def:"プロジェクトの最短完了日を決定する、最も長い作業経路。" },
-    { term:"所要期間", def:"アクティビティまたはWBSコンポーネントを完了するために必要な総作業期間。" },
+    { term:"クリティカル・パス", def:"あるプロジェクト全体で最長の経路に相当する一連のアクティビティ。これにより、最短の所要期間が決まる。" },
+    { term:"所要期間", def:"アクティビティまたはWBSコンポーネントを完了するために必要な総作業期間。時間数、日数、あるいは週数で表す。" },
     { term:"先行関係", def:"プレシデンスダイアグラム法で使用する論理的依存関係。" },
-    { term:"リード", def:"関係する先行アクティビティに対して、後続アクティビティの開始を前倒しできる時間。" },
-    { term:"開始日", def:"スケジュール・アクティビティを開始した日付。計画開始日、最早開始日、最遅開始日など複数の種類がある。" },
-    { term:"終了日", def:"スケジュール・アクティビティの完了に関連した日付。計画終了日、最早終了日、最遅終了日など複数の種類がある。" },
+    { term:"開始日", def:"スケジュール・アクティビティを開始した日付。通常、以下の種類がある。実開始日、計画開始日、予測開始日、予定開始日、最早開始日、最遅開始日、目標開始日、ベースライン開始日、現時点の予定開始日。" },
+    { term:"終了日", def:"スケジュール・アクティビティの完了に関連した日付。通常は次のいずれかの形で用いられる。実終了日、計画終了日、予定終了日、最早終了日、最遅終了日、ベースライン終了日、目標終了日、あるいは現時点の予定終了日。" },
     { term:"スケジュール効率指数", def:"プランドバリュー（PV）に対する、アーンド・バリュー（EV）との比率として表すスケジュール効率の尺度。" },
-    { term:"スケジュール差異", def:"スケジュールの進捗状況を測る尺度。アーンド・バリュー（EV）とプランド・バリュー（PV）の差。" },
+    { term:"スケジュール差異", def:"スケジュールの進捗状況を測る尺度。アーンド・バリュー（EV）とプランドバリュー（PV）の差。" },
     { term:"スケジュール短縮", def:"プロジェクト・スコープを縮小することなく、スケジュールの所要期間を短縮する技法。" },
     { term:"タイムボックス", def:"その間に作業を完了すべき短い固定の期間。" },
     { term:"タイムボックス・スケジューリング", def:"作業を固定された期間（タイムボックス）に制限し、その時間枠内で完了できる作業を計画する時間管理テクニック。" },
@@ -1058,59 +766,82 @@ const GLOSSARY_DATA = {
     { term:"リリース", def:"同時に本稼働することが意図されたプロダクトの構成要素。" },
     { term:"リリース計画書", def:"一連の複数のイテレーションを通じて実現が期待される日付、フィーチャー、成果を明確化する計画書。" },
     { term:"イテレーション", def:"価値を実現するために必要なすべての作業が実行されるプロダクトまたは成果物の開発のためにタイムボックス化されたサイクル。" },
-    { term:"スプリント", def:"タイムボックス化された短い開発サイクル。通常1〜4週間。" },
+    { term:"スプリント", def:"使用可能かつリリース可能なプロダクトの増分が作成される、プロジェクトにおける短い期間。" },
+    { term:"スケジュール・マネジメント計画書", def:"プロジェクトマネジメント計画書またはプログラムマネジメント計画書の構成要素の1つ。スケジュールの作成、監視、コントロールに必要な基準と活動を規定する。" },
+    { term:"スケジュール・モデル", def:"所要期間、依存関係、その他の計画情報を含むプロジェクトのアクティビティを実行するための計画を示すもの。プロジェクト・スケジュールを作成するために他のスケジュール生成物と共に用いる。" },
+    { term:"クリティカル・パス法", def:"プロジェクトの最短所要期間を見積もり、スケジュール・モデル内で論理ネットワーク・パスにおけるスケジュールの柔軟性を判定するために使う方法。" },
+    { term:"ガントチャート", def:"スケジュール情報を横線で示したもの。縦軸にアクティビティをリストアップし、横軸に日付を示す。横棒は開始日と終了日、所要期間を表示する。" },
+    { term:"キックオフ会議", def:"プロジェクトの始めに開催されるチームメンバーと他の主要なステークホルダーの会合。正式に期待を設定し、共通の理解を図り、作業を開始する目的で行う。" },
+    { term:"イグジット条件", def:"フェーズや工程を完了と判断するための条件。", isMetisOriginal:true },
+    { term:"承認遅延", def:"承認取得に予定より時間がかかり、後続作業の進捗へ影響する状態。", isMetisOriginal:true },
+    { term:"工程ゲート", def:"フェーズ移行の前に設けられる確認・判定のポイント。基準を満たすかどうかで次工程への移行可否を判断する。", isMetisOriginal:true },
+    { term:"準備フェーズ", def:"プロジェクトが本格的に開始する前の計画・準備期間。", isMetisOriginal:true },
+    { term:"ストレッチング", def:"本来の終了時期や区切りを過ぎても、明確な区切りのないまま工程や作業が延長して継続される状態。", isMetisOriginal:true },
+    { term:"フェーズ・ゼロ", def:"プロジェクトが正式に始動する前の、構想・準備段階。", isMetisOriginal:true },
   ],
   "コスト管理": [
     { term:"EVM（アーンド・バリュー・マネジメント）", def:"プロジェクトのパフォーマンスと進捗を評価するために、スコープ、スケジュール、コスト、資源の測定値を結び付ける方法論。" },
-    { term:"アーンド・バリュー", def:"実行した作業の測定値。実行した作業に対する承認済み予算額で表す。" },
     { term:"アーンド・バリュー分析", def:"プロジェクトのコストとスケジュールのパフォーマンスを判断するために、範囲、スケジュール、コストに関連付けられた一群の尺度を使用する分析方法。" },
-    { term:"コスト・ベースライン", def:"時間軸ベースのプロジェクト予算の承認済み版で、マネジメント予備を除いたもの。" },
-    { term:"コスト・マネジメント計画書", def:"コストをどのように計画し、構成し、コントロールするかを記述する。プロジェクトマネジメント計画書の構成要素の1つ。" },
+    { term:"コスト・ベースライン", def:"時間軸ベースのプロジェクト予算の承認済み版で、マネジメント予備を除いたもの。変更するには正式な変更管理手順が必要であり、実績との比較基準として用いる。" },
+    { term:"コスト・マネジメント計画書", def:"プロジェクトマネジメント計画書またはプログラムマネジメント計画書の構成要素の１つ。コストをどのように計画し、構成し、コントロールするかを記述する。" },
     { term:"コスト見積り", def:"プロジェクトを完了するために必要な概算見積りを作成すること。" },
     { term:"コスト効率指数", def:"予算化された資源のコスト効率の尺度で、アーンド・バリュー（EV）の実コスト（AC）に対する比率で表した値。" },
     { term:"コスト差異", def:"ある時点での予算の黒字額や赤字額。アーンド・バリュー（EV）と実コスト（AC）の差で表す。" },
     { term:"実コスト", def:"所定の期間で実行した作業実行時に費やしたコスト。" },
-    { term:"アクティビティ・コスト", def:"プロジェクトの過程において実施されるべくスケジュールに組み込まれた個々の作業を完了するために必要なコスト。" },
+    { term:"アクティビティ・コスト", def:"プロジェクトの過程において実施されるべくスケジュールに組み込まれた個々の作業を完了するためのコスト。" },
     { term:"コンティンジェンシー予備", def:"既知のリスクに備え、能動的な対応戦略によってスケジュールまたはコストのベースラインに割り当てられた時間または資金。" },
-    { term:"マネジメント予備／マネジメント予備費", def:"マネジメント面のコントロールを目的として設定したプロジェクト予算またはスケジュール。" },
-    { term:"パフォーマンス測定ベースライン", def:"スコープ、スケジュール、コストを統合したベースライン。" },
+    { term:"マネジメント予備／マネジメント予備費", def:"マネジメント面のコントロールを目的として、パフォーマンス測定ベースラインの範囲外に設定したプロジェクト予算またはプロジェクト・スケジュールで、プロジェクト・スコープでの予期しなかった作業のために確保しておくもの。つまり、将来の未知の事象に対して準備しておく費用。" },
+    { term:"パフォーマンス測定ベースライン", def:"スコープ、スケジュール、コストを統合したベースライン。プロジェクトの実行をマネジメントし、測定し、コントロールするために、比較対象として使われる。" },
     { term:"見積りの根拠", def:"前提条件、制約条件、詳細度、見積幅、信頼度といった、プロジェクトの見積りを立てる際に使った詳細情報の概要を述べた裏付け文書。" },
-    { term:"類推見積り", def:"類似のアクティビティやプロジェクトにおける過去のデータを使って、所要期間やコストを見積もる技法。" },
-    { term:"ボトムアップ見積り", def:"WBSの下位レベルのコンポーネント単位の見積りを集計してプロジェクトの所要期間やコストを見積もる技法。" },
-    { term:"予備設定分析", def:"プロジェクトのスケジュール所要期間、予算、コスト見積り、または資金についての予備を設定するために使われる分析技法の1つ。" },
+    { term:"類推見積り", def:"類似のアクティビティやプロジェクトにおける過去のデータを使って、アクティビティやプロジェクトの所要期間やコストを見積もる技法。" },
+    { term:"ボトムアップ見積り", def:"WBS（ワーク・ブレークダウン・ストラクチャー）の下位レベルの個々の見積りを集計してプロジェクトの所要期間やコストを見積もる技法。" },
+    { term:"予備設定分析", def:"プロジェクトマネジメント計画書に組み込む構成要素の基本的な特徴と関連性を決定するための分析技法の1つ。プロジェクトのスケジュール所要期間、予算、コスト見積り、または資金についての予備を設定するために使われる。" },
     { term:"費用便益分析", def:"プロジェクトのコストに対して、プロジェクトによって得られるベネフィットを明らかにするために用いる財務分析ツール。" },
-    { term:"価値工学", def:"製品やサービスの価値を、機能とそのコストの関係性をもとに提え、必要な機能を最低のコストで実現するための体系的な手法。" },
+    { term:"価値工学", def:"製品やサービスの価値を、機能とそのコストの関係性をもとに捉え、必要な機能を最も低いコストで実現することを目指し、体系的に提供する価値を研究する手法。" },
+    { term:"完成時総コスト見積り", def:"全作業の完了までに予測されるコストの総額。ここまでの実コストと残作業見積りの合計で表す。" },
+    { term:"完成時総予算", def:"作業を実施するために確定された予算の総額。" },
+    { term:"係数見積り", def:"見積り方法の1つ。過去のデータやプロジェクトのパラメーターに基づいてコストや所要期間を算出するためにアルゴリズムを使う。" },
+    { term:"残作業コスト見積り", def:"プロジェクトのすべての残作業を終了するためにかかると予測されるコストの見積り。" },
+    { term:"三点見積り", def:"個々のアクティビティ見積りが不確かなときに、楽観値、悲観値、最頻値の平均または加重平均を適用してコストや所要期間を見積もる技法。" },
+    { term:"事業価値", def:"事業活動から得られる正味の定量化可能なベネフィット。ベネフィットは有形、無形、またはその両方がある。" },
+    { term:"差異分析", def:"ベースラインと実際のパフォーマンスの違いが生じた原因と度合いを判定する技法。" },
   ],
   "品質管理": [
     { term:"品質管理", def:"品質基準を満たし品質改善のための教訓を得るためにプロジェクトを監視すること。" },
-    { term:"品質報告書", def:"品質マネジメントの課題、是正処置の提言、品質コントロール活動で発見した事項の要約を含むプロジェクト文書。" },
-    { term:"品質方針", def:"組織が品質マネジメントに組織の方向性を示す方針。" },
+    { term:"品質報告書", def:"プロジェクト文書の1つ。品質マネジメントの課題、是正処置の提言、品質コントロール活動で発見した事項の要約を含む。さらに、プロセス、プロジェクト、プロダクトの改善提案が含まれることがある。" },
+    { term:"品質方針", def:"組織が品質マネジメントに組織のシステムを組み入れる際に、組織行動のガバナンスを実行する基本原則となる。" },
     { term:"検査", def:"作業プロダクトを精査して、文書化された標準に適合しているかどうかを確認すること。" },
-    { term:"検証", def:"プロダクト、サービス、または所産が、規制、要求事項、仕様指定された条件などに適合しているかどうかの評価。" },
-    { term:"妥当性確認", def:"プロダクト、サービス、または所産が、顧客や特定のステークホルダーのニーズを満たしていることを確認すること。" },
+    { term:"検証", def:"プロダクト、サービス、または所産が、規制、要求事項、仕様指定された条件などに適合しているかどうかの評価。「妥当性確認（Validation）」と対比すること。" },
+    { term:"妥当性確認", def:"プロダクト、サービス、または所産が、顧客や特定のステークホルダーのニーズを満たしていることを確認すること。「検証（Verification）」と対比すること。" },
     { term:"欠陥修正", def:"不適合プロダクトまたは不適合プロダクト構成要素を修正するための意図的な活動。" },
     { term:"是正処置", def:"プロジェクト作業をプロジェクトマネジメント計画書に沿うような再調整を意図する活動。" },
-    { term:"予防処置", def:"プロジェクト作業の将来のパフォーマンスがプロジェクトマネジメント計画書に沿うようにするための意図的な活動。" },
+    { term:"予防処置", def:"プロジェクト作業の将来のパフォーマンスがプロジェクトマネジメント計画に沿うようにするための意図的な活動。" },
     { term:"継続的改善", def:"組織のプロセス、サービス、製品の品質を段階的かつ恒常的に向上させるためのアプローチ。" },
-    { term:"実行プロセス群", def:"プロジェクトの要求事項を満たすことを目的として、プロジェクトマネジメント計画書に定義された作業を完了するために実施するプロセス群。" },
-    { term:"プロセス", def:"1つ以上のインプットから1つ以上のアウトプットを生むような、最終的な結果に向けて系統的に実行する一連の活動。" },
-    { term:"プロセス・アプローチ", def:"目的達成に向けて活動を実行する際に、相互に関連するプロセスを適切に理解し、マネジメントするアプローチ。" },
     { term:"信頼性", def:"成果物やサービスが普通の状態で問題なく期待どおりに動作すること。" },
     { term:"親和図", def:"多くのアイデアをレビューや分析のためにグループ分けできる技法。" },
     { term:"レビュー", def:"製品、サービス、プロセス、文書、情報、またはパフォーマンスなどを評価し、フィードバックを提供するためのシステム的なプロセス。" },
     { term:"仕様書", def:"満たされなければならないニーズおよび求められる必須特性の正確な記述。" },
-    { term:"PDCAサイクル", def:"計画（Plan）、実行（Do）、評価（Check）、行動（Act）の4つのフェーズから成り立ち、継続的改善を促すために設計されている。" },
-    { term:"PDSAサイクル", def:"PDCAサイクルとよく似た、プロセス改善に用いられる反復的な手法。計画（Plan）、実行（Do）、学習（Study）、行動（Act）の4つのフェーズから成り立つ。" },
+    { term:"PDCAサイクル", def:"計画（Plan）、実行（Do）、評価（Check）、行動（Act）の4つのフェーズから成り立ち、継続的改善を促すために設計されている。「デミング・サイクル」とも呼ばれる。" },
+    { term:"PDSAサイクル", def:"PDCAサイクルとよく似た、プロセス改善に用いられる反復的な手法。計画（Plan）、実行（Do）、学習（Study）、行動（Act）の4つのフェーズから成り立ち、学習と知識の生成に焦点を当てている。" },
+    { term:"実行プロセス群", def:"プロジェクトの要求事項を満たすことを目的として、プロジェクトマネジメント計画書に定義された作業を完了するために実施するプロセス群。" },
+    { term:"プロセス", def:"1つ以上のインプットから1つ以上のアウトプットを生むような、最終的な結果に向けて系統的に実行する一連の活動。" },
+    { term:"プロセス・アプローチ", def:"目的達成に向けて活動を実行する際に、相互に関連するプロセスを適切に理解し、マネジメントするアプローチ。" },
+    { term:"品質保証", def:"プロジェクトに関する品質基準を満たすための定期的な実績評価。" },
+    { term:"品質マネジメント計画書", def:"プロジェクトマネジメント計画書またはプログラムマネジメント計画書の構成要素の1つ。品質目標を達成するために適用する方針、手続き、ガイドラインの実行方法を記述する。" },
+    { term:"品質メトリックス", def:"プロジェクトやプロダクトの属性と、その属性をどのように測定するかを記述したもの。" },
+    { term:"品質要求", def:"結果としての品質属性を受容できるかどうかの妥当性を確認して、適合性を評価するために使う条件や能力。" },
+    { term:"クリティカル・シンキング", def:"客観的かつ論理的な方法で情報を分析し、多面的な観点から問題解決を図る思考法。" },
+    { term:"クリティカル分析", def:"与えられた情報や主張を客観的に検討し、その内容や根拠を推論していく分析法。" },
   ],
   "資源管理": [
     { term:"プロジェクト・チーム", def:"プロジェクト作業を実行して、プロジェクト・マネジャーがプロジェクト目標を達成できるように支援する人たちの集団。" },
     { term:"プロジェクト組織図", def:"特定のプロジェクトについてプロジェクトチームメンバーと、メンバー間の相互関係を図示した文書。" },
-    { term:"RACIチャート", def:"責任分担マトリックスの一般的な形式。実行責任（R）、説明責任（A）、相談先（C）、報告先（I）という区分でステークホルダーの関わりを定義する。" },
+    { term:"RACIチャート", def:"責任分担マトリックスの一般的な形式。実行責任（R：Responsible）、説明責任（A：Accountable）、相談先（C：Consulted）、報告先（I：Informed）という区分で、ステークホルダーのプロジェクトへの関わりを定義する。" },
     { term:"責任分担マトリックス", def:"ワーク・パッケージとそれに割り当てたプロジェクト資源を格子状に示す表。" },
     { term:"チーム憲章", def:"チームの意義、合意、運用指針を記録した文書。プロジェクトチームメンバーに受け入れられる振る舞いへの明確な期待を確立するもの。" },
     { term:"行動規範", def:"プロジェクトチームメンバーとして容認できる振る舞いについての期待。" },
     { term:"スクラム・チーム", def:"スクラムにおいて、1つの目的（プロダクトゴール）に集中している専門家が集まったチーム。" },
-    { term:"スクラム・マスター", def:"スクラム・チームの中で進行や調整の役割を担う人。" },
+    { term:"スクラム・マスター", def:"スクラム・チームの中で進行や調整の役割を担う人。スクラムの理論とプラクティスを全員に理解してもらえるよう支援する。" },
     { term:"開発チーム", def:"スクラム・チームの一員であり、各スプリントにおいて、利用可能な漸増活動（インクリメント）を行う。" },
     { term:"バーチャル・チーム", def:"異なる場所で作業し、基本的に電話や電子コミュニケーションツールを通じて互いに関わり合い、ゴールを共有している人々のグループ。" },
     { term:"対人関係スキル", def:"他人との関係を構築し維持するために使われるスキル。" },
@@ -1119,35 +850,72 @@ const GLOSSARY_DATA = {
     { term:"継続的学習", def:"個人や組織が知識、スキル、能力を絶えず更新し、改善するプロセス。" },
     { term:"センター・オブ・エクセレンス", def:"特定の専門分野や重要なビジネス領域において、知識、技能、リーダーシップ、ベストプラクティスを集約・共有し、組織全体の能力を向上させるための内部グループまたは部門。" },
     { term:"モデル", def:"システム、現象、プロセス、または概念を表す抽象的な表現や単純化された表現。" },
+    { term:"資源", def:"プロジェクトの完了に必要なチームメンバーやすべての物資。" },
+    { term:"資源円滑化", def:"資源最適化技法の1つ。フリーフロートとトータルフロートを使って、クリティカル・パスに影響を及ぼさずに資源を調整する。" },
+    { term:"資源カレンダー", def:"各資源の投入可能な稼働日とシフトを示す日程表。" },
+    { term:"資源最適化技法", def:"アクティビティの開始日と終了日を調整して資源の需要と供給のバランスを取る技法。" },
+    { term:"資源の獲得", def:"プロジェクト作業を完了するために必要となるチームメンバー、設備、装置、資材、消耗品その他の資源を確保するためのプロセス。" },
+    { term:"資源平準化", def:"資源の配分を最適化するためにプロジェクト・スケジュールを調整する資源最適化技法。クリティカル・パスに影響を及ぼすことがある。" },
+    { term:"資源マネジメント計画書", def:"プロジェクトマネジメント計画書の構成要素の1つ。プロジェクト資源の獲得、配分、監視、コントロールの方法を記述する。" },
+    { term:"指示型リーダーシップ", def:"リーダーがチームの明確な指示とガイダンスを提供するリーダーシップ・スタイル。" },
+    { term:"支援型リーダーシップ", def:"チームのニーズに焦点を当て、積極的にサポートし、チームの能力を最大限に引き出すことを目指すリーダーシップ・スタイル。" },
+    { term:"システムズ・エンジニアリング", def:"複雑なシステムの設計、統合、マネジメントおよびライフサイクルに対する分野横断的なアプローチ。" },
+    { term:"システム思考", def:"複雑な事象を効果的に対処するために、組織についての全体的な視点を取り入れて行う思考法。" },
+    { term:"システム分析", def:"システムの問題を特定し、その問題の解決策を分析・評価するプロセス。" },
+    { term:"シックスシグマ", def:"ビジネスを成功に導き、それを持続、最大化するための包括的かつ柔軟なシステム。顧客ニーズを理解し、事実に基づくデータを統計的に分析し、ビジネスプロセスを革新することによってこれを可能にする。" },
+    { term:"感情的知性", def:"自他の個人的な感情と集団としての感情を明らかにし、評価し、マネジメントする能力。" },
+    { term:"ガバナンス", def:"確立済みのポリシー、実務慣行、その他の関連する文書を通じて、組織の方向性を決定し実現するための枠組み。" },
+    { term:"価値実現システム", def:"組織を構築・維持発展させることを目的とした戦略的な事業活動の集合。" },
+    { term:"カンバン", def:"仕掛り作業を示し、ボトルネックと過剰な割当てを特定する可視化ツール。それによってチームはワークフローを最適化できる。" },
+    { term:"カンバン方式", def:"継続的デリバリーに配慮したプロジェクト管理手法。プロジェクトのワークフローを可視化し、生産工程に上限を設けることで過負荷や無駄を省く。" },
+    { term:"スキル・アンマッチ", def:"担当者が持つ能力と、役割が求めるスキルとが一致しない状態。", isMetisOriginal:true },
+    { term:"体制変更", def:"プロジェクトの組織構成や役割分担の変更。担当者の交代や責任範囲の見直しを含む。", isMetisOriginal:true },
+    { term:"責任分界点", def:"組織や担当者間で、どこまでが誰の責任範囲かを区切る境界。", isMetisOriginal:true },
+    { term:"知識ボトルネック", def:"特定の人物に知識や経験が集中し、その人がいなければ判断や作業が進まなくなる属人化した状態。", isMetisOriginal:true },
+    { term:"マトリクス型組織", def:"メンバーが機能部門とプロジェクト部門など複数の上司・指揮系統に同時に属する組織構造。縦（職能）と横（プロジェクト）の両方に報告経路を持つ。", isMetisOriginal:true },
   ],
   "調達管理": [
     { term:"実費償還契約", def:"事業やプロジェクトに関連する実際の経費をもとに支払いを行う契約形式。" },
     { term:"タイム・アンド・マテリアル契約", def:"定額契約と実費償還契約との折衷案。" },
     { term:"実務慣行", def:"プロセスの実行に寄与し、場合によってはいくつかの技法やツールを使って行われる、ある種の専門的活動やマネジメント活動。" },
-    { term:"スポンサー", def:"プロジェクトに対して資源と支援を提供し、プロジェクトの成功に責任を持つ個人またはグループ。" },
-    { term:"プロダクト・オーナー", def:"プロダクトの価値を最大化し、最終プロダクトの責任を負う人。" },
-    { term:"プロダクト・ロードマップ", def:"プロダクトのビジョンと方向性を示す概略的な計画。" },
     { term:"母体組織", def:"プロジェクトを主催や支援したり、または資源や資金を提供する組織。" },
-    { term:"ビジネス・ケース文書", def:"経済的な実現可能性調査結果をまとめた文書。" },
+    { term:"ビジネス・ケース文書", def:"経済的な実現可能性調査結果をまとめた文書。選択した構成要素の定義が十分になされていないとき、そのベネフィットの妥当性を明らかにするために使われる。そして、その後のプロジェクトマネジメント活動を認可する根拠として使われる。" },
     { term:"ジャスト・イン・タイム", def:"生産プロセスにおいて、必要な部品や素材を必要なときに、必要な量だけ供給するシステムや管理手法。" },
     { term:"リーン生産方式", def:"トヨタ生産方式を起源とする開発手法であり、無駄を排除し、効率を最大化することを目的とした生産管理手法。" },
+    { term:"調達戦略", def:"求められる結果を達成するために使われるべきである、プロジェクト達成方法および法的拘束力のある契約のタイプを決めるために用いるアプローチ。" },
+    { term:"調達文書", def:"契約の締結、履行、終結に使われるすべての文書。調達文書には、プロジェクト立ち上げ前の文書が含まれることがある。" },
+    { term:"調達マネジメント計画書", def:"プロジェクトマネジメント計画書またはプログラムマネジメント計画書の構成要素の1つ。プロジェクト・チームが母体組織以外から物品やサービスを入手する方法を記述する。" },
+    { term:"提案依頼書", def:"調達文書の一種。プロダクトやサービスの納入候補にプロポーザルの提出を求める際に使う。適用分野によっては、より狭義の、あるいは具体的な意味を持つことがある。" },
+    { term:"供給者", def:"製品やサービスを市場に提供する個人、企業、または組織。ベンダーとも呼ばれる。" },
+    { term:"ツール", def:"プロダクトや所産を生成するためにアクティビティの実施時に使う、テンプレートやソフトウェアプログラムなど、有形のもの。" },
+    { term:"内外製分析", def:"プロダクトの要求事項に関するデータを収集して整理したうえで、そのプロダクトを購入するか内部で製造するかといった取りうる選択肢に照らして分析するプロセス。" },
   ],
   "リスク管理": [
     { term:"リスク登録簿", def:"リスクマネジメントプロセスのアウトプットが記録されたリポジトリ。" },
     { term:"リスク・ログ", def:"リスクを特定、評価、監視し、その対応を追跡するために使用される文書またはツール。" },
-    { term:"リスク・マネジメント計画書", def:"リスク・マネジメント活動を構造化し実行する方法を記述する。プロジェクトマネジメント計画書の構成要素の1つ。" },
+    { term:"リスク・マネジメント計画書", def:"プロジェクトマネジメント計画書、プログラムマネジメント計画書、ポートフォリオマネジメント計画書の構成要素の1つ。リスク・マネジメント活動を構造化し実行する方法を記述する。" },
     { term:"リスクの識別", def:"プロジェクトに影響しそうなリスクを洗い出し、それぞれのリスクの特性を文書化する。" },
     { term:"リスクの特定", def:"個別リスクと全体リスクの要因を特定し、それぞれの特性を文書化するプロセス。" },
     { term:"リスク対応計画", def:"プロジェクト目標を達成するうえでの脅威を減らし、好機の可能性を増やすための計画。" },
     { term:"リスク選好", def:"組織や個人が見返りを期待して不確かさを積極的に受け入れる度合い。" },
     { term:"リスク・ブレークダウン・ストラクチャー", def:"潜在的リスク要因の階層表示。" },
-    { term:"発生確率影響度マトリックス", def:"発生するリスクの相対確率を一方の軸に表し、リスクの相対的影響度をもう一方の軸に表現したマトリクスあるいはチャート図。" },
+    { term:"発生確率影響度マトリックス", def:"発生するリスクの相対確率を図表の片側あるいは一方の軸に表し、リスクの相対影響度をもう一方の側、あるいは軸に表現したマトリクスあるいはチャート図。" },
     { term:"コンティンジェンシー", def:"プロジェクトの実行に影響を及ぼすイベントまたは出来事。予備でまかなうことがある。" },
     { term:"前提条件", def:"計画を立てるにあたって、証拠や実証なしに真実、現実、あるいは確実であると見なす要因。" },
-    { term:"制約条件", def:"プロジェクトの実行に影響する制限要因。" },
+    { term:"制約条件", def:"プロジェクト、プログラム、またはポートフォリオ、またはプロセスの実行に影響を及ぼす制限要素。" },
+    { term:"定性的リスク分析", def:"リスクを定性的に分析し、プロジェクト目標に対する定性的に分析する度を順位付けする分析。" },
+    { term:"定量的リスク分析", def:"リスクを定量的に測定し、プロジェクト目標に対するリスクの影響を算定する分析。" },
+    { term:"トリガー条件", def:"リスクが発生間近であることを示すイベントまたは状況。" },
+    { term:"特性要因図", def:"望ましくない影響を生み出した根本原因を遡って追跡するために役立つ要素分解技法。" },
+    { term:"統計的サンプリング", def:"検査のために母集団から一部を抽出すること。" },
+    { term:"エスカレーション", def:"課題やリスクを、現場の権限では解決できないときに上位者へ報告し、判断を依頼する行為。", isMetisOriginal:true },
+    { term:"エスカレーション・ライン", def:"課題やリスクをどの順序で誰に報告すべきかを定めたエスカレーション先の経路。", isMetisOriginal:true },
+    { term:"サイレント・リスク", def:"表面化しておらず、誰からも問題として指摘されていないが、潜在的に存在するリスク。", isMetisOriginal:true },
+    { term:"リスク織り込み", def:"想定されるリスクをあらかじめ計画に反映させておくこと。", isMetisOriginal:true },
+    { term:"リスク・マネジメント", def:"リスクを特定し、分析し、対応策を講じる一連の管理活動。", isMetisOriginal:true },
   ],
   "コミュニケーション管理": [
-    { term:"コミュニケーション・マネジメント計画書", def:"いつ、誰が、どのようにプロジェクトの情報を管理し、発信するかを記述したもの。" },
+    { term:"コミュニケーション・マネジメント計画書", def:"プロジェクトマネジメント計画書、プログラムマネジメント計画書、またはポートフォリオマネジメント計画書の構成要素であり、いつ、誰が、どのようにプロジェクトの情報を管理し、発信するかを記述したもの。" },
     { term:"コミュニケーション方法", def:"プロジェクト・ステークホルダーの間で情報を伝達するための系統的な手続き、技法、またはプロセス。" },
     { term:"情報ラジエーター", def:"組織の他の人々に提供し、タイミングよく知識を共有できるように、情報を視覚的・物理的に表すもの。" },
     { term:"進捗報告", def:"一定期間に実施した作業報告。" },
@@ -1156,47 +924,120 @@ const GLOSSARY_DATA = {
     { term:"積極的傾聴", def:"相手が話している内容を注意深く聞き、理解し、その理解を相手にフィードバックするプロセス。" },
     { term:"課題ログ", def:"課題についての情報が記録され監視されるプロジェクト文書。" },
     { term:"暗黙知", def:"信条、経験、洞察など、明示または共有が困難な個人の知識。" },
+    { term:"形式知", def:"言葉、数字、絵のような記号でコード化できる知識。" },
     { term:"プロジェクト文書", def:"プロジェクトの計画、実行、監視、および終結に関連するすべての情報の文書、記録。" },
     { term:"プロジェクトマネジメント情報システム", def:"プロジェクトマネジメントのプロセスから生み出されるアウトプットを収集し、統合し、配付するために使われるツールと技法からなる情報システム。" },
     { term:"レトロスペクティブ会議", def:"品質と効果を高める方法を計画することを目的に、活動の有効性を議論する振り返りの会議。" },
     { term:"チェンジ", def:"組織の目標、プロセス、技術の変革、変更のこと。" },
-    { term:"コンフィギュレーション・マネジメント計画書", def:"コンフィギュレーション・コントロールの対象となるプロジェクト生成物の特定方法、説明責任の果たし方、変更の記録・報告方法を記述する文書。" },
+    { term:"コンフィギュレーション・マネジメント計画書", def:"プロジェクトマネジメント計画書の構成要素の1つ。コンフィギュレーション・コントロールの対象とするプロジェクト生成物をどのように特定し、それらに対する説明責任をどのように果たすのか、また、それらの変更をどのように記録し報告するのかを記述する。" },
+    { term:"知識マネジメント", def:"組織内での知識の創造、共有、利用、保存を体系的に管理するプロセス。" },
+    { term:"知識エリア", def:"統合、スコープ、スケジュール、コスト、品質、資源、コミュニケーション、リスク、調達、ステークホルダーの各マネジメントエリア。" },
+    { term:"調整会議", def:"計画された今後の作業を調整し、イテレーションの目的に対する進捗を検査し、必要に応じてイテレーション・バックログを適応させることを目的に行われる短時間の定期的な会議。" },
+    { term:"コミュニケーション・ライン", def:"情報共有や相談を行うための組織上の連絡経路。", isMetisOriginal:true },
+    { term:"情報集中", def:"情報が一部の人や組織へ偏って集まる状態。", isMetisOriginal:true },
+    { term:"情報偏在", def:"情報が関係者間で均等に共有されず、一部に偏って存在する状態。", isMetisOriginal:true },
+    { term:"情報分散", def:"情報が複数の場所や人に散在し、一元的に把握しづらい状態。", isMetisOriginal:true },
+    { term:"周知リスク", def:"必要な情報が、届くべき関係者へ伝達されないことによるリスク。", isMetisOriginal:true },
+    { term:"ナレッジ・マネジメント", def:"組織内に蓄積された知識を、創造・共有・利用・保存の観点から体系的に管理する活動。", isMetisOriginal:true },
+    { term:"レポート・ライン", def:"誰が誰に対して報告義務や指揮命令の関係を持つかを示す経路。", isMetisOriginal:true },
   ],
   "ステークホルダー管理": [
-    { term:"ステークホルダー", def:"プロジェクトに影響を与えるか、または影響を受ける可能性のある個人、グループ、または組織。" },
-    { term:"ステークホルダー・エンゲージメント", def:"ステークホルダーのニーズと期待を満たし、課題に対処し、適切なステークホルダーの参加を促進するためのプロセス。" },
-    { term:"ステークホルダー登録簿", def:"ステークホルダーに関する情報を記録し、監視するプロジェクト文書。" },
-    { term:"プロジェクト・スポンサー", def:"プロジェクト、プログラム、またはポートフォリオに資源を提供し支援する個人またはグループ。" },
-    { term:"プロジェクトマネジメント・オフィス（PMO）", def:"プロジェクトマネジメントに関連するガバナンスプロセスを標準化し、資源、方法論、ツール、および技法の共有を促進する組織構造。" },
+    { term:"ステークホルダー", def:"プロジェクト、プログラム、またはポートフォリオの意思決定、活動、もしくは成果に影響されたり、影響されると感じたりする個人、グループ、または組織。" },
+    { term:"ステークホルダー・エンゲージメント計画書", def:"プロジェクトマネジメント計画書の構成要素の1つ。プロジェクトやプログラムの意思決定と実行においてステークホルダーの生産的な関与を促すために必要となる戦略と処置を特定する。" },
+    { term:"ステークホルダー登録簿", def:"プロジェクト文書の1つ。これにより、プロジェクト・ステークホルダーの特定、評価、分類等を行う。" },
+    { term:"ステークホルダー分析", def:"定量的情報と定性的情報を系統的に収集分析し、プロジェクトの期間を通じて誰の関心を考慮すべきかを決める技法。" },
+    { term:"プロジェクト・スポンサー", def:"プロジェクト、プログラム、またはポートフォリオに資源を提供し支援する個人またはグループ。成功に導く説明責任を負う。" },
     { term:"プロジェクト・マネジャー", def:"プロジェクト目標の達成に責任を持つチームを統率するために、母体組織が任命する人。" },
     { term:"プロジェクト・リーダー", def:"主にプロジェクトの作業を調整することによって、プロジェクト・チームがプロジェクトの目標を達成するのを支援する人。" },
     { term:"公式な権威", def:"組織から与えられる権限を利用して他人の行動を変えさせる力。" },
     { term:"専門家の権威", def:"個人の知識や専門分野を利用して他人の行動を変えさせる力。" },
     { term:"コンフリクト", def:"個人やグループ間の意見、目的、価値観の相違によって生じる緊張や不一致の状態。" },
     { term:"ADKARモデル", def:"組織変革に際して個人がたどる「認知・欲求・知識・能力・定着」の5つの連続したステップに焦点を当て設計されたチェンジマネジメントのフレームワーク。" },
-    { term:"チェンジマネジメント", def:"組織の目標、プロセス、技術の変革、変更を効果的に管理し、導入するための体系的なアプローチ。" },
-    { term:"戦略計画書", def:"組織のビジョンとミッション、さらにこのミッションとビジョンを達成するために採用されるアプローチを説明した高次の文書。" },
+    { term:"チェンジマネジメント", def:"組織の目標、プロセス、技術の変革、変更を効果的に管理し、導入するプロセス。" },
+    { term:"戦略計画書", def:"組織のビジョンとミッション、さらにこのミッションとビジョンを達成するために採用されるアプローチを説明した高次の文書。この文書で対象とされる期間に達成すべき特定の目標と目的も含まれる。" },
     { term:"組織体の環境要因", def:"チームの直接のコントロールは及ばないが、プロジェクト、プログラム、またはポートフォリオに影響を及ぼす、制約を与える、または方向性を示す状況。" },
     { term:"組織のプロセス資産", def:"母体組織が使う、同組織に特有の計画書、プロセス、文書、知識リポジトリ。" },
     { term:"プロジェクトマネジメント知識体系", def:"プロジェクトマネジメントという専門職における知識を指す用語。" },
     { term:"プロジェクトマネジメント", def:"プロジェクトの要求事項を満たすために、知識、スキル、ツールと技法をプロジェクトの諸活動へ適用すること。" },
+    { term:"ステークホルダー関与度マトリクス", def:"ステークホルダーの興味や権力のレベルを評価し、適切なエンゲージメント戦略を策定するために使用されるツール。" },
+    { term:"教訓", def:"今後のパフォーマンス改善のためにプロジェクトにどのように取り組んだか、あるいは将来どのように取り組むべきかについて、プロジェクトから得られた知見。" },
+    { term:"教訓登録簿", def:"プロジェクト期間に得られた知見を現行プロジェクトで使ったり、教訓リポジトリに記入したりできるように、それらの知見の記録に使うプロジェクト文書。" },
+    { term:"教訓リポジトリ", def:"プロジェクトから得られた教訓に関する過去の情報の保存場所。" },
+    { term:"ベネフィット", def:"ある行動や決定、プロジェクト、投資などから得られる利益や価値。" },
+    { term:"ベネフィット・マネジメント計画書", def:"プロジェクトまたはプログラムから得られるベネフィットを創出し、最大化し、持続するためのプロセスを定義した文書。" },
+    { term:"変更管理", def:"プロジェクトに関連する文書、成果物、またはベースラインへの変更を特定し、文書化し、承認または却下するプロセス。" },
+    { term:"変更管理委員会", def:"プロジェクトへの変更をレビューし、評価・承認・保留または却下などとして、その決定を記録伝達することに責任を持つ正式に構成されたグループ。" },
+    { term:"変更管理システム", def:"プロジェクト成果物と文書への修正をどのようにマネジメントし、コントロールするかを記述した一連の手続き。" },
+    { term:"変更マネジメント計画書", def:"プロジェクトマネジメント計画書の構成要素の1つ。変更管理委員会を設置し、その権限の範囲を文書化し、変更管理方法を記述する。" },
+    { term:"変更要求", def:"文書、成果物、またはベースラインへの修正を求める正式な提案。" },
+    { term:"変更ログ", def:"プロジェクトの期間中に提出された変更と、それらの現状を漏れなく記載したリスト。" },
+    { term:"ベンチマーキング", def:"ベストプラクティスを特定し改善案を生み出してパフォーマンス測定基準を提供するために、実際のまたは計画対象のプロダクト、プロセス、実務慣行を比較対象組織のものと比較すること。" },
+    { term:"ベンチマーク", def:"社内外における過去の特性や成果物の特性と比較することによって品質改善のアイデアを生み出す技法。" },
+    { term:"定常業務", def:"企業や組織が日々行う定期的で反復的な業務。" },
+    { term:"テーラリング", def:"プロジェクトをマネジメントするために、プロセス、インプット、ツール、技法、アウトプット、ライフサイクル・フェーズの適切な組合せを決めること。" },
+    { term:"ポートフォリオ", def:"戦略目標を達成するためにグループとしてマネジメントされるプロジェクト、プログラム、サブポートフォリオ、定常業務。" },
+    { term:"プログラム", def:"調和の取れた方法でマネジメントされる、関連するプロジェクト、サブプログラム、プログラム活動。個別にマネジメントしていては得られないベネフィットを実現する。" },
+    { term:"プログラムマネジメント", def:"知識、スキル、原理・原則をプログラムに適用してプログラム目標を達成し、プログラムの構成要素を個別にマネジメントすることでは得られないベネフィットとコントロールを得ること。" },
+    { term:"プロジェクト計画の策定", def:"他の計画プロセスの結果をまとめ、首尾一貫したプロジェクト計画書を作成すること。" },
+    { term:"プロジェクト計画の実行", def:"プロジェクト計画書で定義されたアクティビティを実行すること。" },
+    { term:"プロジェクト計画書", def:"すべてのプロジェクト計画書を調整、統合しプロジェクト計画の実行とコントロールをガイドするための文書。" },
+    { term:"意思決定者", def:"プロジェクトにおいて最終判断や承認を行う人物。", isMetisOriginal:true },
+    { term:"意思決定経路", def:"意思決定が行われる組織内の流れや承認ルート。", isMetisOriginal:true },
+    { term:"意思決定パス", def:"特定のテーマに関する意思決定プロセスの経路。", isMetisOriginal:true },
+    { term:"承認権限", def:"承認や決裁を行う権限。誰がどの範囲まで決裁できるかを定める。", isMetisOriginal:true },
+    { term:"承認スキーム", def:"承認を得るための組織的な手続きやルール。承認者の階層や順序を含む。", isMetisOriginal:true },
+    { term:"事前合意", def:"プロジェクト開始前に、目的やスコープなどについて関係者間で認識を揃える活動。", isMetisOriginal:true },
+    { term:"ステークホルダー・ダイナミクス", def:"利害関係者間の力学や関係性が、プロジェクトの進行に伴って変化していくこと。", isMetisOriginal:true },
+    { term:"ハブ人材", def:"組織内外の情報や人をつなぐ中心的な役割を担う人物。公式な役職とは別に機能することが多い。", isMetisOriginal:true },
+    { term:"パワー・マップ", def:"関係者それぞれが持つ発言力や影響力を、組織図とは別の軸で可視化した関係図。", isMetisOriginal:true },
+    { term:"キーマン", def:"プロジェクトの成否に大きな影響を与える重要人物。役職の高さとは必ずしも一致しない。", isMetisOriginal:true },
   ],
   "開発管理": [
     { term:"アジャイル", def:"アジャイル宣言で表明されている価値と原則のマインドセットを説明するために使用される用語。" },
-    { term:"開発アプローチ", def:"プロジェクトのライフサイクル期間において、プロダクト、サービス、または所産を創り発展させるために使う手法。予測型、反復型、漸進型、アジャイル型、ハイブリッドなどがある。" },
+    { term:"開発アプローチ", def:"プロジェクトのライフサイクル期間において、プロダクト、サービス、または所産を発展させるために使う手法。予測型、反復型、漸進型、アジャイル型、ハイブリッドなどがある。" },
     { term:"予測型開発アプローチ", def:"時間軸に沿って直線的なアプローチを取る。代表的な例として、ウォーターフォール型がある。" },
     { term:"漸進型開発アプローチ", def:"徐々に段階を追って成果物を構築し、進化させていくアプローチ。" },
-    { term:"ハイブリッド・アプローチ", def:"アジャイル要素と非アジャイル要素の2つ以上の組み合わせによる開発アプローチ。" },
+    { term:"ハイブリッド・アプローチ", def:"アジャイル要素と非アジャイル要素の2つ以上の組み合わせによる開発アプローチ。非アジャイルの最終結果をもたらす。" },
     { term:"スクラム", def:"短期間で作業と検証を繰り返し行うことでアウトプットを生み出すソフトウェア開発を中心に使われているフレームワーク。" },
-    { term:"インクリメント", def:"プロダクトゴールに向けた漸増的な活動およびそれらを合わせた作成物。" },
+    { term:"インクリメント", def:"プロダクトゴールに向けた漸増的な活動およびそれらを合わせた作成物。インクリメントは随時、漸増されたすべてのインクリメントが連携して機能することを保証するために、徹底的に検証する必要がある。" },
     { term:"イテレーション計画会議", def:"各イテレーションの開始時に、イテレーションで実行する作業の計画を立てる会議。" },
     { term:"イテレーション・バックログ", def:"開発チームによる、開発者のための計画。スプリント・ゴールを達成するために開発者がスプリントで行う作業がリアルタイムに反映される。" },
     { term:"イテレーション・レトロスペクティブ会議", def:"品質と効果を高める方法を計画することを目的に、各スプリントの終了時に、アジャイル・チームがスプリントの有効性を議論する振り返りの会議。" },
-    { term:"イテレーション・レビュー会議", def:"イテレーションの成果を検査し、今後の適応を決定することを目的に行われる会議。" },
-    { term:"スプリント・バックログ", def:"スプリントゴール、スプリントで選択したプロダクトバックログのアイテム、およびインクリメントを届けるための実行計画。" },
-    { term:"バーンアップ・チャート", def:"必要な機能を作り終えるための作業量と時間の2つの軸を使って進捗状況を視覚化する図。完了した作業量は「完了ストーリー・ポイント」と呼ばれる。" },
-    { term:"バーンダウン・チャート", def:"必要な機能を作り終えるための作業量と時間の2つの軸を使って進捗状況を視覚化する図。残作業量は「残ストーリー・ポイント」と呼ばれる。" },
-    { term:"バーン・チャート", def:"タイムボックス内の残りの作業、またはプロダクトやプロジェクトの成果物のリリースに向けて完了した作業を図示したもの。" },
+    { term:"イテレーション・レビュー会議", def:"イテレーションの成果を検査し、今後の適応を決定することを目的に行われる会議。アジャイル・チームは主要なステークホルダーに作業の結果を提示し、プロダクトゴールに対する進捗について話し合う。" },
+    { term:"適応型開発アプローチ", def:"要求事項の不確かさと変動性の度合いが高く、プロジェクト全体にわたって要求事項が変わり得る開発アプローチ。" },
+    { term:"適応型ライフサイクル", def:"反復型または漸進型のプロジェクトのライフサイクル。" },
+    { term:"ストーリー・ポイント", def:"ユーザー・ストーリーを実現するために必要な相対的な工数を見積もるために使用される単位。" },
+    { term:"ストーリー・マップ", def:"特定のプロダクトに望まれるすべてのフィーチャーと機能を視覚化したモデル。チームが、何を、なぜ構築しているかを全体的に把握できるようにするために作成される。" },
+    { term:"スラック・タスク", def:"スケジュール上で特定のタスクを遅らせることができる時間の余裕。" },
+    { term:"フロー", def:"所定のプロセスまたはフレームワークを通じた作業の流れの効率を測る尺度。" },
+    { term:"フローチャート", def:"システムにおける1つ以上のプロセスのインプット、プロセス・アクション、アウトプットを図の形式で示したもの。" },
+    { term:"フロート・タスク", def:"スケジュール上で特定のタスクを遅らせることができる時間の余裕。" },
+    { term:"プランド・バリュー", def:"予定作業に割り当てられた承認済みの予算。" },
+    { term:"プランニング・ポーカー", def:"チームがタスクの作業工数や相対的なサイズを見積り、優先順位付けを行う際に使用されるゲーム形式の見積り技法。" },
+    { term:"振り返り会議", def:"品質と効果を高める方法を計画することを目的に、活動の有効性を議論する振り返りの会議。" },
+    { term:"ブレーン・ストーミング", def:"特定の問題について、グループで討議して、アイデアや解法を作り出す技法。多くのアイデアを出し合うことを優先し、良し悪しの判断を加えることはしない。" },
+    { term:"ベロシティ", def:"事前にも定義された期間内に成果物が生産され、妥当性確認がなされ、受け入れられたときのチームの生産性の尺度。" },
+    { term:"プロトタイプ", def:"期待されたプロダクトを構築する前に、動作確認をするための試作モデル。その動作するモデルを提供することによって、要求事項へのフィードバックを早い段階で得られる。" },
+    { term:"プロンプト・リスト", def:"リスクや問題とその要因、または問題解決のアイデアを網羅的かつ敏速に識別し、抽出するためのリスト。リスク評価、品質保証などのプロセスで使用されるツール。" },
+    { term:"ベースライン", def:"作業プロダクトの承認済み版。正式な変更管理手続きを通してのみ変更可能。実績値との比較基準として使われる。" },
+    { term:"クラッシング", def:"資源を追加することによって、コストの増大を最小限に抑え、スケジュールの所要期間を短縮する技法。" },
+    { term:"ファスト・トラッキング", def:"通常は順番に実施されるアクティビティやフェーズを、少なくともそれらの実施期間の一部で並行して実施するスケジュール短縮技法。" },
+    { term:"フィーチャー", def:"組織に価値を提供する一群の関連する要求事項または機能。" },
+    { term:"二重関心グリッド／二重関心モデル", def:"対人関係のコンフリクト・マネジメントや交渉における戦略を理解するために使用されるフレームワーク。" },
+    { term:"ノミナル・グループ技法", def:"ブレーン・ストーミングに投票プロセスを加えた技法。この投票プロセスは、引き続き行うブレーン・ストーミングや優先順位付けに最も役立つアイデアを格付けするために使われる。" },
+    { term:"計画プロセス群", def:"プロジェクトの目標達成に向け、プロジェクトのスコープを確定し、目標を洗練し、求められる一連の行動を定義するために必要なプロセス群。" },
+    { term:"作業工数", def:"スケジュール・アクティビティまたはWBSコンポーネントを完了するのに必要な労務単位の数値。通常、時間数、日数、または週数で表す。「所要期間（Duration）」と対比する。" },
+    { term:"作業パフォーマンス情報", def:"コントロールプロセスから収集したパフォーマンス・データ。プロジェクトマネジメント計画書の構成要素、プロジェクト文書その他の作業パフォーマンス情報との比較によって分析される。" },
+    { term:"作業範囲記述書", def:"プロジェクトが生み出すべきプロダクト、サービス、所産を描写的に記述したもの。" },
+    { term:"作成物", def:"テンプレート、文書、アウトプット、またはプロジェクトの成果物。" },
+    { term:"プロダクト・マネジメント", def:"プロダクトやサービスを作成、維持、進化させるために、ライフサイクル全体を通じて、人員、データ、プロセス、ビジネスシステムを統合すること。" },
+    { term:"プロダクト・ライフサイクル", def:"プロダクトの進展を示す一連のフェーズ。概念から提供、成長、成熟、そして撤退に至る。" },
+    { term:"プロダクト・オーナー", def:"プロダクトの価値を最大化し、最終プロダクトの責任を負う人。" },
+    { term:"リード", def:"関係する先行アクティビティに対して、後続アクティビティの開始を前倒しできる時間。" },
+    { term:"アーンド・バリュー", def:"実行した作業の測定値。実行した作業に対する承認済み予算額で表す。" },
+    { term:"バーンアップ・チャート", def:"必要な機能を作り終えるための作業量と時間の2つの軸を使って簡潔かつ明確にプロジェクトの進捗状況を視覚化する図。左端をプロジェクトの開始点として横軸を経過時間、縦軸を必要な作業量として表示する。完了した作業量は「完了ストーリー・ポイント」と呼ばれる。" },
+    { term:"バーンダウン・チャート", def:"必要な機能を作り終えるための作業量と時間の2つの軸を使って簡潔かつ明確にプロジェクトの進捗状況を視覚化する図。左端をプロジェクトの開始点として横軸を経過時間、縦軸を必要な作業量として表示する。残作業量は「残ストーリー・ポイント」と呼ばれる。" },
+    { term:"プラン・フォー・プラン", def:"本計画を策定するために、あらかじめ計画の立て方そのものを設計しておく活動。", isMetisOriginal:true },
   ],
 };
 const GLOSSARY_CATS = Object.keys(GLOSSARY_DATA);
@@ -1269,8 +1110,13 @@ function GlossaryView() {
     );
     return (
       <div style={rowBase}>
-        <div style={{fontSize:14,fontWeight:600,color:C.text,lineHeight:1.5,paddingTop:1}}>{t.term}</div>
-        <div style={{fontSize:11,color:C.textMid,lineHeight:1.7}}>{t.def}</div>
+        <div style={{fontSize:14,fontWeight:600,color:C.text,lineHeight:1.5,paddingTop:1,display:"flex",flexDirection:"column",gap:4}}>
+          <span>{t.term}</span>
+          {t.isMetisOriginal && (
+            <span style={{fontSize:9,fontWeight:700,color:C.strong,background:"#EEEDFB",border:`1px solid ${C.mid}`,borderRadius:4,padding:"1px 6px",alignSelf:"flex-start",letterSpacing:"0.04em"}}>Metis Original</span>
+          )}
+        </div>
+        <div style={{fontSize:13,color:C.textMid,lineHeight:1.7}}>{t.def}</div>
         <div style={{display:"flex",gap:6,justifyContent:"flex-end",paddingTop:2}}>
           <button onClick={()=>{setEditingId(t.id);setEditBuf({term:t.term,def:t.def});setAddingNew(false);}}
             style={{background:"none",border:"none",cursor:"pointer",color:C.textWeak,fontSize:13,padding:3}}>✎</button>
@@ -1402,114 +1248,6 @@ function GlossaryView() {
   );
 }
 
-// ── Gantt View ──
-const TASK_STATUS = {
-  done:    { color: C.thing,    label: "完了",   bg: "#EAF8F3" },
-  active:  { color: C.strong,   label: "進行中", bg: "#EEEDFB" },
-  delay:   { color: C.critical, label: "遅延",   bg: "#F9EEF3" },
-  pending: { color: C.textWeak, label: "未着手", bg: C.bg },
-};
-
-function GanttView({ project, onTaskSelect, selectedTaskId }) {
-  const tasks = project.tasks || [];
-  if (!tasks.length) return null;
-
-  // 全タスクの期間からガント幅を計算
-  const allDates = tasks.flatMap(t => [new Date(t.start), new Date(t.end)]);
-  const minDate = new Date(Math.min(...allDates));
-  const maxDate = new Date(Math.max(...allDates));
-  // 月単位のラベルを生成
-  const months = [];
-  const cur = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
-  const end = new Date(maxDate.getFullYear(), maxDate.getMonth() + 1, 1);
-  while (cur < end) {
-    months.push(new Date(cur));
-    cur.setMonth(cur.getMonth() + 1);
-  }
-  const totalDays = (maxDate - minDate) / 86400000 + 1;
-  const pct = (d) => Math.max(0, Math.min(100, (new Date(d) - minDate) / (totalDays * 86400000) * 100));
-  const today = new Date();
-  const todayPct = pct(today);
-
-  return (
-    <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 5px rgba(83,74,183,0.05)" }}>
-      {/* ヘッダー */}
-      <div style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.bg }}>
-        <div style={{ width: 7, height: 7, borderRadius: "50%", background: C.thing, marginRight: 8 }} />
-        <span style={{ fontSize: 11, fontWeight: 700, color: C.thing, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>SCHEDULE VIEW</span>
-        <span style={{ fontSize: 10, color: C.textWeak, marginLeft: 8 }}>タスクをクリックで詳細編集</span>
-        <div style={{ flex: 1 }} />
-        {/* 凡例 */}
-        <div style={{ display: "flex", gap: 10 }}>
-          {Object.entries(TASK_STATUS).map(([k, v]) => (
-            <div key={k} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: C.textWeak }}>
-              <div style={{ width: 8, height: 8, borderRadius: 2, background: v.color }} />
-              {v.label}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ガント本体 */}
-      <div style={{ padding: "0 0 12px" }}>
-        {/* 月ヘッダー */}
-        <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", borderBottom: `1px solid ${C.border}` }}>
-          <div style={{ padding: "6px 12px", fontSize: 9, color: C.textWeak, borderRight: `1px solid ${C.border}` }}>タスク</div>
-          <div style={{ position: "relative", height: 24 }}>
-            {months.map((m, i) => {
-              const leftPct = pct(m);
-              return (
-                <div key={i} style={{ position: "absolute", left: `${leftPct}%`, top: 0, height: "100%", borderLeft: `1px solid ${C.border}`, paddingLeft: 4, display: "flex", alignItems: "center" }}>
-                  <span style={{ fontSize: 8, color: C.textWeak, fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap" }}>
-                    {m.getFullYear()}/{String(m.getMonth() + 1).padStart(2, "0")}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* タスク行 */}
-        {tasks.map((task, i) => {
-          const st = TASK_STATUS[task.status] || TASK_STATUS.pending;
-          const barLeft = pct(task.start);
-          const barWidth = Math.max(0.5, pct(task.end) - barLeft);
-          const isSelected = selectedTaskId === task.id;
-          return (
-            <div key={task.id} onClick={() => onTaskSelect(task)}
-              style={{ display: "grid", gridTemplateColumns: "140px 1fr", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: isSelected ? C.bg : "transparent", transition: "background 0.1s" }}
-              onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = C.bg; }}
-              onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = "transparent"; }}>
-              {/* タスク名 */}
-              <div style={{ padding: "6px 12px", borderRight: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 5, height: 5, borderRadius: 1, background: st.color, flexShrink: 0 }} />
-                <span style={{ fontSize: 10, color: isSelected ? C.text : C.textMid, fontWeight: isSelected ? 600 : 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{task.name}</span>
-              </div>
-              {/* バー */}
-              <div style={{ position: "relative", height: 32, display: "flex", alignItems: "center" }}>
-                {/* today線 */}
-                {todayPct > 0 && todayPct < 100 && (
-                  <div style={{ position: "absolute", left: `${todayPct}%`, top: 0, bottom: 0, width: 1, background: C.critical, opacity: 0.4, zIndex: 1 }} />
-                )}
-                {/* バー背景（予定） */}
-                <div style={{ position: "absolute", left: `${barLeft}%`, width: `${barWidth}%`, height: 14, background: st.color + "22", borderRadius: 3, border: `1px solid ${st.color}44` }} />
-                {/* バー前景（実績） */}
-                <div style={{ position: "absolute", left: `${barLeft}%`, width: `${barWidth * task.progress / 100}%`, height: 14, background: st.color, borderRadius: 3, opacity: 0.85 }} />
-                {/* 進捗% */}
-                {task.progress > 0 && (
-                  <div style={{ position: "absolute", left: `${barLeft + barWidth / 2}%`, transform: "translateX(-50%)", fontSize: 8, color: task.progress > 50 ? "#fff" : st.color, fontFamily: "'DM Mono', monospace", fontWeight: 700, zIndex: 2, pointerEvents: "none" }}>
-                    {task.progress}%
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 // ── Gravity View（SVG直接描画）──
 function GravityView({ project }) {
   const [activeTab, setActiveTab] = useState("gravity");
@@ -1517,15 +1255,14 @@ function GravityView({ project }) {
   const canvasRef = useRef(null);
   const chartRef  = useRef(null);
   const { nodes, edges, drift } = project.gravity;
-  const gravNodes = project.gravity.nodes;
-  const maxC = Math.max(...gravNodes.map(n => n.coupling));
+  const maxC = Math.max(...nodes.map(n => n.coupling));
 
   const nodeColor = (n) => {
     const r = n.coupling / maxC;
     if (r > 0.80) return { fill: "#534AB7", stroke: "#3C3489", text: "#EEEDFE" };
-    if (r > 0.60) return { fill: "#7B74D4", stroke: "#534AB7", text: "#EEEDFE" };
-    if (n.type === "S") return { fill: "#5DB99A", stroke: "#0F6E56", text: "#04342C" };
-    return { fill: "#AFA9EC", stroke: "#534AB7", text: "#26215C" };
+    if (r > 0.60) return { fill: "#6C5CE7", stroke: "#534AB7", text: "#EEEDFE" };
+    if (n.type === "S") return { fill: "#6C5CE7", stroke: "#4A3FB8", text: "#F0EEFE" };
+    return { fill: "#5DB99A", stroke: "#0F6E56", text: "#04342C" };
   };
 
   const edgeStyle = (w) => {
@@ -1567,8 +1304,8 @@ function GravityView({ project }) {
     return () => { if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; } };
   }, [activeTab, project]);
 
-  const avgCoupling = (gravNodes.reduce((a, n) => a + n.coupling, 0) / gravNodes.length).toFixed(1);
-  const highGravity = gravNodes.filter(n => n.coupling / maxC > 0.7).length;
+  const avgCoupling = (nodes.reduce((a, n) => a + n.coupling, 0) / nodes.length).toFixed(1);
+  const highGravity = nodes.filter(n => n.coupling / maxC > 0.7).length;
 
   return (
     <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 5px rgba(83,74,183,0.05)" }}>
@@ -1622,7 +1359,7 @@ function GravityView({ project }) {
               GRAVITY RANKING
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 14 }}>
-              {[...gravNodes].sort((a, b) => b.coupling - a.coupling).map((n, i) => {
+              {[...nodes].sort((a, b) => b.coupling - a.coupling).map((n, i) => {
                 const nc = nodeColor(n);
                 const pct = Math.round((n.coupling / maxC) * 100);
                 const isSelected = selectedNode?.id === n.id;
@@ -1805,7 +1542,7 @@ function InputBox({ field, value, onChange, axis }) {
       </div>
       <textarea value={value} onChange={e => onChange(field.key, e.target.value)} placeholder={field.placeholder} rows={2}
         onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-        style={{ border: `1.5px solid ${focused ? color : C.border}`, borderRadius: 8, padding: "8px 10px", fontSize: 12, color: C.text, background: focused ? (axis === "S" ? "#EAF8F3" : "#EEEDFB") : C.bgCard, outline: "none", resize: "none", fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1.6, transition: "border-color 0.15s, background 0.15s" }} />
+        style={{ border: `1.5px solid ${focused ? color : C.border}`, borderRadius: 8, padding: "8px 10px", fontSize: 12, color: C.text, background: focused ? (axis === "S" ? "#EEEDFB" : "#EAF8F3") : C.bgCard, outline: "none", resize: "none", fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1.6, transition: "border-color 0.15s, background 0.15s" }} />
     </div>
   );
 }
@@ -1823,7 +1560,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
       const text = await file.text();
       const snippet = text.slice(0, 4000);
       const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST", headers: { "Content-Type": "application/json", "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000,
           system: `プロジェクト情報を以下のJSON形式で抽出。見つからない項目は空文字。JSONのみ返す。{"name":"","due":"","scope":"","assumption":"","success":"","owner":"","stakeholders":"","approver":"","team":"","risks":""}`,
           messages: [{ role: "user", content: `以下のファイルからプロジェクト情報を抽出:\n\n${snippet}` }] }),
@@ -1942,342 +1679,77 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
   );
 }
 
-// ── Ghost 自動通知データ（プロジェクトごと）──
-const GHOST_PULSES = {
-  1: [
-    { id: 1, type: "semantic", text: "「完了」の定義がベンダーAと田中さんで異なっています", detail: "田中さん：コードマージ済み　／　ベンダーA：UAT承認・本番デプロイ完了", delay: 6000 },
-    { id: 2, type: "gravity",  text: "「承認」ノードへの依存が臨界点に近づいています", detail: "Coupling Score 5.0 — IT部長不在中のため連鎖リスクあり", delay: 22000 },
-    { id: 3, type: "drift",    text: "このペースでは完了予測が23日遅延します", detail: "現在の実績ライン vs 計画ラインの乖離が拡大中", delay: 40000 },
-  ],
-  2: [
-    { id: 4, type: "semantic", text: "「フェーズ完了」の定義が未登録です", detail: "Glossaryに登録することで認識ズレを防げます", delay: 8000 },
-  ],
-  3: [
-    { id: 5, type: "gravity",  text: "依存構造は健全です", detail: "全ノードのCoupling Scoreが基準値以下で推移しています", delay: 10000 },
-  ],
-};
-
-const PULSE_TYPE_STYLE = {
-  semantic: { color: C.strong,   bg: "#EEEDFB", icon: "◈", label: "意味の乖離" },
-  gravity:  { color: C.critical, bg: "#F9EEF3", icon: "⬡", label: "Gravity 警告" },
-  drift:    { color: C.human,    bg: "#EEEDFB", icon: "⟆", label: "Drift 検知" },
-};
-
-// ── Ghost スライドイン通知コンポーネント ──
-function GhostPulse({ pulse, onDismiss, onExpand }) {
-  const [visible, setVisible] = useState(false);
-  const [exiting, setExiting] = useState(false);
-  const s = PULSE_TYPE_STYLE[pulse.type];
-
-  useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 50);
-    return () => clearTimeout(t);
-  }, []);
-
-  const dismiss = () => {
-    setExiting(true);
-    setTimeout(() => onDismiss(pulse.id), 550);
-  };
-
-  useEffect(() => {
-    const t = setTimeout(dismiss, 8000);
-    return () => clearTimeout(t);
-  }, []);
-
-  return (
-    <div style={{
-      position: "relative", zIndex: 300,
-      width: 300,
-      background: C.bgCard,
-      border: `1px solid ${s.color}30`,
-      borderLeft: `3px solid ${s.color}`,
-      borderRadius: 10,
-      boxShadow: `0 8px 32px rgba(83,74,183,0.14), 0 1px 4px rgba(0,0,0,0.06)`,
-      padding: "10px 12px",
-      cursor: "pointer",
-      transform: exiting
-        ? "translateX(0) translateY(-18px)"
-        : visible
-          ? "translateX(0) translateY(0)"
-          : "translateX(330px) translateY(0)",
-      opacity: visible && !exiting ? 1 : 0,
-      filter: exiting ? "blur(3px)" : "blur(0px)",
-      transition: exiting
-        ? "transform 0.55s cubic-bezier(0.4,0,0.2,1), opacity 0.55s ease, filter 0.55s ease"
-        : "transform 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.32s ease",
-    }} onClick={() => { onExpand(pulse); dismiss(); }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-        <div style={{ position: "relative", flexShrink: 0, marginTop: 2 }}>
-          <div style={{ width: 7, height: 7, borderRadius: "50%", background: s.color,
-            boxShadow: `0 0 6px ${s.color}` }} />
-          <div style={{ position: "absolute", inset: -3, borderRadius: "50%",
-            border: `1px solid ${s.color}40`, animation: "ghostPing 2s ease-out infinite" }} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 3 }}>
-            <span style={{ fontSize: 9, fontWeight: 700, color: s.color, background: s.bg,
-              padding: "1px 6px", borderRadius: 3, fontFamily: "'DM Mono', monospace" }}>
-              Ghost　{s.icon}　{s.label}
-            </span>
-            <button onClick={e => { e.stopPropagation(); dismiss(); }}
-              style={{ background: "none", border: "none", color: C.textWeak, cursor: "pointer", fontSize: 14, lineHeight: 1, padding: "0 2px" }}>×</button>
-          </div>
-          <div style={{ fontSize: 11, color: C.text, fontWeight: 500, lineHeight: 1.5, marginBottom: 3 }}>{pulse.text}</div>
-          <div style={{ fontSize: 10, color: C.textWeak, lineHeight: 1.4 }}>{pulse.detail}</div>
-          <div style={{ fontSize: 9, color: C.textWeak, marginTop: 5, fontFamily: "'DM Mono', monospace" }}>
-            タップして詳細を確認
-          </div>
-        </div>
-      </div>
-      <style>{`
-        @keyframes ghostPing {
-          0%   { transform: scale(1);   opacity: 0.6; }
-          70%  { transform: scale(2.2); opacity: 0; }
-          100% { transform: scale(2.2); opacity: 0; }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-function GhostSearch({ project, visible, onClose, onApplyData, initialQuery }) {
+function GhostSearch({ project, visible, onClose }) {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [pendingAction, setPendingAction] = useState(null);
-  const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef(null);
   const bottomRef = useRef(null);
-
   useEffect(() => {
     if (visible && inputRef.current) setTimeout(() => inputRef.current?.focus(), 80);
-    if (!visible) { setMessages([]); setQuery(""); setPendingAction(null); }
+    if (!visible) { setMessages([]); setQuery(""); }
   }, [visible]);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
-  // Ghost通知からの展開時、初期クエリをセット
-  useEffect(() => {
-    if (visible && initialQuery) setQuery(initialQuery);
-  }, [visible, initialQuery]);
-
-  const buildContext = (p) => `あなたはPMO Intelligence「Metis」のAIアシスタントです。以下のプロジェクトデータを参照して日本語で答えてください。
-読みやすさのため、2〜3文ごとに必ず改行（空行）を入れて段落分けしてください。一つの段落に詰め込みすぎず、要因が複数ある場合は段落ごとに分けて説明してください。マークダウンの見出しや装飾記号（#や**など）は使わないでください。
+  const buildContext = (p) => `あなたはPMOIntelligence「PMOSemantic」の検索AIです。以下のデータを参照して日本語・マークダウンなしで答えてください。
 ${p.code} ${p.name} / スコア${p.score}(S:${p.staticScore} D:${p.dynamicScore}) / ${p.status} / PM:${p.owner} / 残${p.daysLeft}日 / 進捗${p.progress}%
 Static: schedule${p.static.schedule} tasks${p.static.tasks} risk${p.static.risk}
 Dynamic: stakeholder${p.dynamic.stakeholder} team${p.dynamic.team} decision${p.dynamic.decision}
 アラート: ${p.alerts.map(a=>`[${a.level}][${a.axis}]${a.text}`).join(" / ")}
 Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${n.coupling})`).join(", ")}`;
-
-  const parseCSV = (text) => {
-    const lines = text.split("\n").map(l=>l.trim()).filter(Boolean);
-    const header = lines[0].split(",").map(s=>s.trim().toLowerCase());
-    return { header, rows: lines.slice(1).map(l=>{ const c=l.split(","); return Object.fromEntries(header.map((h,i)=>[[h],c[i]?.trim()||""])); }) };
-  };
-
-  const detectAndProcess = async (csvText, filename) => {
-    const { header, rows } = parseCSV(csvText);
-    const headerStr = header.join(",");
-    setMessages(prev=>[...prev, { role:"file", text:`📎 ${filename}（${rows.length}行）` }]);
-    setLoading(true);
-
-    try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", { method:"POST", headers:{"Content-Type":"application/json", "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true"},
-        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000,
-          system:`あなたはCSVファイルの用途を判定するAIです。ヘッダー情報からファイルの種類を判定し、必ずJSONのみで返してください。
-判定結果は以下のいずれか: "schedule"（WBS・ガントチャート・スケジュール）, "stakeholders"（体制図・組織図・役割一覧）, "unknown"（判定不能）
-返すJSONの形式: {"type":"schedule","message":"WBS・スケジュールデータと判定しました。スケジュールビューに反映しますか？","confidence":"high"}`,
-          messages:[{ role:"user", content:`CSVヘッダー: ${headerStr}
-最初の3行: ${rows.slice(0,3).map(r=>Object.values(r).join(",")).join(" / ")}` }] }) });
-      const data = await res.json();
-      const raw = data.content?.[0]?.text || "{}";
-      const clean = raw.replace(/```json|```/g,"").trim();
-      const result = JSON.parse(clean);
-
-      setPendingAction({ type: result.type, csvText, header, rows, filename });
-      setMessages(prev=>[...prev, { role:"assistant", text: result.message || "ファイルを読み込みました。" }]);
-
-      if(result.type !== "unknown") {
-        setMessages(prev=>[...prev, { role:"action", type: result.type, rows }]);
-      }
-    } catch(e) {
-      setMessages(prev=>[...prev, { role:"assistant", text:"ファイルの解析中にエラーが発生しました。" }]);
-    }
-    setLoading(false);
-  };
-
-  const handleFile = (file) => {
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = e => detectAndProcess(e.target.result, file.name);
-    reader.readAsText(file, "UTF-8");
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault(); setIsDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if(file && (file.name.endsWith(".csv") || file.name.endsWith(".txt"))) handleFile(file);
-    else setMessages(prev=>[...prev, { role:"assistant", text:"CSVファイルをドロップしてください。" }]);
-  };
-
-  const handleApply = (type, rows) => {
-    onApplyData(type, rows);
-    setMessages(prev=>[...prev, { role:"assistant", text: type==="schedule" ? "スケジュールビューに反映しました。ダッシュボードでご確認ください。" : "Stakeholdersタブに体制図を反映しました。" }]);
-    setPendingAction(null);
-  };
-
   const handleSend = async () => {
     if (!query.trim() || loading) return;
-    const q = query; setMessages(prev => [...prev, { role:"user", text:q }]); setQuery(""); setLoading(true);
-    if (inputRef.current) inputRef.current.style.height = "auto";
-
-    // ストリーミング用の空アシスタントメッセージを先に追加
-    const streamId = Date.now();
-    setMessages(prev => [...prev, { role:"assistant", text:"", streaming:true, id:streamId }]);
-
+    const q = query; setMessages(prev => [...prev, { role: "user", text: q }]); setQuery(""); setLoading(true);
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", { method:"POST", headers:{"Content-Type":"application/json", "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true"},
-        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000, system:buildContext(project), stream:true,
-          messages:[...messages.filter(m=>m.role==="user"||m.role==="assistant").map(m=>({ role:m.role==="user"?"user":"assistant", content:m.text })), { role:"user", content:q }] }) });
-
-      if (!res.body) throw new Error("no stream");
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buf = "";
-      let fullText = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buf += decoder.decode(value, { stream: true });
-        const lines = buf.split("\n");
-        buf = lines.pop(); // 不完全な行は次回に回す
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const payload = line.slice(6);
-          if (payload === "[DONE]") continue;
-          try {
-            const evt = JSON.parse(payload);
-            if (evt.type === "content_block_delta" && evt.delta?.text) {
-              fullText += evt.delta.text;
-              setMessages(prev => prev.map(m => m.id === streamId ? { ...m, text: fullText } : m));
-            }
-          } catch {}
-        }
-      }
-      setMessages(prev => prev.map(m => m.id === streamId ? { ...m, streaming:false } : m));
-      if (!fullText) {
-        setMessages(prev => prev.map(m => m.id === streamId ? { ...m, text:"エラーが発生しました。", streaming:false } : m));
-      }
-    } catch {
-      setMessages(prev => prev.map(m => m.id === streamId ? { ...m, text:"エラーが発生しました。", streaming:false } : m));
-    } finally { setLoading(false); }
+      const res = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: buildContext(project),
+          messages: [...messages.map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.text })), { role: "user", content: q }] }) });
+      const data = await res.json();
+      setMessages(prev => [...prev, { role: "assistant", text: data.content?.[0]?.text || "エラーが発生しました。" }]);
+    } catch { setMessages(prev => [...prev, { role: "assistant", text: "エラーが発生しました。" }]); }
+    finally { setLoading(false); }
   };
-
   if (!visible) return null;
   return (
     <>
-      <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(26,24,51,0.18)", zIndex:100, backdropFilter:"blur(1px)" }} />
-      <div
-        onDragOver={e=>{e.preventDefault();setIsDragOver(true);}}
-        onDragLeave={()=>setIsDragOver(false)}
-        onDrop={handleDrop}
-        style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:520, maxHeight:"70vh", background: isDragOver?"rgba(83,74,183,0.06)":"rgba(247,247,251,0.97)", border:`1.5px solid ${isDragOver?C.strong:C.border}`, borderRadius:14, boxShadow:"0 24px 64px rgba(83,74,183,0.18)", zIndex:101, display:"flex", flexDirection:"column", overflow:"hidden", transition:"border-color 0.15s, background 0.15s" }}>
-
-        {/* ヘッダー */}
-        <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:10 }}>
-          <div style={{ width:6, height:6, borderRadius:"50%", background:C.strong, boxShadow:`0 0 6px ${C.strong}` }} />
-          <span style={{ fontSize:11, fontWeight:700, color:C.strong, fontFamily:"'DM Mono',monospace", letterSpacing:"0.06em" }}>SEMANTIC GHOST</span>
-          <span style={{ fontSize:10, color:C.textWeak, marginLeft:4 }}>{project.code} を参照中</span>
-          <div style={{ flex:1 }} />
-          <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:C.textWeak, fontSize:18 }}>×</button>
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(26,24,51,0.18)", zIndex: 100, backdropFilter: "blur(1px)" }} />
+      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 520, maxHeight: "70vh", background: "rgba(247,247,251,0.97)", border: `1.5px solid ${C.border}`, borderRadius: 14, boxShadow: "0 24px 64px rgba(83,74,183,0.18)", zIndex: 101, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <div style={{ padding: "12px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.strong, boxShadow: `0 0 6px ${C.strong}` }} />
+          <span style={{ fontSize: 11, fontWeight: 700, color: C.strong, fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em" }}>SEMANTIC GHOST</span>
+          <span style={{ fontSize: 10, color: C.textWeak, marginLeft: 4 }}>{project.code} + Gravity を参照中</span>
+          <div style={{ flex: 1 }} />
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: C.textWeak, fontSize: 18 }}>×</button>
         </div>
-
-        {/* メッセージエリア */}
-        <div style={{ flex:1, overflow:"auto", padding:"14px 16px", display:"flex", flexDirection:"column", gap:12, minHeight:120 }}>
+        <div style={{ flex: 1, overflow: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12, minHeight: 120 }}>
           {messages.length === 0 && (
-            <div style={{ textAlign:"center", paddingTop:16 }}>
-              <div style={{ fontSize:11, color:C.textWeak, marginBottom:14 }}>Metis が状態を診断して回答します</div>
-              <div style={{ display:"flex", flexWrap:"wrap", gap:6, justifyContent:"center", marginBottom:14 }}>
+            <div style={{ textAlign: "center", paddingTop: 20 }}>
+              <div style={{ fontSize: 11, color: C.textWeak, marginBottom: 14 }}>Semantic Space + Gravity に問い合わせできます</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
                 {["承認ノードのGravityが高い理由は？","最もリスクの高い依存関係は？","Drift Viewのズレの原因は何？","どこに介入すれば最も効果的？"].map(hint => (
-                  <button key={hint} onClick={()=>setQuery(hint)} style={{ fontSize:11, color:C.strong, background:"#EEEDFB", border:`1px solid ${C.mid}`, borderRadius:6, padding:"4px 10px", cursor:"pointer" }}>{hint}</button>
+                  <button key={hint} onClick={() => setQuery(hint)} style={{ fontSize: 11, color: C.strong, background: "#EEEDFB", border: `1px solid ${C.mid}`, borderRadius: 6, padding: "4px 10px", cursor: "pointer" }}>{hint}</button>
                 ))}
-              </div>
-              {/* ドロップヒント */}
-              <div style={{ fontSize:10, color:C.textWeak, borderTop:`1px dashed ${C.border}`, paddingTop:12, marginTop:4 }}>
-                CSVファイルのドロップが可能です。
               </div>
             </div>
           )}
-
-          {messages.map((m, i) => {
-            if(m.role==="file") return (
-              <div key={i} style={{ display:"flex", justifyContent:"flex-end" }}>
-                <div style={{ padding:"6px 12px", borderRadius:"10px 10px 2px 10px", background:C.strong, color:"#fff", fontSize:11 }}>{m.text}</div>
-              </div>
-            );
-            if(m.role==="action") return (
-              <div key={i} style={{ background:C.bgCard, border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 12px", display:"flex", alignItems:"center", gap:10 }}>
-                <span style={{ fontSize:11, color:C.text, flex:1 }}>
-                  {m.type==="schedule" ? `${m.rows.length}件のタスクをスケジュールビューに反映します` : `${m.rows.length}件のロールをStakeholdersに反映します`}
-                </span>
-                <button onClick={()=>handleApply(m.type, m.rows)}
-                  style={{ padding:"5px 14px", background:C.strong, color:"#fff", border:"none", borderRadius:6, fontSize:11, fontWeight:600, cursor:"pointer" }}>
-                  反映する
-                </button>
-                <button onClick={()=>setPendingAction(null)}
-                  style={{ padding:"5px 10px", background:"none", color:C.textWeak, border:`1px solid ${C.border}`, borderRadius:6, fontSize:11, cursor:"pointer" }}>
-                  キャンセル
-                </button>
-              </div>
-            );
-            return (
-              <div key={i} style={{ display:"flex", justifyContent:m.role==="user"?"flex-end":"flex-start" }}>
-                <div style={{ maxWidth:"82%", padding:"8px 12px", borderRadius:m.role==="user"?"10px 10px 2px 10px":"10px 10px 10px 2px", background:m.role==="user"?C.strong:C.bgCard, color:m.role==="user"?"#fff":C.text, fontSize:12, lineHeight:1.65, border:m.role==="user"?"none":`1px solid ${C.border}`, whiteSpace:"pre-wrap" }}>
-                  {m.streaming && !m.text ? (
-                    <span style={{ display:"flex", gap:4, padding:"2px 0" }}>{[0,1,2].map(d=><span key={d} style={{ width:5, height:5, borderRadius:"50%", background:C.mid, display:"inline-block", animation:`pulse 1.2s ease-in-out ${d*0.2}s infinite` }}/>)}</span>
-                  ) : (
-                    <>
-                      {m.text}
-                      {m.streaming && <span style={{ display:"inline-block", width:2, height:12, background:C.strong, marginLeft:2, verticalAlign:"middle", animation:"blink 0.9s step-end infinite" }} />}
-                    </>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+          {messages.map((m, i) => (
+            <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
+              <div style={{ maxWidth: "82%", padding: "8px 12px", borderRadius: m.role === "user" ? "10px 10px 2px 10px" : "10px 10px 10px 2px", background: m.role === "user" ? C.strong : C.bgCard, color: m.role === "user" ? "#fff" : C.text, fontSize: 12, lineHeight: 1.65, border: m.role === "user" ? "none" : `1px solid ${C.border}` }}>{m.text}</div>
+            </div>
+          ))}
+          {loading && <div style={{ display: "flex", gap: 4, padding: "8px 12px" }}>{[0,1,2].map(i => <div key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: C.mid, animation: `pulse 1.2s ease-in-out ${i*0.2}s infinite` }} />)}</div>}
           <div ref={bottomRef} />
         </div>
-
-        {/* 入力エリア */}
-        <div style={{ padding:"10px 14px", borderTop:`1px solid ${C.border}`, display:"flex", flexDirection:"column", gap:6 }}>
-          {/* ドラッグオーバー時のハイライト */}
-          {isDragOver && (
-            <div style={{ textAlign:"center", fontSize:11, color:C.strong, fontWeight:600, padding:"4px 0" }}>ここにドロップ</div>
-          )}
-          <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-            {/* ファイル選択ボタン */}
-            <label style={{ flexShrink:0, width:32, height:32, borderRadius:7, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:C.textWeak, fontSize:14 }} title="CSVファイルを選択">
-              📎
-              <input type="file" accept=".csv,.txt" style={{ display:"none" }} onChange={e=>handleFile(e.target.files[0])}/>
-            </label>
-            <textarea ref={inputRef} value={query} onChange={e=>setQuery(e.target.value)}
-              onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();handleSend();} }}
-              placeholder="プロジェクトについて質問する…（Shift+Enterで改行）"
-              rows={1}
-              style={{ flex:1, border:`1px solid ${C.border}`, borderRadius:8, padding:"8px 12px", fontSize:12, color:C.text, background:C.bgCard, outline:"none", fontFamily:"'Noto Sans JP',sans-serif", resize:"none", lineHeight:1.5, maxHeight:120, overflowY:"auto" }}
-              onFocus={e=>e.target.style.borderColor=C.strong} onBlur={e=>e.target.style.borderColor=C.border}
-              onInput={e=>{ e.target.style.height="auto"; e.target.style.height=Math.min(e.target.scrollHeight,120)+"px"; }}/>
-            <button onClick={handleSend} disabled={!query.trim()||loading}
-              style={{ width:34, height:34, borderRadius:8, border:"none", background:query.trim()&&!loading?C.strong:C.border, cursor:query.trim()&&!loading?"pointer":"default", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M8 2l5 5-5 5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            </button>
-          </div>
+        <div style={{ padding: "10px 14px", borderTop: `1px solid ${C.border}`, display: "flex", gap: 8, alignItems: "center" }}>
+          <input ref={inputRef} value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }} placeholder="Gravity・Semantic Spaceに質問する…" style={{ flex: 1, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 12px", fontSize: 12, color: C.text, background: C.bgCard, outline: "none", fontFamily: "'Noto Sans JP', sans-serif" }} onFocus={e => e.target.style.borderColor = C.strong} onBlur={e => e.target.style.borderColor = C.border} />
+          <button onClick={handleSend} disabled={!query.trim() || loading} style={{ width: 34, height: 34, borderRadius: 8, border: "none", background: query.trim() && !loading ? C.strong : C.border, cursor: query.trim() && !loading ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M8 2l5 5-5 5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
         </div>
-        <style>{`@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}} @keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}`}</style>
+        <style>{`@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}`}</style>
       </div>
     </>
   );
 }
-
 
 export default function App() {
   const [projects, setProjects] = useState(INITIAL_PROJECTS);
@@ -2286,33 +1758,8 @@ export default function App() {
   const [ghostOpen, setGhostOpen]   = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [activeNavTab, setActiveNavTab] = useState("Dashboard");
-  const [alertOpen, setAlertOpen] = useState(true);
-  const [selectedTask, setSelectedTask] = useState(null); // タスク詳細パネル用
-  const [taskEditBuf, setTaskEditBuf] = useState(null);
-  const [ghostApplyTarget, setGhostApplyTarget] = useState(null); // {type, rows}
-  const [ghostPulses, setGhostPulses] = useState([]);   // 表示中の通知スタック
-  const [ghostContext, setGhostContext] = useState(null); // Ghost展開時の初期クエリ
-  const pulseTimers = useRef([]);
 
   useEffect(() => { const t = setInterval(() => setTime(new Date()), 1000); return () => clearInterval(t); }, []);
-
-  // プロジェクト切り替え時にGhostパルスをスケジュール
-  useEffect(() => {
-    pulseTimers.current.forEach(clearTimeout);
-    pulseTimers.current = [];
-    setGhostPulses([]);
-    const pulses = GHOST_PULSES[selected.id] || [];
-    pulses.forEach(pulse => {
-      const t = setTimeout(() => {
-        setGhostPulses(prev => {
-          if (prev.find(p => p.id === pulse.id)) return prev;
-          return [...prev, { ...pulse, stackIndex: prev.length }];
-        });
-      }, pulse.delay);
-      pulseTimers.current.push(t);
-    });
-    return () => pulseTimers.current.forEach(clearTimeout);
-  }, [selected.id]);
   useEffect(() => {
     const h = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); setGhostOpen(v => !v); }
@@ -2348,10 +1795,14 @@ export default function App() {
 
       {/* NAV */}
       <div style={{ height: 48, background: C.bgCard, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 20px", gap: 0, flexShrink: 0, boxShadow: "0 1px 4px rgba(83,74,183,0.06)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, paddingRight: 24, borderRight: `1px solid ${C.border}`, marginRight: 4 }}>
-          <span style={{ fontSize: 15, fontWeight: 800, color: C.text, letterSpacing: "-0.02em" }}>
-            M<span style={{ color: C.strong }}>e</span>tis
-          </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, paddingRight: 24, borderRight: `1px solid ${C.border}`, marginRight: 4 }}>
+          <svg width="115" height="30" viewBox="0 0 680 200" style={{ display: "block" }}>
+            <g transform="translate(80,100)" stroke={C.text} strokeWidth="7.65" fill="none" strokeLinejoin="miter">
+              <polygon points="-44.1,0 0,-44.1 44.1,0 0,44.1" />
+              <polygon points="0,0 44.1,-44.1 88.2,0 44.1,44.1" />
+            </g>
+            <text x="200" y="122" fontFamily="Inter,sans-serif" fontWeight="700" fontSize="72" letterSpacing="1" fill={C.text}>Metis</text>
+          </svg>
           <span style={{
             fontSize: 9, fontWeight: 700, color: C.strong,
             background: C.blueLight || "#EEF0FD",
@@ -2375,8 +1826,8 @@ export default function App() {
           <span style={{ fontSize: 9, background: C.border, padding: "1px 5px", borderRadius: 3, fontFamily: "'DM Mono', monospace" }}>⌘K</span>
         </button>
         <div style={{ display: "flex", gap: 8, marginRight: 14 }}>
-          <span style={{ fontSize: 10, fontWeight: 600, color: C.thing, background: "#EAF8F3", padding: "3px 10px", borderRadius: 4 }}>◼ Static</span>
-          <span style={{ fontSize: 10, fontWeight: 600, color: C.human, background: "#EEEDFB", padding: "3px 10px", borderRadius: 4 }}>◆ Dynamic</span>
+          <span style={{ fontSize: 10, fontWeight: 600, color: C.thing, background: "#EEEDFB", padding: "3px 10px", borderRadius: 4 }}>◼ Static</span>
+          <span style={{ fontSize: 10, fontWeight: 600, color: C.human, background: "#EAF8F3", padding: "3px 10px", borderRadius: 4 }}>◆ Dynamic</span>
         </div>
         <div style={{ fontSize: 10, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>
           {time.toLocaleString("ja-JP", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })}
@@ -2400,10 +1851,10 @@ export default function App() {
       </div>
 
       {/* MAIN */}
-      <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+      <div style={{ flex: 1, display: "grid", gridTemplateColumns: "240px 1fr", overflow: "hidden", ...(activeNavTab === "Dashboard" && { gridTemplateColumns: "240px 1fr 260px" }) }}>
 
         {/* LEFT — 全タブ共通プロジェクトリスト */}
-        <div style={{ width: 240, minWidth: 240, borderRight: `1px solid ${C.border}`, overflow: "auto", background: C.bgCard, display: "flex", flexDirection: "column", flexShrink: 0 }}>
+        <div style={{ borderRight: `1px solid ${C.border}`, overflow: "auto", background: C.bgCard, display: "flex", flexDirection: "column" }}>
           <div style={{ padding: "8px 14px 6px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
             <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>PROJECTS　{projects.length}</span>
             <button
@@ -2422,21 +1873,18 @@ export default function App() {
 
         {/* CENTER — タブ別コンテンツ */}
         {activeNavTab === "Glossary" ? (
-          <div style={{ flex: 1, overflow: "hidden", display: "flex" }}>
+          <div style={{ overflow: "hidden", display: "flex" }}>
             <GlossaryView />
           </div>
         ) : activeNavTab === "Stakeholders" ? (
-          <div style={{ flex: 1, overflow: "hidden", display: "flex" }}>
+          <div style={{ overflow: "hidden", display: "flex" }}>
             <StakeholderView />
           </div>
         ) : (
-        <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 260px", overflow: "hidden" }}>
 
         {/* CENTER（Dashboard） */}
-        <div style={{ flex: 1, overflow: "auto", background: C.bg, position: "relative" }}>
-          {!alertOpen && (
-            <button onClick={() => setAlertOpen(true)} style={{ position: "sticky", top: 8, float: "right", marginRight: 8, zIndex: 10, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 6, padding: "4px 10px", fontSize: 9, color: C.textWeak, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em" }}>ALERTS ▶</button>
-          )}
+        <div style={{ overflow: "auto", background: C.bg }}>
 
           {/* Header Card */}
           <div style={{ margin: "14px 14px 0", background: C.bgCard, borderRadius: 10, border: `1px solid ${C.border}`, padding: "16px 20px", boxShadow: "0 1px 5px rgba(83,74,183,0.05)" }}>
@@ -2477,139 +1925,99 @@ export default function App() {
             <AxisBlock axis="D" scores={p.dynamic} items={[{ key: "stakeholder", label: "ステークホルダー" },{ key: "team", label: "チーム健全性" },{ key: "decision", label: "意思決定" }]} />
           </div>
 
-
-
-          {/* ── SCHEDULE VIEW ── */}
-          <div style={{ margin: "12px 14px 0" }}>
-            <GanttView project={p} onTaskSelect={(task) => { setSelectedTask(task); setTaskEditBuf({...task}); setAlertOpen(true); }} selectedTaskId={selectedTask?.id} />
+          {/* Axis Summary */}
+          <div style={{ margin: "12px 14px 0", background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 18px", display: "flex", alignItems: "center", gap: 20, boxShadow: "0 1px 5px rgba(83,74,183,0.05)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <ScoreRing value={avgStatic} size={46} color={scoreColor(avgStatic)} />
+              <div>
+                <div style={{ fontSize: 9, color: C.thing, fontFamily: "'DM Mono', monospace", marginBottom: 2 }}>◼ STATIC</div>
+                <div style={{ fontSize: 10, color: C.textMid }}>構造・計画</div>
+              </div>
+            </div>
+            <div style={{ width: 1, height: 32, background: C.border }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <ScoreRing value={avgDynamic} size={46} color={scoreColor(avgDynamic)} />
+              <div>
+                <div style={{ fontSize: 9, color: C.human, fontFamily: "'DM Mono', monospace", marginBottom: 2 }}>◆ DYNAMIC</div>
+                <div style={{ fontSize: 10, color: C.textMid }}>人・関係性</div>
+              </div>
+            </div>
+            <div style={{ width: 1, height: 32, background: C.border }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 9, color: C.textWeak, marginBottom: 6 }}>二軸の乖離</div>
+              <div style={{ display: "flex", height: 6, borderRadius: 99, overflow: "hidden" }}>
+                <div style={{ flex: avgStatic, background: C.thing }} />
+                <div style={{ flex: avgDynamic, background: C.human }} />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+                <span style={{ fontSize: 9, color: C.thing, fontFamily: "'DM Mono', monospace" }}>{avgStatic}</span>
+                <span style={{ fontSize: 9, color: C.textWeak }}>差 {Math.abs(avgStatic - avgDynamic)}</span>
+                <span style={{ fontSize: 9, color: C.human, fontFamily: "'DM Mono', monospace" }}>{avgDynamic}</span>
+              </div>
+            </div>
           </div>
 
-          {/* ── GRAVITY VIEW ── */}
+          {/* ── GRAVITY VIEW（赤枠の位置）── */}
           <div style={{ margin: "12px 14px 14px" }}>
             <GravityView project={p} />
           </div>
         </div>
 
         {/* RIGHT */}
-        <div style={{ width: alertOpen ? 260 : 0, minWidth: alertOpen ? 260 : 0, overflow: "hidden", background: C.bgCard, borderLeft: alertOpen ? `1px solid ${C.border}` : "none", display: "flex", flexDirection: "column", transition: "width 0.22s ease, min-width 0.22s ease", flexShrink: 0 }}>
-          {selectedTask && taskEditBuf ? (
-            <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-              <div style={{ padding: "10px 14px", borderBottom: `1px solid ${C.border}`, flexShrink: 0, display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", flex: 1 }}>TASK DETAIL</div>
-                <button onClick={() => { setSelectedTask(null); setTaskEditBuf(null); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.textWeak, fontSize: 14 }}>✕</button>
-              </div>
-              <div style={{ flex: 1, overflowY: "auto", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
-                <div>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 5 }}>タスク名</div>
-                  <input value={taskEditBuf.name} onChange={e => setTaskEditBuf(b => ({...b, name: e.target.value}))}
-                    style={{ width: "100%", padding: "6px 9px", border: `1px solid ${C.border}`, borderRadius: 5, fontSize: 12, color: C.text, background: C.bg, outline: "none", boxSizing: "border-box" }} />
-                </div>
-                <div>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 5 }}>担当者</div>
-                  <input value={taskEditBuf.assignee} onChange={e => setTaskEditBuf(b => ({...b, assignee: e.target.value}))}
-                    style={{ width: "100%", padding: "6px 9px", border: `1px solid ${C.border}`, borderRadius: 5, fontSize: 12, color: C.text, background: C.bg, outline: "none", boxSizing: "border-box" }} />
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <div>
-                    <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 5 }}>開始日</div>
-                    <input type="date" value={taskEditBuf.start} onChange={e => setTaskEditBuf(b => ({...b, start: e.target.value}))}
-                      style={{ width: "100%", padding: "6px 4px", border: `1px solid ${C.border}`, borderRadius: 5, fontSize: 10, color: C.text, background: C.bg, outline: "none", boxSizing: "border-box" }} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 5 }}>終了日</div>
-                    <input type="date" value={taskEditBuf.end} onChange={e => setTaskEditBuf(b => ({...b, end: e.target.value}))}
-                      style={{ width: "100%", padding: "6px 4px", border: `1px solid ${C.border}`, borderRadius: 5, fontSize: 10, color: C.text, background: C.bg, outline: "none", boxSizing: "border-box" }} />
-                  </div>
-                </div>
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                    <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase" }}>進捗</div>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: scoreColor(taskEditBuf.progress), fontFamily: "'DM Mono', monospace" }}>{taskEditBuf.progress}%</span>
-                  </div>
-                  <input type="range" min={0} max={100} value={taskEditBuf.progress} onChange={e => setTaskEditBuf(b => ({...b, progress: Number(e.target.value)}))}
-                    style={{ width: "100%", accentColor: C.strong }} />
-                </div>
-                <div>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>ステータス</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {Object.entries(TASK_STATUS).map(([k, v]) => (
-                      <button key={k} onClick={() => setTaskEditBuf(b => ({...b, status: k}))}
-                        style={{ fontSize: 10, fontWeight: 600, padding: "4px 10px", borderRadius: 5, border: `1px solid ${taskEditBuf.status === k ? v.color : C.border}`, background: taskEditBuf.status === k ? v.color : "transparent", color: taskEditBuf.status === k ? "#fff" : C.textMid, cursor: "pointer" }}>
-                        {v.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div style={{ padding: "10px 14px", borderTop: `1px solid ${C.border}`, flexShrink: 0 }}>
-                <button onClick={() => {
-                  setProjects(ps => ps.map(proj => proj.id === p.id ? { ...proj, tasks: proj.tasks.map(t => t.id === taskEditBuf.id ? taskEditBuf : t) } : proj));
-                  setSelected(s => ({ ...s, tasks: s.tasks.map(t => t.id === taskEditBuf.id ? taskEditBuf : t) }));
-                  setSelectedTask(taskEditBuf);
-                }} style={{ width: "100%", padding: "8px 0", background: C.strong, color: "#fff", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
-                  保存
-                </button>
-              </div>
+        <div style={{ borderLeft: `1px solid ${C.border}`, overflow: "auto", background: C.bgCard, display: "flex", flexDirection: "column" }}>
+          <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>ACTIVE ALERTS</span>
+              {p.alerts.filter(a => a.level === "critical").length > 0 && (
+                <span style={{ fontSize: 9, fontWeight: 700, color: C.critical, background: "#F9EEF3", border: `1px solid #DDB8CA`, padding: "1px 6px", borderRadius: 3, fontFamily: "'DM Mono', monospace" }}>
+                  {p.alerts.filter(a => a.level === "critical").length} critical
+                </span>
+              )}
             </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-              <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                  <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>ACTIVE ALERTS</span>
-                  <button onClick={() => setAlertOpen(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: C.textWeak, fontSize: 14, lineHeight: 1, padding: "0 2px" }}>✕</button>
-                  {p.alerts.filter(a => a.level === "critical").length > 0 && (
-                    <span style={{ fontSize: 9, fontWeight: 700, color: C.critical, background: "#F9EEF3", border: `1px solid #DDB8CA`, padding: "1px 6px", borderRadius: 3, fontFamily: "'DM Mono', monospace" }}>
-                      {p.alerts.filter(a => a.level === "critical").length} critical
-                    </span>
-                  )}
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {p.alerts.map((a, i) => {
-                    const bc = a.level === "critical" ? C.critical : a.level === "warn" ? C.strong : C.mid;
-                    const tc = a.level === "critical" ? C.critical : a.level === "warn" ? C.strong : C.textMid;
-                    const ax = AXIS[a.axis];
-                    return (
-                      <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "7px 10px", background: C.bg, borderLeft: `3px solid ${bc}`, borderRadius: "0 6px 6px 0" }}>
-                        <span style={{ fontSize: 8, fontWeight: 700, color: ax.color, background: ax.bg, padding: "1px 5px", borderRadius: 2, flexShrink: 0, fontFamily: "'DM Mono', monospace", marginTop: 1 }}>{ax.label}</span>
-                        <span style={{ fontSize: 11, color: tc, lineHeight: 1.5 }}>{a.text}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-              <div style={{ padding: "12px 14px", flex: 1, overflowY: "auto" }}>
-                <div style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", marginBottom: 10 }}>RECENT EVENTS</div>
-                {p.events.map((e, i) => {
-                  const dc = e.type === "critical" ? C.critical : e.type === "warn" ? C.strong : C.mid;
-                  const tc = e.type === "critical" ? C.critical : e.type === "warn" ? C.strong : C.textMid;
-                  return (
-                    <div key={i} style={{ display: "flex", gap: 10, paddingBottom: 10 }}>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 10 }}>
-                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: dc, flexShrink: 0, marginTop: 4 }} />
-                        {i < p.events.length - 1 && <div style={{ width: 1, flex: 1, background: C.border, minHeight: 10 }} />}
-                      </div>
-                      <div>
-                        <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>{e.date}　</span>
-                        <span style={{ fontSize: 11, color: tc, lineHeight: 1.5 }}>{e.text}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <div style={{ padding: "10px 14px", borderTop: `1px solid ${C.border}`, flexShrink: 0, background: C.bg }}>
-                <div style={{ fontSize: 8, color: C.textWeak, marginBottom: 6, fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em" }}>SEMANTIC SPACE</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                  {["Glossary","ステークHマップ","リスク課題","イベント"].map(item => (
-                    <span key={item} style={{ fontSize: 9, color: C.textMid, background: C.bgCard, border: `1px solid ${C.border}`, padding: "2px 8px", borderRadius: 4, cursor: "pointer" }}>{item}</span>
-                  ))}
-                </div>
-              </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {p.alerts.map((a, i) => {
+                const bc = a.level === "critical" ? C.critical : a.level === "warn" ? C.strong : C.mid;
+                const tc = a.level === "critical" ? C.critical : a.level === "warn" ? C.strong : C.textMid;
+                const ax = AXIS[a.axis];
+                return (
+                  <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "7px 10px", background: C.bg, borderLeft: `3px solid ${bc}`, borderRadius: "0 6px 6px 0" }}>
+                    <span style={{ fontSize: 8, fontWeight: 700, color: ax.color, background: ax.bg, padding: "1px 5px", borderRadius: 2, flexShrink: 0, fontFamily: "'DM Mono', monospace", marginTop: 1 }}>{ax.label}</span>
+                    <span style={{ fontSize: 11, color: tc, lineHeight: 1.5 }}>{a.text}</span>
+                  </div>
+                );
+              })}
             </div>
-          )}
+          </div>
+          <div style={{ padding: "12px 14px", flex: 1 }}>
+            <div style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", marginBottom: 10 }}>RECENT EVENTS</div>
+            {p.events.map((e, i) => {
+              const dc = e.type === "critical" ? C.critical : e.type === "warn" ? C.strong : C.mid;
+              const tc = e.type === "critical" ? C.critical : e.type === "warn" ? C.strong : C.textMid;
+              return (
+                <div key={i} style={{ display: "flex", gap: 10, paddingBottom: 10 }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 10 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: dc, flexShrink: 0, marginTop: 4 }} />
+                    {i < p.events.length - 1 && <div style={{ width: 1, flex: 1, background: C.border, minHeight: 10 }} />}
+                  </div>
+                  <div>
+                    <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>{e.date}　</span>
+                    <span style={{ fontSize: 11, color: tc, lineHeight: 1.5 }}>{e.text}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ padding: "10px 14px", borderTop: `1px solid ${C.border}`, flexShrink: 0, background: C.bg }}>
+            <div style={{ fontSize: 8, color: C.textWeak, marginBottom: 6, fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em" }}>SEMANTIC SPACE</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+              {["Glossary","ステークHマップ","リスク課題","イベント"].map(item => (
+                <span key={item} style={{ fontSize: 9, color: C.textMid, background: C.bgCard, border: `1px solid ${C.border}`, padding: "2px 8px", borderRadius: 4, cursor: "pointer" }}>{item}</span>
+              ))}
+            </div>
+          </div>
         </div>
         </div>
-        )
-        }
+        )}
       </div>
 
       {/* STATUS BAR */}
@@ -2626,24 +2034,8 @@ export default function App() {
         <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>Metis　alpha　v0.2.0</span>
       </div>
 
-      <GhostSearch project={selected} visible={ghostOpen} onClose={() => { setGhostOpen(false); setGhostContext(null); }} onApplyData={(type, rows) => { setGhostApplyTarget({ type, rows }); if(type === "stakeholders") setActiveNavTab("Stakeholders"); }} initialQuery={ghostContext} />
+      <GhostSearch project={selected} visible={ghostOpen} onClose={() => setGhostOpen(false)} />
       <CreateProjectModal visible={createOpen} onClose={() => setCreateOpen(false)} onCreated={handleCreated} nextCode={nextCode} />
-
-      {/* Ghost スライドイン通知スタック */}
-      <div style={{ position: "fixed", right: 16, bottom: 40, zIndex: 299, display: "flex", flexDirection: "column-reverse", gap: 10, pointerEvents: "none", maxHeight: "calc(100vh - 100px)", overflow: "visible" }}>
-        {ghostPulses.map((pulse, i) => (
-          <div key={pulse.id} style={{ pointerEvents: "auto", transform: `translateY(${i * -4}px)` }}>
-            <GhostPulse
-              pulse={pulse}
-              onDismiss={id => setGhostPulses(prev => prev.filter(p => p.id !== id))}
-              onExpand={pulse => {
-                setGhostContext(pulse.text);
-                setGhostOpen(true);
-              }}
-            />
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
