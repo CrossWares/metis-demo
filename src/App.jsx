@@ -93,6 +93,7 @@ const INITIAL_PROJECTS = [
         actual: [100,91,83,75,68,63,58,55,52,50],
       }
     },
+    stakeholderNames: { "n1":{name:"斎藤 由美",isVendor:false}, "n2":{name:"近藤 翔太",isVendor:false}, "n3":{name:"近藤 隆",isVendor:false}, "n4":{name:"松本 次郎",isVendor:true}, "n5":{name:"森 愛",isVendor:true}, "n6":{name:"山本 康平",isVendor:true}, "n7":{name:"中村 真理",isVendor:true}, "n8":{name:"井上 由美",isVendor:true}, "n9":{name:"吉田 大輔",isVendor:true}, "n10":{name:"高橋 拓也",isVendor:true}, "n11":{name:"山本 直樹",isVendor:true}, "n12":{name:"高橋 大輔",isVendor:true}, "n13":{name:"阿部 翔太",isVendor:true}, "n14":{name:"山田 由美",isVendor:true}, "n15":{name:"井上 誠",isVendor:true}, "n16":{name:"中村 麻衣",isVendor:true}, "n17":{name:"山口 由美",isVendor:true}, "n18":{name:"高橋 彩",isVendor:true}, "n19":{name:"松本 真理",isVendor:true}, "n20":{name:"山本 美咲",isVendor:true}, "n21":{name:"山崎 康平",isVendor:true}, "n22":{name:"森 誠",isVendor:true}, "n23":{name:"森 拓也",isVendor:true} },
   },
   {
     id: 2, name: "顧客データ統合PF", code: "PRJ-002",
@@ -163,6 +164,7 @@ const INITIAL_PROJECTS = [
         actual: [100,89,78,67,56,45,35,26],
       }
     },
+    stakeholderNames: { "n1":{name:"渡辺 康平",isVendor:false}, "n2":{name:"山田 直樹",isVendor:false}, "n3":{name:"林 康平",isVendor:false}, "n4":{name:"伊藤 麻衣",isVendor:true}, "n5":{name:"加藤 康平",isVendor:true}, "n6":{name:"山口 綾",isVendor:true}, "n7":{name:"斎藤 次郎",isVendor:true}, "n8":{name:"橋本 愛",isVendor:true}, "n9":{name:"後藤 直樹",isVendor:true}, "n10":{name:"橋本 麻衣",isVendor:true}, "n11":{name:"松本 裕子",isVendor:true}, "n12":{name:"木村 健太",isVendor:true}, "n13":{name:"高橋 次郎",isVendor:true}, "n14":{name:"池田 直樹",isVendor:true}, "n15":{name:"清水 綾",isVendor:true}, "n16":{name:"松本 愛",isVendor:true}, "n17":{name:"前田 裕子",isVendor:true}, "n18":{name:"池田 愛",isVendor:true}, "n19":{name:"井上 康平",isVendor:true}, "n20":{name:"山口 聡",isVendor:true}, "n21":{name:"森 花子",isVendor:true}, "n22":{name:"中村 康平",isVendor:true}, "n23":{name:"高橋 誠",isVendor:true} },
   },
   {
     id: 3, name: "AIアシスタント導入", code: "PRJ-003",
@@ -230,6 +232,7 @@ const INITIAL_PROJECTS = [
         actual: [100,85,71,57,43,29,15,4],
       }
     },
+    stakeholderNames: { "n1":{name:"池田 大輔",isVendor:false}, "n2":{name:"近藤 由美",isVendor:false}, "n3":{name:"池田 花子",isVendor:false}, "n4":{name:"近藤 康平",isVendor:true}, "n5":{name:"橋本 美咲",isVendor:true}, "n6":{name:"山崎 麻衣",isVendor:true}, "n7":{name:"松本 誠",isVendor:true}, "n8":{name:"藤田 美咲",isVendor:true}, "n9":{name:"井上 花子",isVendor:true}, "n10":{name:"渡辺 裕子",isVendor:true}, "n11":{name:"斎藤 太郎",isVendor:true}, "n12":{name:"鈴木 裕子",isVendor:true}, "n13":{name:"田中 健太",isVendor:true}, "n14":{name:"清水 愛",isVendor:true}, "n15":{name:"加藤 直樹",isVendor:true}, "n16":{name:"橋本 彩",isVendor:true}, "n17":{name:"藤田 綾",isVendor:true}, "n18":{name:"中村 綾",isVendor:true}, "n19":{name:"阿部 康平",isVendor:true}, "n20":{name:"中村 花子",isVendor:true}, "n21":{name:"山田 由美",isVendor:true}, "n22":{name:"斎藤 由美",isVendor:true}, "n23":{name:"池田 康平",isVendor:true} },
   },
 ];
 
@@ -598,32 +601,33 @@ const DEFAULT_CHART = {
   ]
 };
 
-function StakeholderView() {
+function StakeholderView({ project }) {
   // ── 初期データ ──
+  const sNames = project?.stakeholderNames || {};
   const initNodes = () => [
-    { id:"n1",  label:"プロジェクト\nオーナー",              row:0, col:4,  name:"", scope:"", note:"" },
-    { id:"n2",  label:"PM",                                   row:1, col:4,  name:"", scope:"", note:"" },
-    { id:"n3",  label:"PMO",                                  row:1, col:7,  name:"", scope:"", note:"" },
-    { id:"n4",  label:"フロントエンド\nリーダー",             row:2, col:2,  name:"", scope:"", note:"" },
-    { id:"n5",  label:"バックエンド\nリーダー",               row:2, col:6,  name:"", scope:"", note:"" },
-    { id:"n6",  label:"UI開発\nチームリーダー",               row:3, col:1,  name:"", scope:"", note:"" },
-    { id:"n7",  label:"サイトデザイン\nチームリーダー",       row:3, col:2,  name:"", scope:"", note:"" },
-    { id:"n8",  label:"SEO対策コンテンツ\nチームリーダー",    row:3, col:3,  name:"", scope:"", note:"" },
-    { id:"n9",  label:"サーバー開発\nチームリーダー",         row:3, col:5,  name:"", scope:"", note:"" },
-    { id:"n10", label:"データベース\nチームリーダー",         row:3, col:6,  name:"", scope:"", note:"" },
-    { id:"n11", label:"クラウド開発\nチームリーダー",         row:3, col:7,  name:"", scope:"", note:"" },
-    { id:"n12", label:"SE",            row:4, col:1,  name:"", scope:"", note:"" },
-    { id:"n13", label:"ディレクター",  row:4, col:2,  name:"", scope:"", note:"" },
-    { id:"n14", label:"エディター",    row:4, col:3,  name:"", scope:"", note:"" },
-    { id:"n15", label:"SE",            row:4, col:5,  name:"", scope:"", note:"" },
-    { id:"n16", label:"SE",            row:4, col:6,  name:"", scope:"", note:"" },
-    { id:"n17", label:"SE",            row:4, col:7,  name:"", scope:"", note:"" },
-    { id:"n18", label:"PG",            row:5, col:1,  name:"", scope:"", note:"" },
-    { id:"n19", label:"Webデザイナー", row:5, col:2,  name:"", scope:"", note:"" },
-    { id:"n20", label:"ライター",      row:5, col:3,  name:"", scope:"", note:"" },
-    { id:"n21", label:"PG",            row:5, col:5,  name:"", scope:"", note:"" },
-    { id:"n22", label:"PG",            row:5, col:6,  name:"", scope:"", note:"" },
-    { id:"n23", label:"PG",            row:5, col:7,  name:"", scope:"", note:"" },
+    { id:"n1",  label:"プロジェクト\nオーナー",              row:0, col:4,  name:sNames.n1?.name||"", isVendor:sNames.n1?.isVendor||false, scope:"", note:"" },
+    { id:"n2",  label:"PM",                                   row:1, col:4,  name:sNames.n2?.name||"", isVendor:sNames.n2?.isVendor||false, scope:"", note:"" },
+    { id:"n3",  label:"PMO",                                  row:1, col:7,  name:sNames.n3?.name||"", isVendor:sNames.n3?.isVendor||false, scope:"", note:"" },
+    { id:"n4",  label:"フロントエンド\nリーダー",             row:2, col:2,  name:sNames.n4?.name||"", isVendor:sNames.n4?.isVendor||false, scope:"", note:"" },
+    { id:"n5",  label:"バックエンド\nリーダー",               row:2, col:6,  name:sNames.n5?.name||"", isVendor:sNames.n5?.isVendor||false, scope:"", note:"" },
+    { id:"n6",  label:"UI開発\nチームリーダー",               row:3, col:1,  name:sNames.n6?.name||"", isVendor:sNames.n6?.isVendor||false, scope:"", note:"" },
+    { id:"n7",  label:"サイトデザイン\nチームリーダー",       row:3, col:2,  name:sNames.n7?.name||"", isVendor:sNames.n7?.isVendor||false, scope:"", note:"" },
+    { id:"n8",  label:"SEO対策コンテンツ\nチームリーダー",    row:3, col:3,  name:sNames.n8?.name||"", isVendor:sNames.n8?.isVendor||false, scope:"", note:"" },
+    { id:"n9",  label:"サーバー開発\nチームリーダー",         row:3, col:5,  name:sNames.n9?.name||"", isVendor:sNames.n9?.isVendor||false, scope:"", note:"" },
+    { id:"n10", label:"データベース\nチームリーダー",         row:3, col:6,  name:sNames.n10?.name||"", isVendor:sNames.n10?.isVendor||false, scope:"", note:"" },
+    { id:"n11", label:"クラウド開発\nチームリーダー",         row:3, col:7,  name:sNames.n11?.name||"", isVendor:sNames.n11?.isVendor||false, scope:"", note:"" },
+    { id:"n12", label:"SE",            row:4, col:1,  name:sNames.n12?.name||"", isVendor:sNames.n12?.isVendor||false, scope:"", note:"" },
+    { id:"n13", label:"ディレクター",  row:4, col:2,  name:sNames.n13?.name||"", isVendor:sNames.n13?.isVendor||false, scope:"", note:"" },
+    { id:"n14", label:"エディター",    row:4, col:3,  name:sNames.n14?.name||"", isVendor:sNames.n14?.isVendor||false, scope:"", note:"" },
+    { id:"n15", label:"SE",            row:4, col:5,  name:sNames.n15?.name||"", isVendor:sNames.n15?.isVendor||false, scope:"", note:"" },
+    { id:"n16", label:"SE",            row:4, col:6,  name:sNames.n16?.name||"", isVendor:sNames.n16?.isVendor||false, scope:"", note:"" },
+    { id:"n17", label:"SE",            row:4, col:7,  name:sNames.n17?.name||"", isVendor:sNames.n17?.isVendor||false, scope:"", note:"" },
+    { id:"n18", label:"PG",            row:5, col:1,  name:sNames.n18?.name||"", isVendor:sNames.n18?.isVendor||false, scope:"", note:"" },
+    { id:"n19", label:"Webデザイナー", row:5, col:2,  name:sNames.n19?.name||"", isVendor:sNames.n19?.isVendor||false, scope:"", note:"" },
+    { id:"n20", label:"ライター",      row:5, col:3,  name:sNames.n20?.name||"", isVendor:sNames.n20?.isVendor||false, scope:"", note:"" },
+    { id:"n21", label:"PG",            row:5, col:5,  name:sNames.n21?.name||"", isVendor:sNames.n21?.isVendor||false, scope:"", note:"" },
+    { id:"n22", label:"PG",            row:5, col:6,  name:sNames.n22?.name||"", isVendor:sNames.n22?.isVendor||false, scope:"", note:"" },
+    { id:"n23", label:"PG",            row:5, col:7,  name:sNames.n23?.name||"", isVendor:sNames.n23?.isVendor||false, scope:"", note:"" },
   ];
   const initEdges = () => [
     ["n1","n2"],["n2","n3"],
@@ -644,6 +648,13 @@ function StakeholderView() {
   const [editMode, setEditMode] = useState(null);
   const [connectFrom, setConnectFrom] = useState(null);
   const [dragInfo, setDragInfo] = useState(null);
+
+  // プロジェクト切り替え時に体制図を再初期化
+  useEffect(() => {
+    setNodes(initNodes());
+    setEdges(initEdges());
+    setSelectedId(null);
+  }, [project?.id]);
 
   const COL_W=110, ROW_H=88, PAD_X=20, PAD_Y=24, BOX_W=94, BOX_H=60;
   const maxCol = Math.max(...nodes.map(n=>n.col), 0);
@@ -865,25 +876,51 @@ function StakeholderView() {
               const bx=x-BOX_W/2, by=y-BOX_H/2;
               const isSelected=selectedId===n.id;
               const isConnectFrom=connectFrom===n.id;
+              const hasName = !!n.name;
               const hasDetail=n.name||n.scope||n.note;
               const lines=n.label.split("\n");
-              const lineH=15, totalH=lines.length*lineH;
-              const startY=y-totalH/2+lineH*0.5;
+              // 名前ありの場合はロール名を上段に小さく、名前を下段に大きく表示
+              const fillColor = isSelected ? C.human+"30" : (hasName ? "#FFFFFF" : "#F4F3FB");
+              const strokeColor = isSelected ? C.human : isConnectFrom ? C.thing : (hasName ? C.human+"70" : "#C8C4E8");
+              const roleColor = isSelected ? C.human : (hasName ? C.textMid : "#9B97C4");
+              const nameColor = isSelected ? C.human : (hasName ? C.text : "#9B97C4");
               return (
                 <g key={n.id} style={{cursor:"pointer"}} onClick={()=>handleNodeClick(n)}>
                   {(isSelected||isConnectFrom) && <rect x={bx-3} y={by-3} width={BOX_W+6} height={BOX_H+6} rx={9} fill="none" stroke={isConnectFrom?C.thing:C.human} strokeWidth={1.5} strokeDasharray="4 2" opacity={0.8}/>}
                   <rect x={bx} y={by} width={BOX_W} height={BOX_H} rx={6}
-                    fill={isSelected?C.human+"30":"#F4F3FB"}
-                    stroke={isSelected?C.human:isConnectFrom?C.thing:"#C8C4E8"}
-                    strokeWidth={isSelected||isConnectFrom?1.5:0.8}/>
+                    fill={fillColor}
+                    stroke={strokeColor}
+                    strokeWidth={isSelected||isConnectFrom?1.5:(hasName?1.1:0.8)}/>
                   {hasDetail && <circle cx={bx+BOX_W-5} cy={by+5} r={4} fill={C.thing}/>}
-                  {lines.map((line,li)=>(
-                    <text key={li} x={x} y={startY+li*lineH}
-                      textAnchor="middle" dominantBaseline="middle"
-                      fontSize={10} fontFamily="Noto Sans JP,sans-serif"
-                      fontWeight={isSelected?600:400}
-                      fill={isSelected?C.human:"#9B97C4"}>{line}</text>
-                  ))}
+                  {n.isVendor && (
+                    <g>
+                      <rect x={bx+4} y={by+4} width={32} height={13} rx={3} fill={hasName ? "#F9EEF3" : "#F9EEF360"} stroke={hasName ? C.critical+"60" : C.critical+"30"} strokeWidth={0.7}/>
+                      <text x={bx+20} y={by+11} textAnchor="middle" dominantBaseline="middle" fontSize={7} fontWeight={700} fontFamily="'DM Mono',monospace" fill={hasName ? C.critical : C.critical+"80"}>ベンダ</text>
+                    </g>
+                  )}
+                  {hasName ? (
+                    <>
+                      <text x={x} y={by+BOX_H*0.32} textAnchor="middle" dominantBaseline="middle"
+                        fontSize={8.5} fontFamily="Noto Sans JP,sans-serif" fontWeight={500} fill={roleColor}>
+                        {lines.length>1 ? lines.join("・") : lines[0]}
+                      </text>
+                      <text x={x} y={by+BOX_H*0.66} textAnchor="middle" dominantBaseline="middle"
+                        fontSize={12} fontFamily="Noto Sans JP,sans-serif" fontWeight={700} fill={nameColor}>
+                        {n.name}
+                      </text>
+                    </>
+                  ) : (
+                    lines.map((line,li)=>{
+                      const totalH=lines.length*15, startY=y-totalH/2+15*0.5;
+                      return (
+                        <text key={li} x={x} y={startY+li*15}
+                          textAnchor="middle" dominantBaseline="middle"
+                          fontSize={10} fontFamily="Noto Sans JP,sans-serif"
+                          fontWeight={isSelected?600:400}
+                          fill={isSelected?C.human:"#9B97C4"}>{line}</text>
+                      );
+                    })
+                  )}
                   {/* 移動ボタン（選択時） */}
                   {isSelected && !editMode && [
                     {dr:-1,dc:0,label:"↑",dx:0,dy:-BOX_H/2-14},
@@ -934,6 +971,16 @@ function StakeholderView() {
                   onChange={e=>updateNode(selectedNode.id,"name",e.target.value)}
                   placeholder="例：山田 太郎"
                   style={{width:"100%",padding:"7px 9px",border:`1px solid ${C.border}`,borderRadius:5,fontSize:12,color:C.text,background:C.bg,outline:"none",boxSizing:"border-box"}}/>
+              </div>
+
+              {/* ベンダ判定 */}
+              <div>
+                <label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer"}}>
+                  <input type="checkbox" checked={!!selectedNode.isVendor}
+                    onChange={e=>updateNode(selectedNode.id,"isVendor",e.target.checked)}
+                    style={{width:14,height:14,accentColor:C.critical,cursor:"pointer"}}/>
+                  <span style={{fontSize:11,color:C.textMid,fontWeight:500}}>外部ベンダのロール</span>
+                </label>
               </div>
 
               {/* 層・列位置 */}
@@ -2498,8 +2545,8 @@ export default function App() {
 
       {/* NAV */}
       <div style={{ height: 48, background: C.bgCard, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 20px", gap: 0, flexShrink: 0, boxShadow: "0 1px 4px rgba(83,74,183,0.06)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, paddingRight: 24, borderRight: `1px solid ${C.border}`, marginRight: 4 }}>
-          <svg width="115" height="30" viewBox="0 0 680 200" style={{ display: "block" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, paddingRight: 24, borderRight: `1px solid ${C.border}`, marginRight: 4 }}>
+          <svg width="136" height="35" viewBox="0 0 680 200" style={{ display: "block" }}>
             <g transform="translate(80,100)" stroke={C.text} strokeWidth="7.65" fill="none" strokeLinejoin="miter">
               <polygon points="-44.1,0 0,-44.1 44.1,0 0,44.1" />
               <polygon points="0,0 44.1,-44.1 88.2,0 44.1,44.1" />
@@ -2581,7 +2628,7 @@ export default function App() {
           </div>
         ) : activeNavTab === "Stakeholders" ? (
           <div style={{ flex: 1, overflow: "hidden", display: "flex" }}>
-            <StakeholderView />
+            <StakeholderView project={selected} />
           </div>
         ) : (
         <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
