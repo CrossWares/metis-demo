@@ -877,7 +877,6 @@ function StakeholderView({ project }) {
               const isSelected=selectedId===n.id;
               const isConnectFrom=connectFrom===n.id;
               const hasName = !!n.name;
-              const hasDetail=n.name||n.scope||n.note;
               const lines=n.label.split("\n");
               // 名前ありの場合はロール名を上段に小さく、名前を下段に表示
               const fillColor = isSelected ? C.human+"30" : (hasName ? "#FFFFFF" : "#F4F3FB");
@@ -891,11 +890,21 @@ function StakeholderView({ project }) {
                     fill={fillColor}
                     stroke={strokeColor}
                     strokeWidth={isSelected||isConnectFrom?1.5:(hasName?1.1:0.8)}/>
-                  {hasDetail && <circle cx={bx+BOX_W-5} cy={by+5} r={4} fill={C.thing}/>}
+                  {/* 確認事項マーカー（n.hasNote）
+                      現状: 右パネルから手動でON/OFF
+                      将来: Semantic Space（Slack/メール/議事メモ/Jira等のMCP連携）が
+                      このロールに紐づく会話・タスクの停滞（ボトルネック化）を検知した際に
+                      Ghostが自動でON にする設計。手動トグルは検知ロジック実装までの代替手段。 */}
+                  {n.hasNote && (
+                    <g>
+                      <circle cx={bx+BOX_W-7} cy={by+7} r={5} fill={C.strong}/>
+                      <text x={bx+BOX_W-7} y={by+7} textAnchor="middle" dominantBaseline="middle" fontSize={8} fontWeight={700} fill="#fff">?</text>
+                    </g>
+                  )}
                   {n.isVendor && (
                     <g>
-                      <rect x={bx+4} y={by+4} width={32} height={13} rx={3} fill={hasName ? "#F9EEF3" : "#F9EEF360"} stroke={hasName ? C.critical+"60" : C.critical+"30"} strokeWidth={0.7}/>
-                      <text x={bx+20} y={by+11} textAnchor="middle" dominantBaseline="middle" fontSize={7} fontWeight={700} fontFamily="'DM Mono',monospace" fill={hasName ? C.critical : C.critical+"80"}>ベンダ</text>
+                      <rect x={bx+BOX_W-36} y={by+BOX_H-17} width={32} height={13} rx={3} fill={hasName ? "#F9EEF3" : "#F9EEF360"} stroke={hasName ? C.critical+"60" : C.critical+"30"} strokeWidth={0.7}/>
+                      <text x={bx+BOX_W-20} y={by+BOX_H-10} textAnchor="middle" dominantBaseline="middle" fontSize={7} fontWeight={700} fontFamily="'DM Mono',monospace" fill={hasName ? C.critical : C.critical+"80"}>ベンダ</text>
                     </g>
                   )}
                   {hasName ? (() => {
@@ -992,6 +1001,16 @@ function StakeholderView({ project }) {
                     onChange={e=>updateNode(selectedNode.id,"isVendor",e.target.checked)}
                     style={{width:14,height:14,accentColor:C.critical,cursor:"pointer"}}/>
                   <span style={{fontSize:11,color:C.textMid,fontWeight:500}}>外部ベンダのロール</span>
+                </label>
+              </div>
+
+              {/* 確認事項フラグ */}
+              <div>
+                <label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer"}}>
+                  <input type="checkbox" checked={!!selectedNode.hasNote}
+                    onChange={e=>updateNode(selectedNode.id,"hasNote",e.target.checked)}
+                    style={{width:14,height:14,accentColor:C.strong,cursor:"pointer"}}/>
+                  <span style={{fontSize:11,color:C.textMid,fontWeight:500}}>確認事項あり</span>
                 </label>
               </div>
 
