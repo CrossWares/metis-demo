@@ -15,6 +15,8 @@ const C = {
   textWeak: "#A3A3A3",
 };
 const scoreColor = (v) => v >= 70 ? C.thing : v >= 40 ? C.strong : C.critical;
+// 内部データは100点満点のまま、表示のみ10点満点(小数第1位)に変換
+const to10 = (v) => (v / 10).toFixed(1);
 
 const INITIAL_PROJECTS = [
   {
@@ -261,10 +263,11 @@ function Sparkline({ data, color, w = 80, h = 28 }) {
   );
 }
 
-function ScoreRing({ value, size = 60, color, sublabel, textColor }) {
+function ScoreRing({ value, size = 60, color, sublabel, textColor, displayValue }) {
   const r = (size - 10) / 2;
   const circ = 2 * Math.PI * r;
   const dash = (value / 100) * circ;
+  const shown = displayValue !== undefined ? displayValue : value;
   return (
     <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
@@ -274,7 +277,7 @@ function ScoreRing({ value, size = 60, color, sublabel, textColor }) {
           style={{ transition: "stroke-dasharray 0.8s ease" }} />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontSize: size * 0.27, fontWeight: 700, color: textColor || C.textMid, lineHeight: 1, fontFamily: "'DM Mono', monospace" }}>{value}</span>
+        <span style={{ fontSize: size * 0.27, fontWeight: 700, color: textColor || C.textMid, lineHeight: 1, fontFamily: "'DM Mono', monospace" }}>{shown}</span>
         {sublabel && <span style={{ fontSize: 7.5, color: C.textWeak, marginTop: 1 }}>{sublabel}</span>}
       </div>
     </div>
@@ -304,7 +307,7 @@ function AxisBlock({ axis, scores, items }) {
           </div>
           <div style={{ fontSize: 11, color: C.textMid }}>{axis === "S" ? "構造・計画の世界" : "人・関係性の世界"}</div>
         </div>
-        <ScoreRing value={avg} size={48} color={C.textWeak} sublabel="avg" />
+        <ScoreRing value={avg} displayValue={to10(avg)} size={48} color={C.textWeak} sublabel="avg" />
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {items.map((item, i) => {
@@ -313,7 +316,7 @@ function AxisBlock({ axis, scores, items }) {
             <div key={i}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                 <span style={{ fontSize: 12, color: C.text, fontWeight: 500 }}>{item.label}</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: C.text, fontFamily: "'DM Mono', monospace" }}>{v}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: C.text, fontFamily: "'DM Mono', monospace" }}>{to10(v)}</span>
               </div>
               <Bar value={v} color={ax.color} height={4} />
             </div>
@@ -1979,8 +1982,8 @@ function ProjectListRow({ project, selected, onClick }) {
           <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{project.name}</div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: C.text, fontFamily: "'DM Mono', monospace", lineHeight: 1 }}>{project.score}</div>
-          <div style={{ fontSize: 9, color: C.textMid, fontFamily: "'DM Mono', monospace" }}>{delta >= 0 ? "▲" : "▼"}{Math.abs(delta)}</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: C.text, fontFamily: "'DM Mono', monospace", lineHeight: 1 }}>{to10(project.score)}</div>
+          <div style={{ fontSize: 9, color: C.textMid, fontFamily: "'DM Mono', monospace" }}>{delta >= 0 ? "▲" : "▼"}{to10(Math.abs(delta))}</div>
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -1990,7 +1993,7 @@ function ProjectListRow({ project, selected, onClick }) {
             <div key={ax.l} style={{ display: "flex", gap: 5, alignItems: "center" }}>
               <span style={{ fontSize: 8, color: C.textWeak, fontFamily: "'DM Mono', monospace", width: 10 }}>{ax.l}</span>
               <Bar value={ax.v} color={ax.c} height={3} />
-              <span style={{ fontSize: 9, color: C.textMid, fontFamily: "'DM Mono', monospace", width: 18, textAlign: "right" }}>{ax.v}</span>
+              <span style={{ fontSize: 9, color: C.textMid, fontFamily: "'DM Mono', monospace", width: 18, textAlign: "right" }}>{to10(ax.v)}</span>
             </div>
           ))}
         </div>
@@ -2618,7 +2621,7 @@ export default function App() {
       {/* PORTFOLIO */}
       <div style={{ background: C.bgCard, borderBottom: `1px solid ${C.border}`, padding: "8px 20px", display: "flex", gap: 0, flexShrink: 0 }}>
         {[
-          { label: "ポートフォリオ平均", value: portfolioAvg },
+          { label: "ポートフォリオ平均", value: to10(portfolioAvg) },
           { label: "要対応",   value: `${projects.filter(p=>p.status==="critical").length}件` },
           { label: "注意",     value: `${projects.filter(p=>p.status==="warn").length}件` },
           { label: "健全",     value: `${projects.filter(p=>p.status==="healthy").length}件` },
@@ -2673,7 +2676,7 @@ export default function App() {
           {/* Header Card */}
           <div style={{ margin: "14px 14px 0", background: C.bgCard, borderRadius: 10, border: `1px solid ${C.border}`, padding: "16px 20px", boxShadow: "0 1px 5px rgba(0,0,0,0.04)" }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 14 }}>
-              <ScoreRing value={p.score} size={72} color={C.textWeak} sublabel="HEALTH" />
+              <ScoreRing value={p.score} displayValue={to10(p.score)} size={72} color={C.textWeak} sublabel="HEALTH" />
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
                   <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>{p.code}</span>
