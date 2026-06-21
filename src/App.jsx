@@ -93,7 +93,7 @@ const INITIAL_PROJECTS = [
         actual: [100,91,83,75,68,63,58,55,52,50],
       }
     },
-    stakeholderNames: { "n1":{name:"斎藤 由美",isVendor:false}, "n2":{name:"近藤 翔太",isVendor:false}, "n3":{name:"近藤 隆",isVendor:false}, "n4":{name:"松本 次郎",isVendor:true}, "n5":{name:"森 愛",isVendor:true}, "n6":{name:"山本 康平",isVendor:true}, "n7":{name:"中村 真理",isVendor:true}, "n8":{name:"井上 由美",isVendor:true}, "n9":{name:"吉田 大輔",isVendor:true}, "n10":{name:"高橋 拓也",isVendor:true}, "n11":{name:"山本 直樹",isVendor:true}, "n12":{name:"高橋 大輔",isVendor:true}, "n13":{name:"阿部 翔太",isVendor:true}, "n14":{name:"山田 由美",isVendor:true}, "n15":{name:"井上 誠",isVendor:true}, "n16":{name:"中村 麻衣",isVendor:true}, "n17":{name:"山口 由美",isVendor:true}, "n18":{name:"高橋 彩",isVendor:true}, "n19":{name:"松本 真理",isVendor:true}, "n20":{name:"山本 美咲",isVendor:true}, "n21":{name:"山崎 康平",isVendor:true}, "n22":{name:"森 誠",isVendor:true}, "n23":{name:"森 拓也",isVendor:true} },
+    stakeholderNames: { "n1":{name:"渡辺",isVendor:false}, "n2":{name:"山崎",isVendor:false}, "n3":{name:"前田",isVendor:false}, "n4":{name:"佐藤",isVendor:true}, "n5":{name:"斎藤",isVendor:true}, "n6":{name:"遠藤",isVendor:true}, "n7":{name:"村上",isVendor:true}, "n8":{name:"林",isVendor:true}, "n9":{name:"後藤",isVendor:true}, "n10":{name:"西村",isVendor:true}, "n11":{name:"小林",isVendor:true}, "n12":{name:"藤井",isVendor:true}, "n13":{name:"田中",isVendor:true}, "n14":{name:"太田",isVendor:true}, "n15":{name:"松本",isVendor:true}, "n16":{name:"山口",isVendor:true}, "n17":{name:"佐々木",isVendor:true}, "n18":{name:"清水",isVendor:true}, "n19":{name:"山本",isVendor:true}, "n20":{name:"井上",isVendor:true}, "n21":{name:"山田",isVendor:true}, "n22":{name:"鈴木",isVendor:true}, "n23":{name:"坂本",isVendor:true} },
   },
   {
     id: 2, name: "顧客データ統合PF", code: "PRJ-002",
@@ -164,7 +164,7 @@ const INITIAL_PROJECTS = [
         actual: [100,89,78,67,56,45,35,26],
       }
     },
-    stakeholderNames: { "n1":{name:"渡辺 康平",isVendor:false}, "n2":{name:"山田 直樹",isVendor:false}, "n3":{name:"林 康平",isVendor:false}, "n4":{name:"伊藤 麻衣",isVendor:true}, "n5":{name:"加藤 康平",isVendor:true}, "n6":{name:"山口 綾",isVendor:true}, "n7":{name:"斎藤 次郎",isVendor:true}, "n8":{name:"橋本 愛",isVendor:true}, "n9":{name:"後藤 直樹",isVendor:true}, "n10":{name:"橋本 麻衣",isVendor:true}, "n11":{name:"松本 裕子",isVendor:true}, "n12":{name:"木村 健太",isVendor:true}, "n13":{name:"高橋 次郎",isVendor:true}, "n14":{name:"池田 直樹",isVendor:true}, "n15":{name:"清水 綾",isVendor:true}, "n16":{name:"松本 愛",isVendor:true}, "n17":{name:"前田 裕子",isVendor:true}, "n18":{name:"池田 愛",isVendor:true}, "n19":{name:"井上 康平",isVendor:true}, "n20":{name:"山口 聡",isVendor:true}, "n21":{name:"森 花子",isVendor:true}, "n22":{name:"中村 康平",isVendor:true}, "n23":{name:"高橋 誠",isVendor:true} },
+    stakeholderNames: { "n1":{name:"阿部",isVendor:false}, "n2":{name:"遠藤",isVendor:false}, "n3":{name:"前田",isVendor:false}, "n4":{name:"佐々木",isVendor:true}, "n5":{name:"石川",isVendor:true}, "n6":{name:"田中",isVendor:true}, "n7":{name:"藤田",isVendor:true}, "n8":{name:"後藤",isVendor:true}, "n9":{name:"高橋",isVendor:true}, "n10":{name:"福田",isVendor:true}, "n11":{name:"山崎",isVendor:true}, "n12":{name:"井上",isVendor:true}, "n13":{name:"青木",isVendor:true}, "n14":{name:"村上",isVendor:true}, "n15":{name:"小林",isVendor:true}, "n16":{name:"近藤",isVendor:true}, "n17":{name:"木村",isVendor:true}, "n18":{name:"林",isVendor:true}, "n19":{name:"山田",isVendor:true}, "n20":{name:"山本",isVendor:true}, "n21":{name:"佐藤",isVendor:true}, "n22":{name:"山口",isVendor:true}, "n23":{name:"中村",isVendor:true} },
   },
   {
     id: 3, name: "AIアシスタント導入", code: "PRJ-003",
@@ -232,7 +232,7 @@ const INITIAL_PROJECTS = [
         actual: [100,85,71,57,43,29,15,4],
       }
     },
-    stakeholderNames: { "n1":{name:"池田 大輔",isVendor:false}, "n2":{name:"近藤 由美",isVendor:false}, "n3":{name:"池田 花子",isVendor:false}, "n4":{name:"近藤 康平",isVendor:true}, "n5":{name:"橋本 美咲",isVendor:true}, "n6":{name:"山崎 麻衣",isVendor:true}, "n7":{name:"松本 誠",isVendor:true}, "n8":{name:"藤田 美咲",isVendor:true}, "n9":{name:"井上 花子",isVendor:true}, "n10":{name:"渡辺 裕子",isVendor:true}, "n11":{name:"斎藤 太郎",isVendor:true}, "n12":{name:"鈴木 裕子",isVendor:true}, "n13":{name:"田中 健太",isVendor:true}, "n14":{name:"清水 愛",isVendor:true}, "n15":{name:"加藤 直樹",isVendor:true}, "n16":{name:"橋本 彩",isVendor:true}, "n17":{name:"藤田 綾",isVendor:true}, "n18":{name:"中村 綾",isVendor:true}, "n19":{name:"阿部 康平",isVendor:true}, "n20":{name:"中村 花子",isVendor:true}, "n21":{name:"山田 由美",isVendor:true}, "n22":{name:"斎藤 由美",isVendor:true}, "n23":{name:"池田 康平",isVendor:true} },
+    stakeholderNames: { "n1":{name:"伊藤",isVendor:false}, "n2":{name:"高橋",isVendor:false}, "n3":{name:"青木",isVendor:false}, "n4":{name:"中島",isVendor:true}, "n5":{name:"山口",isVendor:true}, "n6":{name:"鈴木",isVendor:true}, "n7":{name:"木村",isVendor:true}, "n8":{name:"村上",isVendor:true}, "n9":{name:"井上",isVendor:true}, "n10":{name:"池田",isVendor:true}, "n11":{name:"山本",isVendor:true}, "n12":{name:"小林",isVendor:true}, "n13":{name:"中村",isVendor:true}, "n14":{name:"西村",isVendor:true}, "n15":{name:"藤井",isVendor:true}, "n16":{name:"岡田",isVendor:true}, "n17":{name:"阿部",isVendor:true}, "n18":{name:"後藤",isVendor:true}, "n19":{name:"佐々木",isVendor:true}, "n20":{name:"清水",isVendor:true}, "n21":{name:"渡辺",isVendor:true}, "n22":{name:"近藤",isVendor:true}, "n23":{name:"山田",isVendor:true} },
   },
 ];
 
@@ -879,11 +879,11 @@ function StakeholderView({ project }) {
               const hasName = !!n.name;
               const hasDetail=n.name||n.scope||n.note;
               const lines=n.label.split("\n");
-              // 名前ありの場合はロール名を上段に小さく、名前を下段に大きく表示
+              // 名前ありの場合はロール名を上段に小さく、名前を下段に表示
               const fillColor = isSelected ? C.human+"30" : (hasName ? "#FFFFFF" : "#F4F3FB");
               const strokeColor = isSelected ? C.human : isConnectFrom ? C.thing : (hasName ? C.human+"70" : "#C8C4E8");
-              const roleColor = isSelected ? C.human : (hasName ? C.textMid : "#9B97C4");
-              const nameColor = isSelected ? C.human : (hasName ? C.text : "#9B97C4");
+              const roleColor = isSelected ? C.human : (hasName ? C.textWeak : "#9B97C4");
+              const nameColor = isSelected ? C.human : (hasName ? C.textMid : "#9B97C4");
               return (
                 <g key={n.id} style={{cursor:"pointer"}} onClick={()=>handleNodeClick(n)}>
                   {(isSelected||isConnectFrom) && <rect x={bx-3} y={by-3} width={BOX_W+6} height={BOX_H+6} rx={9} fill="none" stroke={isConnectFrom?C.thing:C.human} strokeWidth={1.5} strokeDasharray="4 2" opacity={0.8}/>}
@@ -898,18 +898,30 @@ function StakeholderView({ project }) {
                       <text x={bx+20} y={by+11} textAnchor="middle" dominantBaseline="middle" fontSize={7} fontWeight={700} fontFamily="'DM Mono',monospace" fill={hasName ? C.critical : C.critical+"80"}>ベンダ</text>
                     </g>
                   )}
-                  {hasName ? (
-                    <>
-                      <text x={x} y={by+BOX_H*0.32} textAnchor="middle" dominantBaseline="middle"
-                        fontSize={8.5} fontFamily="Noto Sans JP,sans-serif" fontWeight={500} fill={roleColor}>
-                        {lines.length>1 ? lines.join("・") : lines[0]}
-                      </text>
-                      <text x={x} y={by+BOX_H*0.66} textAnchor="middle" dominantBaseline="middle"
-                        fontSize={12} fontFamily="Noto Sans JP,sans-serif" fontWeight={700} fill={nameColor}>
-                        {n.name}
-                      </text>
-                    </>
-                  ) : (
+                  {hasName ? (() => {
+                    // ロール名を折り返し（最大8文字程度で改行、最大2行）
+                    const roleText = lines.join("");
+                    const maxCharsPerLine = 7;
+                    const roleLines = roleText.length > maxCharsPerLine
+                      ? [roleText.slice(0, maxCharsPerLine), roleText.slice(maxCharsPerLine, maxCharsPerLine*2)]
+                      : [roleText];
+                    const roleLineH = 9;
+                    const roleStartY = by + BOX_H*0.26 - (roleLines.length-1)*roleLineH/2;
+                    return (
+                      <>
+                        {roleLines.map((rl,ri)=>(
+                          <text key={ri} x={x} y={roleStartY+ri*roleLineH} textAnchor="middle" dominantBaseline="middle"
+                            fontSize={8} fontFamily="Noto Sans JP,sans-serif" fontWeight={500} fill={roleColor}>
+                            {rl}
+                          </text>
+                        ))}
+                        <text x={x} y={by+BOX_H*0.7} textAnchor="middle" dominantBaseline="middle"
+                          fontSize={12} fontFamily="Noto Sans JP,sans-serif" fontWeight={500} fill={nameColor}>
+                          {n.name}
+                        </text>
+                      </>
+                    );
+                  })() : (
                     lines.map((line,li)=>{
                       const totalH=lines.length*15, startY=y-totalH/2+15*0.5;
                       return (
@@ -2457,7 +2469,7 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
               <input type="file" accept=".csv,.txt" style={{ display:"none" }} onChange={e=>handleFile(e.target.files[0])}/>
             </label>
             <textarea ref={inputRef} value={query} onChange={e=>setQuery(e.target.value)}
-              onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();handleSend();} }}
+              onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey&&!e.nativeEvent.isComposing){e.preventDefault();handleSend();} }}
               placeholder="プロジェクトについて質問する…（Shift+Enterで改行）"
               rows={1}
               style={{ flex:1, border:`1px solid ${C.border}`, borderRadius:8, padding:"8px 12px", fontSize:12, color:C.text, background:C.bgCard, outline:"none", fontFamily:"'Noto Sans JP',sans-serif", resize:"none", lineHeight:1.5, maxHeight:120, overflowY:"auto" }}
@@ -2545,8 +2557,8 @@ export default function App() {
 
       {/* NAV */}
       <div style={{ height: 48, background: C.bgCard, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 20px", gap: 0, flexShrink: 0, boxShadow: "0 1px 4px rgba(83,74,183,0.06)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, paddingRight: 24, borderRight: `1px solid ${C.border}`, marginRight: 4 }}>
-          <svg width="136" height="35" viewBox="0 0 680 200" style={{ display: "block" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, paddingRight: 24, borderRight: `1px solid ${C.border}`, marginRight: 4 }}>
+          <svg width="163" height="42" viewBox="0 0 680 200" style={{ display: "block" }}>
             <g transform="translate(80,100)" stroke={C.text} strokeWidth="7.65" fill="none" strokeLinejoin="miter">
               <polygon points="-44.1,0 0,-44.1 44.1,0 0,44.1" />
               <polygon points="0,0 44.1,-44.1 88.2,0 44.1,44.1" />
