@@ -293,7 +293,7 @@ function AxisBlock({ axis, scores, items }) {
   const ax = AXIS[axis];
   const avg = Math.round(Object.values(scores).reduce((a, v) => a + v, 0) / Object.values(scores).length);
   return (
-    <div style={{ flex: 1, background: C.bgCard, border: `1.5px solid ${ax.color}30`, borderTop: `3px solid ${ax.color}`, borderRadius: "0 0 10px 10px", padding: "14px 16px", boxShadow: "0 1px 5px rgba(83,74,183,0.06)" }}>
+    <div style={{ flex: 1, background: C.bgCard, border: `1px solid ${C.border}`, borderTop: `3px solid ${ax.color}`, borderRadius: "0 0 10px 10px", padding: "14px 16px", boxShadow: "0 1px 5px rgba(0,0,0,0.04)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
@@ -304,18 +304,18 @@ function AxisBlock({ axis, scores, items }) {
           </div>
           <div style={{ fontSize: 11, color: C.textMid }}>{axis === "S" ? "構造・計画の世界" : "人・関係性の世界"}</div>
         </div>
-        <ScoreRing value={avg} size={48} color={scoreColor(avg)} sublabel="avg" />
+        <ScoreRing value={avg} size={48} color={C.text} sublabel="avg" />
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {items.map((item, i) => {
-          const v = scores[item.key], c = scoreColor(v);
+          const v = scores[item.key];
           return (
             <div key={i}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                 <span style={{ fontSize: 12, color: C.text, fontWeight: 500 }}>{item.label}</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: c, fontFamily: "'DM Mono', monospace" }}>{v}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: C.text, fontFamily: "'DM Mono', monospace" }}>{v}</span>
               </div>
-              <Bar value={v} color={c} height={4} />
+              <Bar value={v} color={ax.color} height={4} />
             </div>
           );
         })}
@@ -544,7 +544,7 @@ function OntologyGraph() {
             position:"absolute", left:tooltip.x, top:tooltip.y,
             background:C.bgCard, border:`1px solid ${C.border}`, borderRadius:6,
             padding:"5px 9px", fontSize:11, pointerEvents:"none", zIndex:10,
-            boxShadow:"0 2px 8px rgba(83,74,183,0.12)",
+            boxShadow:"0 2px 8px rgba(0,0,0,0.08)",
           }}>
             <div style={{ fontWeight:700, color:C.text, marginBottom:2 }}>{tooltip.label}</div>
             <div style={{ color:C.textWeak, fontSize:10 }}>{tooltip.cat}</div>
@@ -1614,7 +1614,7 @@ function GlossaryView() {
       {/* 削除確認 */}
       {deleteConfirm && (
         <div style={{position:"fixed",inset:0,background:"rgba(26,24,51,0.3)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200}}>
-          <div style={{background:C.bgCard,borderRadius:12,padding:"22px 26px",width:340,boxShadow:"0 16px 48px rgba(83,74,183,0.15)"}}>
+          <div style={{background:C.bgCard,borderRadius:12,padding:"22px 26px",width:340,boxShadow:"0 16px 48px rgba(0,0,0,0.10)"}}>
             <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:8}}>用語を削除しますか？</div>
             <div style={{fontSize:12,color:C.textMid,marginBottom:18,lineHeight:1.6}}>
               「{glossary[deleteConfirm.cat]?.find(t=>t.id===deleteConfirm.id)?.term}」を削除します。この操作は元に戻せません。
@@ -1660,7 +1660,7 @@ function GanttView({ project, onTaskSelect, selectedTaskId }) {
   const todayPct = pct(today);
 
   return (
-    <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 5px rgba(83,74,183,0.05)" }}>
+    <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 5px rgba(0,0,0,0.04)" }}>
       {/* ヘッダー */}
       <div style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.bg }}>
         <div style={{ width: 7, height: 7, borderRadius: "50%", background: C.thing, marginRight: 8 }} />
@@ -1799,7 +1799,7 @@ function GravityView({ project }) {
   const highGravity = gravNodes.filter(n => n.coupling / maxC > 0.7).length;
 
   return (
-    <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 5px rgba(83,74,183,0.05)" }}>
+    <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 5px rgba(0,0,0,0.04)" }}>
 
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.bg }}>
@@ -1979,18 +1979,18 @@ function ProjectListRow({ project, selected, onClick }) {
           <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{project.name}</div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: sc, fontFamily: "'DM Mono', monospace", lineHeight: 1 }}>{project.score}</div>
-          <div style={{ fontSize: 9, color: delta >= 0 ? C.thing : C.critical, fontFamily: "'DM Mono', monospace" }}>{delta >= 0 ? "▲" : "▼"}{Math.abs(delta)}</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: C.text, fontFamily: "'DM Mono', monospace", lineHeight: 1 }}>{project.score}</div>
+          <div style={{ fontSize: 9, color: C.textMid, fontFamily: "'DM Mono', monospace" }}>{delta >= 0 ? "▲" : "▼"}{Math.abs(delta)}</div>
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <Sparkline data={project.trend} color={sc} w={68} h={18} />
+        <Sparkline data={project.trend} color={C.textWeak} w={68} h={18} />
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
           {[{ l: "S", v: project.staticScore, c: C.thing }, { l: "D", v: project.dynamicScore, c: C.human }].map(ax => (
             <div key={ax.l} style={{ display: "flex", gap: 5, alignItems: "center" }}>
-              <span style={{ fontSize: 8, color: ax.c, fontFamily: "'DM Mono', monospace", width: 10 }}>{ax.l}</span>
+              <span style={{ fontSize: 8, color: C.textWeak, fontFamily: "'DM Mono', monospace", width: 10 }}>{ax.l}</span>
               <Bar value={ax.v} color={ax.c} height={3} />
-              <span style={{ fontSize: 9, color: ax.c, fontFamily: "'DM Mono', monospace", width: 18, textAlign: "right" }}>{ax.v}</span>
+              <span style={{ fontSize: 9, color: C.textMid, fontFamily: "'DM Mono', monospace", width: 18, textAlign: "right" }}>{ax.v}</span>
             </div>
           ))}
         </div>
@@ -2105,7 +2105,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
   return (
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(26,24,51,0.22)", zIndex: 200, backdropFilter: "blur(2px)" }} />
-      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 680, maxHeight: "88vh", background: C.bgCard, border: `1.5px solid ${C.border}`, borderRadius: 16, boxShadow: "0 32px 80px rgba(83,74,183,0.20)", zIndex: 201, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 680, maxHeight: "88vh", background: C.bgCard, border: `1.5px solid ${C.border}`, borderRadius: 16, boxShadow: "0 32px 80px rgba(0,0,0,0.12)", zIndex: 201, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {/* Header */}
         <div style={{ padding: "14px 20px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ width: 7, height: 7, borderRadius: "50%", background: C.strong }} />
@@ -2220,7 +2220,7 @@ function GhostPulse({ pulse, onDismiss, onExpand }) {
       border: `1px solid ${s.color}30`,
       borderLeft: `3px solid ${s.color}`,
       borderRadius: 10,
-      boxShadow: `0 8px 32px rgba(83,74,183,0.14), 0 1px 4px rgba(0,0,0,0.06)`,
+      boxShadow: `0 8px 32px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)`,
       padding: "10px 12px",
       cursor: "pointer",
       transform: exiting
@@ -2408,7 +2408,7 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
         onDragOver={e=>{e.preventDefault();setIsDragOver(true);}}
         onDragLeave={()=>setIsDragOver(false)}
         onDrop={handleDrop}
-        style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:520, maxHeight:"70vh", background: isDragOver?"rgba(83,74,183,0.06)":"rgba(247,247,251,0.97)", border:`1.5px solid ${isDragOver?C.strong:C.border}`, borderRadius:14, boxShadow:"0 24px 64px rgba(83,74,183,0.18)", zIndex:101, display:"flex", flexDirection:"column", overflow:"hidden", transition:"border-color 0.15s, background 0.15s" }}>
+        style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:520, maxHeight:"70vh", background: isDragOver?"rgba(0,0,0,0.05)":"rgba(247,247,251,0.97)", border:`1.5px solid ${isDragOver?C.strong:C.border}`, borderRadius:14, boxShadow:"0 24px 64px rgba(0,0,0,0.12)", zIndex:101, display:"flex", flexDirection:"column", overflow:"hidden", transition:"border-color 0.15s, background 0.15s" }}>
 
         {/* ヘッダー */}
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:10 }}>
@@ -2575,7 +2575,7 @@ export default function App() {
       <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" />
 
       {/* NAV */}
-      <div style={{ height: 48, background: C.bgCard, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 20px", gap: 0, flexShrink: 0, boxShadow: "0 1px 4px rgba(83,74,183,0.06)" }}>
+      <div style={{ height: 48, background: C.bgCard, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 20px", gap: 0, flexShrink: 0, boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 15, paddingRight: 24, borderRight: `1px solid ${C.border}`, marginRight: 4 }}>
           <svg width="101" height="42" viewBox="0 0 420 200" style={{ display: "block" }}>
             <g transform="translate(80,100)" stroke={C.text} strokeWidth="7.65" fill="none" strokeLinejoin="miter">
@@ -2618,15 +2618,15 @@ export default function App() {
       {/* PORTFOLIO */}
       <div style={{ background: C.bgCard, borderBottom: `1px solid ${C.border}`, padding: "8px 20px", display: "flex", gap: 0, flexShrink: 0 }}>
         {[
-          { label: "ポートフォリオ平均", value: portfolioAvg, color: scoreColor(portfolioAvg) },
-          { label: "要対応",   value: `${projects.filter(p=>p.status==="critical").length}件`, color: C.critical },
-          { label: "注意",     value: `${projects.filter(p=>p.status==="warn").length}件`,     color: C.strong },
-          { label: "健全",     value: `${projects.filter(p=>p.status==="healthy").length}件`,  color: C.thing },
-          { label: "管理PJ数", value: `${projects.length}件`, color: C.textMid },
+          { label: "ポートフォリオ平均", value: portfolioAvg },
+          { label: "要対応",   value: `${projects.filter(p=>p.status==="critical").length}件` },
+          { label: "注意",     value: `${projects.filter(p=>p.status==="warn").length}件` },
+          { label: "健全",     value: `${projects.filter(p=>p.status==="healthy").length}件` },
+          { label: "管理PJ数", value: `${projects.length}件` },
         ].map((stat, i) => (
           <div key={i} style={{ paddingRight: 24, marginRight: 24, borderRight: i < 4 ? `1px solid ${C.border}` : "none" }}>
             <div style={{ fontSize: 9, color: C.textWeak, marginBottom: 1 }}>{stat.label}</div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: stat.color, fontFamily: "'DM Mono', monospace", lineHeight: 1 }}>{stat.value}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: C.text, fontFamily: "'DM Mono', monospace", lineHeight: 1 }}>{stat.value}</div>
           </div>
         ))}
       </div>
@@ -2671,9 +2671,9 @@ export default function App() {
           )}
 
           {/* Header Card */}
-          <div style={{ margin: "14px 14px 0", background: C.bgCard, borderRadius: 10, border: `1px solid ${C.border}`, padding: "16px 20px", boxShadow: "0 1px 5px rgba(83,74,183,0.05)" }}>
+          <div style={{ margin: "14px 14px 0", background: C.bgCard, borderRadius: 10, border: `1px solid ${C.border}`, padding: "16px 20px", boxShadow: "0 1px 5px rgba(0,0,0,0.04)" }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 14 }}>
-              <ScoreRing value={p.score} size={72} color={scoreColor(p.score)} sublabel="HEALTH" />
+              <ScoreRing value={p.score} size={72} color={C.text} sublabel="HEALTH" />
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
                   <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>{p.code}</span>
@@ -2690,16 +2690,16 @@ export default function App() {
                 </div>
               </div>
               <div style={{ textAlign: "right" }}>
-                <Sparkline data={p.trend} color={scoreColor(p.score)} w={96} h={38} />
+                <Sparkline data={p.trend} color={C.textWeak} w={96} h={38} />
                 <div style={{ fontSize: 8, color: C.textWeak, marginTop: 3, fontFamily: "'DM Mono', monospace" }}>8-PERIOD TREND</div>
               </div>
             </div>
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
                 <span style={{ fontSize: 9, color: C.textWeak }}>進捗</span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: scoreColor(p.progress), fontFamily: "'DM Mono', monospace" }}>{p.progress}%</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: C.text, fontFamily: "'DM Mono', monospace" }}>{p.progress}%</span>
               </div>
-              <Bar value={p.progress} color={scoreColor(p.progress)} height={5} />
+              <Bar value={p.progress} color={C.text} height={5} />
             </div>
           </div>
 
@@ -2756,7 +2756,7 @@ export default function App() {
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
                     <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase" }}>進捗</div>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: scoreColor(taskEditBuf.progress), fontFamily: "'DM Mono', monospace" }}>{taskEditBuf.progress}%</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: C.text, fontFamily: "'DM Mono', monospace" }}>{taskEditBuf.progress}%</span>
                   </div>
                   <input type="range" min={0} max={100} value={taskEditBuf.progress} onChange={e => setTaskEditBuf(b => ({...b, progress: Number(e.target.value)}))}
                     style={{ width: "100%", accentColor: C.strong }} />
