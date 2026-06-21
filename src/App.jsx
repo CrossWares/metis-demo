@@ -9,10 +9,10 @@ const C = {
   critical: "#8B3A5A",
   bg:       "#EFEFEF",
   bgCard:   "#FFFFFF",
-  border:   "#E8E6F4",
-  text:     "#1A1833",
-  textMid:  "#6B6897",
-  textWeak: "#A8A5C4",
+  border:   "#E2E2E2",
+  text:     "#333333",
+  textMid:  "#717171",
+  textWeak: "#A3A3A3",
 };
 const scoreColor = (v) => v >= 70 ? C.thing : v >= 40 ? C.strong : C.critical;
 
@@ -261,7 +261,7 @@ function Sparkline({ data, color, w = 80, h = 28 }) {
   );
 }
 
-function ScoreRing({ value, size = 60, color, sublabel }) {
+function ScoreRing({ value, size = 60, color, sublabel, textColor }) {
   const r = (size - 10) / 2;
   const circ = 2 * Math.PI * r;
   const dash = (value / 100) * circ;
@@ -274,7 +274,7 @@ function ScoreRing({ value, size = 60, color, sublabel }) {
           style={{ transition: "stroke-dasharray 0.8s ease" }} />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontSize: size * 0.27, fontWeight: 700, color, lineHeight: 1, fontFamily: "'DM Mono', monospace" }}>{value}</span>
+        <span style={{ fontSize: size * 0.27, fontWeight: 700, color: textColor || C.textMid, lineHeight: 1, fontFamily: "'DM Mono', monospace" }}>{value}</span>
         {sublabel && <span style={{ fontSize: 7.5, color: C.textWeak, marginTop: 1 }}>{sublabel}</span>}
       </div>
     </div>
@@ -304,7 +304,7 @@ function AxisBlock({ axis, scores, items }) {
           </div>
           <div style={{ fontSize: 11, color: C.textMid }}>{axis === "S" ? "構造・計画の世界" : "人・関係性の世界"}</div>
         </div>
-        <ScoreRing value={avg} size={48} color={C.text} sublabel="avg" />
+        <ScoreRing value={avg} size={48} color={C.textWeak} sublabel="avg" />
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {items.map((item, i) => {
@@ -848,7 +848,7 @@ function StakeholderView({ project }) {
               return (
                 <g key={i} style={{cursor:"pointer"}} onClick={()=>editMode==="connect"&&toggleEdge(aId,bId)}>
                   <path d={pathD}
-                    fill="none" stroke="#D8D5EE" strokeWidth={1} strokeLinecap="round"/>
+                    fill="none" stroke="#E2E2E2" strokeWidth={1} strokeLinecap="round"/>
                   {/* 削除ハンドル（接続編集モード時） */}
                   {editMode==="connect" && (
                     <g onClick={e=>{e.stopPropagation();toggleEdge(aId,bId);}}>
@@ -879,10 +879,10 @@ function StakeholderView({ project }) {
               const hasName = !!n.name;
               const lines=n.label.split("\n");
               // 名前ありの場合はロール名を上段に小さく、名前を下段に表示
-              const fillColor = isSelected ? C.human+"30" : (hasName ? "#FFFFFF" : "#F4F3FB");
-              const strokeColor = isSelected ? C.human : isConnectFrom ? C.thing : (hasName ? C.human+"70" : "#C8C4E8");
-              const roleColor = isSelected ? C.human : (hasName ? C.textWeak : "#9B97C4");
-              const nameColor = isSelected ? C.human : (hasName ? C.textMid : "#9B97C4");
+              const fillColor = isSelected ? C.human+"30" : (hasName ? "#FFFFFF" : "#F2F2F2");
+              const strokeColor = isSelected ? C.human : isConnectFrom ? C.thing : (hasName ? C.human+"70" : "#D4D4D4");
+              const roleColor = isSelected ? C.human : (hasName ? C.textWeak : "#A3A3A3");
+              const nameColor = isSelected ? C.human : (hasName ? C.textMid : "#A3A3A3");
               return (
                 <g key={n.id} style={{cursor:"pointer"}} onClick={()=>handleNodeClick(n)}>
                   {(isSelected||isConnectFrom) && <rect x={bx-3} y={by-3} width={BOX_W+6} height={BOX_H+6} rx={9} fill="none" stroke={isConnectFrom?C.thing:C.human} strokeWidth={1.5} strokeDasharray="4 2" opacity={0.8}/>}
@@ -938,7 +938,7 @@ function StakeholderView({ project }) {
                           textAnchor="middle" dominantBaseline="middle"
                           fontSize={10} fontFamily="Noto Sans JP,sans-serif"
                           fontWeight={isSelected?600:400}
-                          fill={isSelected?C.human:"#9B97C4"}>{line}</text>
+                          fill={isSelected?C.human:"#A3A3A3"}>{line}</text>
                       );
                     })
                   )}
@@ -2673,7 +2673,7 @@ export default function App() {
           {/* Header Card */}
           <div style={{ margin: "14px 14px 0", background: C.bgCard, borderRadius: 10, border: `1px solid ${C.border}`, padding: "16px 20px", boxShadow: "0 1px 5px rgba(0,0,0,0.04)" }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 14 }}>
-              <ScoreRing value={p.score} size={72} color={C.text} sublabel="HEALTH" />
+              <ScoreRing value={p.score} size={72} color={C.textWeak} sublabel="HEALTH" />
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
                   <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>{p.code}</span>
