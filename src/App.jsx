@@ -2557,8 +2557,8 @@ export default function App() {
 
       {/* NAV */}
       <div style={{ height: 48, background: C.bgCard, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 20px", gap: 0, flexShrink: 0, boxShadow: "0 1px 4px rgba(83,74,183,0.06)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, paddingRight: 24, borderRight: `1px solid ${C.border}`, marginRight: 4 }}>
-          <svg width="86" height="42" viewBox="0 0 360 200" style={{ display: "block" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 15, paddingRight: 24, borderRight: `1px solid ${C.border}`, marginRight: 4 }}>
+          <svg width="101" height="42" viewBox="0 0 420 200" style={{ display: "block" }}>
             <g transform="translate(80,100)" stroke={C.text} strokeWidth="7.65" fill="none" strokeLinejoin="miter">
               <polygon points="-44.1,0 0,-44.1 44.1,0 0,44.1" />
               <polygon points="0,0 44.1,-44.1 88.2,0 44.1,44.1" />
