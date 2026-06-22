@@ -6,7 +6,8 @@ const C = {
   weak:     "#C8EDE3",
   human:    "#5DB99A",
   thing:    "#6C5CE7",
-  critical: "#8B3A5A",
+  critical: "#DC2626",
+  warning:  "#D97706",
   bg:       "#EFEFEF",
   bgCard:   "#FFFFFF",
   border:   "#E2E2E2",
@@ -14,7 +15,7 @@ const C = {
   textMid:  "#717171",
   textWeak: "#A3A3A3",
 };
-const scoreColor = (v) => v >= 70 ? C.thing : v >= 40 ? C.strong : C.critical;
+const scoreColor = (v) => v >= 70 ? C.thing : v >= 40 ? C.warning : C.critical;
 // 内部データは100点満点のまま、表示のみ10点満点(小数第1位)に変換
 const to10 = (v) => (v / 10).toFixed(1);
 
@@ -239,8 +240,8 @@ const INITIAL_PROJECTS = [
 ];
 
 const STATUS = {
-  critical: { label: "要対応", color: C.critical, bg: "#F9EEF3", border: "#DDB8CA" },
-  warn:     { label: "注意",   color: C.strong,   bg: "#EEEDFB", border: C.mid },
+  critical: { label: "要対応", color: C.critical, bg: "#FEF2F2", border: "#FCA5A5" },
+  warn:     { label: "注意",   color: C.warning,  bg: "#FFFBEB", border: "#FCD34D" },
   healthy:  { label: "健全",   color: C.thing,    bg: "#EAF8F3", border: "#A8DECE" },
 };
 const AXIS = {
@@ -296,7 +297,7 @@ function AxisBlock({ axis, scores, items }) {
   const ax = AXIS[axis];
   const avg = Math.round(Object.values(scores).reduce((a, v) => a + v, 0) / Object.values(scores).length);
   return (
-    <div style={{ flex: 1, background: C.bgCard, border: `1px solid ${C.border}`, borderTop: `3px solid ${ax.color}`, borderRadius: "0 0 10px 10px", padding: "14px 16px", boxShadow: "0 1px 5px rgba(0,0,0,0.04)" }}>
+    <div style={{ flex: 1, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", boxShadow: "0 1px 5px rgba(0,0,0,0.04)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
@@ -307,7 +308,7 @@ function AxisBlock({ axis, scores, items }) {
           </div>
           <div style={{ fontSize: 11, color: C.textMid }}>{axis === "S" ? "構造・計画の世界" : "人・関係性の世界"}</div>
         </div>
-        <ScoreRing value={avg} displayValue={to10(avg)} size={48} color={C.textWeak} sublabel="avg" />
+        <ScoreRing value={avg} displayValue={to10(avg)} size={48} color={ax.color} textColor={C.text} sublabel="avg" />
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {items.map((item, i) => {
@@ -785,13 +786,13 @@ function StakeholderView({ project }) {
           {/* 複雑性スコア */}
           <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:8,padding:"2px 10px",background:C.bg,borderRadius:5,border:`1px solid ${C.border}`}}>
             <span style={{fontSize:9,color:C.textWeak,fontFamily:"'DM Mono',monospace"}}>層数</span>
-            <span style={{fontSize:12,fontWeight:700,color:layerCount>=7?C.critical:layerCount>=5?C.strong:C.thing}}>{layerCount}</span>
+            <span style={{fontSize:12,fontWeight:700,color:layerCount>=7?C.critical:layerCount>=5?C.warning:C.thing}}>{layerCount}</span>
             <span style={{fontSize:9,color:C.border}}>|</span>
             <span style={{fontSize:9,color:C.textWeak,fontFamily:"'DM Mono',monospace"}}>ノード</span>
             <span style={{fontSize:12,fontWeight:700,color:C.text}}>{nodeCount}</span>
             <span style={{fontSize:9,color:C.border}}>|</span>
             <span style={{fontSize:9,color:C.textWeak,fontFamily:"'DM Mono',monospace"}}>複雑性</span>
-            <span style={{fontSize:12,fontWeight:700,color:complexity>=20?C.critical:complexity>=12?C.strong:C.thing}}>{complexity}</span>
+            <span style={{fontSize:12,fontWeight:700,color:complexity>=20?C.critical:complexity>=12?C.warning:C.thing}}>{complexity}</span>
           </div>
 
           <div style={{flex:1}}/>
@@ -900,13 +901,13 @@ function StakeholderView({ project }) {
                       Ghostが自動でON にする設計。手動トグルは検知ロジック実装までの代替手段。 */}
                   {n.hasNote && (
                     <g>
-                      <circle cx={bx+BOX_W-7} cy={by+7} r={5} fill={C.strong}/>
+                      <circle cx={bx+BOX_W-7} cy={by+7} r={5} fill={C.human}/>
                       <text x={bx+BOX_W-7} y={by+7} textAnchor="middle" dominantBaseline="middle" fontSize={8} fontWeight={700} fill="#fff">?</text>
                     </g>
                   )}
                   {n.isVendor && (
                     <g>
-                      <rect x={bx+BOX_W-36} y={by+BOX_H-17} width={32} height={13} rx={3} fill={hasName ? "#F9EEF3" : "#F9EEF360"} stroke={hasName ? C.critical+"60" : C.critical+"30"} strokeWidth={0.7}/>
+                      <rect x={bx+BOX_W-36} y={by+BOX_H-17} width={32} height={13} rx={3} fill={hasName ? "#FEF2F2" : "#FEF2F260"} stroke={hasName ? C.critical+"60" : C.critical+"30"} strokeWidth={0.7}/>
                       <text x={bx+BOX_W-20} y={by+BOX_H-10} textAnchor="middle" dominantBaseline="middle" fontSize={7} fontWeight={700} fontFamily="'DM Mono',monospace" fill={hasName ? C.critical : C.critical+"80"}>ベンダ</text>
                     </g>
                   )}
@@ -1012,7 +1013,7 @@ function StakeholderView({ project }) {
                 <label style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer"}}>
                   <input type="checkbox" checked={!!selectedNode.hasNote}
                     onChange={e=>updateNode(selectedNode.id,"hasNote",e.target.checked)}
-                    style={{width:14,height:14,accentColor:C.strong,cursor:"pointer"}}/>
+                    style={{width:14,height:14,accentColor:C.human,cursor:"pointer"}}/>
                   <span style={{fontSize:11,color:C.textMid,fontWeight:500}}>確認事項あり</span>
                 </label>
               </div>
@@ -1498,7 +1499,7 @@ function GlossaryView() {
         <div style={{fontSize:14,fontWeight:600,color:C.text,lineHeight:1.5,paddingTop:1,display:"flex",flexDirection:"column",gap:4}}>
           <span>{t.term}</span>
           {t.isMetisOriginal && (
-            <span style={{fontSize:9,fontWeight:700,color:C.strong,background:"#EEEDFB",border:`1px solid ${C.mid}`,borderRadius:4,padding:"1px 6px",alignSelf:"flex-start",letterSpacing:"0.04em"}}>Metis Original</span>
+            <span style={{fontSize:9,fontWeight:700,color:C.human,background:"#EAF8F3",border:`1px solid ${C.weak}`,borderRadius:4,padding:"1px 6px",alignSelf:"flex-start",letterSpacing:"0.04em"}}>Metis Original</span>
           )}
         </div>
         <div style={{fontSize:11,color:C.textMid,lineHeight:1.7}}>{t.def}</div>
@@ -1635,9 +1636,9 @@ function GlossaryView() {
 
 // ── Gantt View ──
 const TASK_STATUS = {
-  done:    { color: C.thing,    label: "完了",   bg: "#EAF8F3" },
-  active:  { color: C.strong,   label: "進行中", bg: "#EEEDFB" },
-  delay:   { color: C.critical, label: "遅延",   bg: "#F9EEF3" },
+  done:    { color: C.human,    label: "完了",   bg: "#EAF8F3" },
+  active:  { color: C.thing,    label: "進行中", bg: "#F0EEFE" },
+  delay:   { color: C.critical, label: "遅延",   bg: "#FEF2F2" },
   pending: { color: C.textWeak, label: "未着手", bg: C.bg },
 };
 
@@ -1807,8 +1808,8 @@ function GravityView({ project }) {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.bg }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
-          <div style={{ width: 7, height: 7, borderRadius: "50%", background: C.strong }} />
-          <span style={{ fontSize: 11, fontWeight: 700, color: C.strong, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>GRAVITY VIEW</span>
+          <div style={{ width: 7, height: 7, borderRadius: "50%", background: C.human }} />
+          <span style={{ fontSize: 11, fontWeight: 700, color: C.human, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>GRAVITY VIEW</span>
           <span style={{ fontSize: 10, color: C.textWeak, marginLeft: 4 }}>依存構造とリスクの重力分布</span>
         </div>
         {/* Tabs */}
@@ -1816,7 +1817,7 @@ function GravityView({ project }) {
           {["gravity", "drift"].map(tab => (
             <button key={tab} onClick={() => { setActiveTab(tab); setSelectedNode(null); }} style={{
               fontSize: 10, fontWeight: 600, padding: "4px 14px", border: "none",
-              background: activeTab === tab ? C.strong : "transparent",
+              background: activeTab === tab ? C.human : "transparent",
               color: activeTab === tab ? "#fff" : C.textWeak,
               cursor: "pointer", transition: "all 0.15s",
             }}>
@@ -1834,7 +1835,7 @@ function GravityView({ project }) {
             {/* メトリクス */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
               {[
-                { label: "avg coupling", value: avgCoupling, color: C.strong },
+                { label: "avg coupling", value: avgCoupling, color: C.human },
                 { label: "high-gravity", value: `${highGravity}ノード`, color: C.critical },
               ].map((m, i) => (
                 <div key={i} style={{ background: C.bg, borderRadius: 6, padding: "7px 10px" }}>
@@ -1890,7 +1891,7 @@ function GravityView({ project }) {
                       { label: "Communication Freq",  value: selectedNode.commFreq, max: 100 },
                     ].map((m, i) => {
                       const pct = Math.round((typeof m.suffix === "undefined" ? m.value / m.max * 100 : m.value));
-                      const c = pct > 70 ? C.critical : pct > 45 ? C.strong : C.thing;
+                      const c = pct > 70 ? C.critical : pct > 45 ? C.warning : C.thing;
                       return (
                         <div key={i}>
                           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
@@ -1921,7 +1922,7 @@ function GravityView({ project }) {
             {[
               { label: "schedule drift", value: "−18日", color: C.critical },
               { label: "risk accumulation", value: "+4件", color: C.critical },
-              { label: "velocity trend", value: "↓12%", color: C.strong },
+              { label: "velocity trend", value: "↓12%", color: C.human },
               { label: "on-track prob.", value: "34%", color: C.human },
             ].map((m, i) => (
               <div key={i} style={{ background: C.bg, borderRadius: 6, padding: "8px 10px" }}>
@@ -1959,7 +1960,7 @@ function GravityView({ project }) {
 
       {/* Footer */}
       <div style={{ padding: "8px 16px", borderTop: `1px solid ${C.border}`, background: C.bg, display: "flex", alignItems: "center", gap: 6 }}>
-        <div style={{ width: 5, height: 5, borderRadius: "50%", background: C.strong, boxShadow: `0 0 4px ${C.strong}` }} />
+        <div style={{ width: 5, height: 5, borderRadius: "50%", background: C.human, boxShadow: `0 0 4px ${C.human}` }} />
         <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>
           Semantic Space より生成　—　MDM Engine　·　Dependency Strength　·　Change Probability　·　Communication Frequency　·　Coupling Score
         </span>
@@ -2111,7 +2112,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
       <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 680, maxHeight: "88vh", background: C.bgCard, border: `1.5px solid ${C.border}`, borderRadius: 16, boxShadow: "0 32px 80px rgba(0,0,0,0.12)", zIndex: 201, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {/* Header */}
         <div style={{ padding: "14px 20px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 7, height: 7, borderRadius: "50%", background: C.strong }} />
+          <div style={{ width: 7, height: 7, borderRadius: "50%", background: C.human }} />
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>新規プロジェクト作成</div>
             <div style={{ fontSize: 10, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>{nextCode}　— Semantic Space に登録</div>
@@ -2129,7 +2130,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
             </div>
             <div style={{ fontSize: 10, color: C.textWeak, marginTop: 2 }}>{fileStatus === null && "CSV・TXT・Markdown に対応"}</div>
           </div>
-          <label style={{ fontSize: 11, color: C.strong, background: "#EEEDFB", border: `1px solid ${C.mid}`, borderRadius: 6, padding: "5px 12px", cursor: "pointer", flexShrink: 0 }}>
+          <label style={{ fontSize: 11, color: C.human, background: "#EAF8F3", border: `1px solid ${C.weak}`, borderRadius: 6, padding: "5px 12px", cursor: "pointer", flexShrink: 0 }}>
             ファイルを選択<input type="file" accept=".csv,.txt,.md" onChange={e => { if (e.target.files[0]) handleFile(e.target.files[0]); }} style={{ display: "none" }} />
           </label>
         </div>
@@ -2162,7 +2163,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
           <div style={{ fontSize: 10, color: C.textWeak }}><span style={{ color: C.critical }}>*</span> は必須項目</div>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={onClose} style={{ fontSize: 12, color: C.textMid, background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 18px", cursor: "pointer" }}>キャンセル</button>
-            <button onClick={handleCreate} disabled={!canProceed || creating} style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: canProceed && !creating ? C.strong : C.mid, border: "none", borderRadius: 8, padding: "8px 24px", cursor: canProceed && !creating ? "pointer" : "default", display: "flex", alignItems: "center", gap: 8 }}>
+            <button onClick={handleCreate} disabled={!canProceed || creating} style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: canProceed && !creating ? C.human : C.mid, border: "none", borderRadius: 8, padding: "8px 24px", cursor: canProceed && !creating ? "pointer" : "default", display: "flex", alignItems: "center", gap: 8 }}>
               {creating ? "登録中…" : "Semantic Space に登録"}
               {!creating && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M7 3l3 3-3 3" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
             </button>
@@ -2189,9 +2190,9 @@ const GHOST_PULSES = {
 };
 
 const PULSE_TYPE_STYLE = {
-  semantic: { color: C.strong,   bg: "#EEEDFB", icon: "◈", label: "意味の乖離" },
-  gravity:  { color: C.critical, bg: "#F9EEF3", icon: "⬡", label: "Gravity 警告" },
-  drift:    { color: C.human,    bg: "#EEEDFB", icon: "⟆", label: "Drift 検知" },
+  semantic: { color: C.human,   bg: "#EAF8F3", icon: "◈", label: "意味の乖離" },
+  gravity:  { color: C.critical, bg: "#FEF2F2", icon: "⬡", label: "Gravity 警告" },
+  drift:    { color: C.human,    bg: "#EAF8F3", icon: "⟆", label: "Drift 検知" },
 };
 
 // ── Ghost スライドイン通知コンポーネント ──
@@ -2411,12 +2412,12 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
         onDragOver={e=>{e.preventDefault();setIsDragOver(true);}}
         onDragLeave={()=>setIsDragOver(false)}
         onDrop={handleDrop}
-        style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:520, maxHeight:"70vh", background: isDragOver?"rgba(0,0,0,0.05)":"rgba(247,247,251,0.97)", border:`1.5px solid ${isDragOver?C.strong:C.border}`, borderRadius:14, boxShadow:"0 24px 64px rgba(0,0,0,0.12)", zIndex:101, display:"flex", flexDirection:"column", overflow:"hidden", transition:"border-color 0.15s, background 0.15s" }}>
+        style={{ position:"fixed", top:"50%", left:"50%", transform:"translate(-50%,-50%)", width:520, maxHeight:"70vh", background: isDragOver?"rgba(0,0,0,0.05)":"rgba(247,247,251,0.97)", border:`1.5px solid ${isDragOver?C.human:C.border}`, borderRadius:14, boxShadow:"0 24px 64px rgba(0,0,0,0.12)", zIndex:101, display:"flex", flexDirection:"column", overflow:"hidden", transition:"border-color 0.15s, background 0.15s" }}>
 
         {/* ヘッダー */}
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:10 }}>
-          <div style={{ width:6, height:6, borderRadius:"50%", background:C.strong, boxShadow:`0 0 6px ${C.strong}` }} />
-          <span style={{ fontSize:11, fontWeight:700, color:C.strong, fontFamily:"'DM Mono',monospace", letterSpacing:"0.06em" }}>SEMANTIC GHOST</span>
+          <div style={{ width:6, height:6, borderRadius:"50%", background:C.human, boxShadow:`0 0 6px ${C.human}` }} />
+          <span style={{ fontSize:11, fontWeight:700, color:C.human, fontFamily:"'DM Mono',monospace", letterSpacing:"0.06em" }}>SEMANTIC GHOST</span>
           <span style={{ fontSize:10, color:C.textWeak, marginLeft:4 }}>{project.code} を参照中</span>
           <div style={{ flex:1 }} />
           <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:C.textWeak, fontSize:18 }}>×</button>
@@ -2429,7 +2430,7 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
               <div style={{ fontSize:11, color:C.textWeak, marginBottom:14 }}>Metis が状態を診断して回答します</div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:6, justifyContent:"center", marginBottom:14 }}>
                 {["承認ノードのGravityが高い理由は？","最もリスクの高い依存関係は？","Drift Viewのズレの原因は何？","どこに介入すれば最も効果的？"].map(hint => (
-                  <button key={hint} onClick={()=>setQuery(hint)} style={{ fontSize:11, color:C.strong, background:"#EEEDFB", border:`1px solid ${C.mid}`, borderRadius:6, padding:"4px 10px", cursor:"pointer" }}>{hint}</button>
+                  <button key={hint} onClick={()=>setQuery(hint)} style={{ fontSize:11, color:C.human, background:"#EAF8F3", border:`1px solid ${C.weak}`, borderRadius:6, padding:"4px 10px", cursor:"pointer" }}>{hint}</button>
                 ))}
               </div>
               {/* ドロップヒント */}
@@ -2442,7 +2443,7 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
           {messages.map((m, i) => {
             if(m.role==="file") return (
               <div key={i} style={{ display:"flex", justifyContent:"flex-end" }}>
-                <div style={{ padding:"6px 12px", borderRadius:"10px 10px 2px 10px", background:C.strong, color:"#fff", fontSize:11 }}>{m.text}</div>
+                <div style={{ padding:"6px 12px", borderRadius:"10px 10px 2px 10px", background:C.human, color:"#fff", fontSize:11 }}>{m.text}</div>
               </div>
             );
             if(m.role==="action") return (
@@ -2451,7 +2452,7 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
                   {m.type==="schedule" ? `${m.rows.length}件のタスクをスケジュールビューに反映します` : `${m.rows.length}件のロールをStakeholdersに反映します`}
                 </span>
                 <button onClick={()=>handleApply(m.type, m.rows)}
-                  style={{ padding:"5px 14px", background:C.strong, color:"#fff", border:"none", borderRadius:6, fontSize:11, fontWeight:600, cursor:"pointer" }}>
+                  style={{ padding:"5px 14px", background:C.human, color:"#fff", border:"none", borderRadius:6, fontSize:11, fontWeight:600, cursor:"pointer" }}>
                   反映する
                 </button>
                 <button onClick={()=>setPendingAction(null)}
@@ -2462,13 +2463,13 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
             );
             return (
               <div key={i} style={{ display:"flex", justifyContent:m.role==="user"?"flex-end":"flex-start" }}>
-                <div style={{ maxWidth:"82%", padding:"8px 12px", borderRadius:m.role==="user"?"10px 10px 2px 10px":"10px 10px 10px 2px", background:m.role==="user"?C.strong:C.bgCard, color:m.role==="user"?"#fff":C.text, fontSize:12, lineHeight:1.65, border:m.role==="user"?"none":`1px solid ${C.border}`, whiteSpace:"pre-wrap" }}>
+                <div style={{ maxWidth:"82%", padding:"8px 12px", borderRadius:m.role==="user"?"10px 10px 2px 10px":"10px 10px 10px 2px", background:m.role==="user"?C.human:C.bgCard, color:m.role==="user"?"#fff":C.text, fontSize:12, lineHeight:1.65, border:m.role==="user"?"none":`1px solid ${C.border}`, whiteSpace:"pre-wrap" }}>
                   {m.streaming && !m.text ? (
-                    <span style={{ display:"flex", gap:4, padding:"2px 0" }}>{[0,1,2].map(d=><span key={d} style={{ width:5, height:5, borderRadius:"50%", background:C.mid, display:"inline-block", animation:`pulse 1.2s ease-in-out ${d*0.2}s infinite` }}/>)}</span>
+                    <span style={{ display:"flex", gap:4, padding:"2px 0" }}>{[0,1,2].map(d=><span key={d} style={{ width:5, height:5, borderRadius:"50%", background:C.weak, display:"inline-block", animation:`pulse 1.2s ease-in-out ${d*0.2}s infinite` }}/>)}</span>
                   ) : (
                     <>
                       {m.text}
-                      {m.streaming && <span style={{ display:"inline-block", width:2, height:12, background:C.strong, marginLeft:2, verticalAlign:"middle", animation:"blink 0.9s step-end infinite" }} />}
+                      {m.streaming && <span style={{ display:"inline-block", width:2, height:12, background:C.human, marginLeft:2, verticalAlign:"middle", animation:"blink 0.9s step-end infinite" }} />}
                     </>
                   )}
                 </div>
@@ -2482,7 +2483,7 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
         <div style={{ padding:"10px 14px", borderTop:`1px solid ${C.border}`, display:"flex", flexDirection:"column", gap:6 }}>
           {/* ドラッグオーバー時のハイライト */}
           {isDragOver && (
-            <div style={{ textAlign:"center", fontSize:11, color:C.strong, fontWeight:600, padding:"4px 0" }}>ここにドロップ</div>
+            <div style={{ textAlign:"center", fontSize:11, color:C.human, fontWeight:600, padding:"4px 0" }}>ここにドロップ</div>
           )}
           <div style={{ display:"flex", gap:8, alignItems:"center" }}>
             {/* ファイル選択ボタン */}
@@ -2495,10 +2496,10 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
               placeholder="プロジェクトについて質問する…（Shift+Enterで改行）"
               rows={1}
               style={{ flex:1, border:`1px solid ${C.border}`, borderRadius:8, padding:"8px 12px", fontSize:12, color:C.text, background:C.bgCard, outline:"none", fontFamily:"'Noto Sans JP',sans-serif", resize:"none", lineHeight:1.5, maxHeight:120, overflowY:"auto" }}
-              onFocus={e=>e.target.style.borderColor=C.strong} onBlur={e=>e.target.style.borderColor=C.border}
+              onFocus={e=>e.target.style.borderColor=C.human} onBlur={e=>e.target.style.borderColor=C.border}
               onInput={e=>{ e.target.style.height="auto"; e.target.style.height=Math.min(e.target.scrollHeight,120)+"px"; }}/>
             <button onClick={handleSend} disabled={!query.trim()||loading}
-              style={{ width:34, height:34, borderRadius:8, border:"none", background:query.trim()&&!loading?C.strong:C.border, cursor:query.trim()&&!loading?"pointer":"default", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+              style={{ width:34, height:34, borderRadius:8, border:"none", background:query.trim()&&!loading?C.human:C.border, cursor:query.trim()&&!loading?"pointer":"default", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M8 2l5 5-5 5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
           </div>
@@ -2588,9 +2589,9 @@ export default function App() {
             <text x="200" y="122" fontFamily="Inter,sans-serif" fontWeight="700" fontSize="72" letterSpacing="1" fill={C.text}>Metis</text>
           </svg>
           <span style={{
-            fontSize: 9, fontWeight: 700, color: C.strong,
-            background: C.blueLight || "#EEF0FD",
-            border: `1px solid ${C.mid}`,
+            fontSize: 9, fontWeight: 700, color: C.human,
+            background: "#EAF8F3",
+            border: `1px solid ${C.weak}`,
             borderRadius: 5,
             padding: "2px 7px",
             letterSpacing: "0.06em",
@@ -2599,11 +2600,11 @@ export default function App() {
           }}>alpha</span>
         </div>
         {["Dashboard","Glossary","Stakeholders"].map(tab => (
-          <div key={tab} onClick={()=>setActiveNavTab(tab)} style={{ padding: "0 16px", height: 48, display: "flex", alignItems: "center", fontSize: 12, fontWeight: 600, color: tab === activeNavTab ? C.strong : C.textWeak, borderBottom: tab === activeNavTab ? `2px solid ${C.strong}` : "2px solid transparent", cursor: "pointer" }}>{tab}</div>
+          <div key={tab} onClick={()=>setActiveNavTab(tab)} style={{ padding: "0 16px", height: 48, display: "flex", alignItems: "center", fontSize: 12, fontWeight: 600, color: tab === activeNavTab ? C.human : C.textWeak, borderBottom: tab === activeNavTab ? `2px solid ${C.human}` : "2px solid transparent", cursor: "pointer" }}>{tab}</div>
         ))}
         <div style={{ flex: 1 }} />
         <button onClick={() => setGhostOpen(true)} style={{ display: "flex", alignItems: "center", gap: 8, border: `1px solid ${C.border}`, borderRadius: 8, padding: "5px 12px", background: C.bg, cursor: "pointer", color: C.textWeak, fontSize: 11, marginRight: 14, transition: "all 0.15s" }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = C.strong; e.currentTarget.style.color = C.strong; }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = C.human; e.currentTarget.style.color = C.human; }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.textWeak; }}>
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.4" /><path d="M8 8l2.5 2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
           Semantic Ghost
@@ -2643,9 +2644,9 @@ export default function App() {
             <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>PROJECTS　{projects.length}</span>
             <button
               onClick={() => setCreateOpen(true)}
-              style={{ fontSize: 10, fontWeight: 700, color: C.strong, background: "#EEEDFB", border: `1px solid ${C.mid}`, borderRadius: 5, padding: "3px 9px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
-              onMouseEnter={e => e.currentTarget.style.background = C.mid}
-              onMouseLeave={e => e.currentTarget.style.background = "#EEEDFB"}
+              style={{ fontSize: 10, fontWeight: 700, color: C.human, background: "#EAF8F3", border: `1px solid ${C.weak}`, borderRadius: 5, padding: "3px 9px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+              onMouseEnter={e => e.currentTarget.style.background = C.weak}
+              onMouseLeave={e => e.currentTarget.style.background = "#EAF8F3"}
             >
               <span style={{ fontSize: 13, lineHeight: 1 }}>+</span> 新規
             </button>
@@ -2676,7 +2677,7 @@ export default function App() {
           {/* Header Card */}
           <div style={{ margin: "14px 14px 0", background: C.bgCard, borderRadius: 10, border: `1px solid ${C.border}`, padding: "16px 20px", boxShadow: "0 1px 5px rgba(0,0,0,0.04)" }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 14 }}>
-              <ScoreRing value={p.score} displayValue={to10(p.score)} size={72} color={C.textWeak} sublabel="HEALTH" />
+              <ScoreRing value={p.score} displayValue={to10(p.score)} size={72} color={st.color} textColor={C.text} sublabel="HEALTH" />
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
                   <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>{p.code}</span>
@@ -2762,7 +2763,7 @@ export default function App() {
                     <span style={{ fontSize: 11, fontWeight: 700, color: C.text, fontFamily: "'DM Mono', monospace" }}>{taskEditBuf.progress}%</span>
                   </div>
                   <input type="range" min={0} max={100} value={taskEditBuf.progress} onChange={e => setTaskEditBuf(b => ({...b, progress: Number(e.target.value)}))}
-                    style={{ width: "100%", accentColor: C.strong }} />
+                    style={{ width: "100%", accentColor: C.textMid }} />
                 </div>
                 <div>
                   <div style={{ fontSize: 9, fontWeight: 700, color: C.textWeak, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8 }}>ステータス</div>
@@ -2781,7 +2782,7 @@ export default function App() {
                   setProjects(ps => ps.map(proj => proj.id === p.id ? { ...proj, tasks: proj.tasks.map(t => t.id === taskEditBuf.id ? taskEditBuf : t) } : proj));
                   setSelected(s => ({ ...s, tasks: s.tasks.map(t => t.id === taskEditBuf.id ? taskEditBuf : t) }));
                   setSelectedTask(taskEditBuf);
-                }} style={{ width: "100%", padding: "8px 0", background: C.strong, color: "#fff", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                }} style={{ width: "100%", padding: "8px 0", background: C.human, color: "#fff", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
                   保存
                 </button>
               </div>
@@ -2793,15 +2794,15 @@ export default function App() {
                   <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>ACTIVE ALERTS</span>
                   <button onClick={() => setAlertOpen(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: C.textWeak, fontSize: 14, lineHeight: 1, padding: "0 2px" }}>✕</button>
                   {p.alerts.filter(a => a.level === "critical").length > 0 && (
-                    <span style={{ fontSize: 9, fontWeight: 700, color: C.critical, background: "#F9EEF3", border: `1px solid #DDB8CA`, padding: "1px 6px", borderRadius: 3, fontFamily: "'DM Mono', monospace" }}>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: C.critical, background: "#FEF2F2", border: `1px solid #FCA5A5`, padding: "1px 6px", borderRadius: 3, fontFamily: "'DM Mono', monospace" }}>
                       {p.alerts.filter(a => a.level === "critical").length} critical
                     </span>
                   )}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {p.alerts.map((a, i) => {
-                    const bc = a.level === "critical" ? C.critical : a.level === "warn" ? C.strong : C.mid;
-                    const tc = a.level === "critical" ? C.critical : a.level === "warn" ? C.strong : C.textMid;
+                    const bc = a.level === "critical" ? C.critical : a.level === "warn" ? C.warning : C.mid;
+                    const tc = a.level === "critical" ? C.critical : a.level === "warn" ? C.warning : C.textMid;
                     const ax = AXIS[a.axis];
                     return (
                       <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "7px 10px", background: C.bg, borderLeft: `3px solid ${bc}`, borderRadius: "0 6px 6px 0" }}>
@@ -2815,8 +2816,8 @@ export default function App() {
               <div style={{ padding: "12px 14px", flex: 1, overflowY: "auto" }}>
                 <div style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", marginBottom: 10 }}>RECENT EVENTS</div>
                 {p.events.map((e, i) => {
-                  const dc = e.type === "critical" ? C.critical : e.type === "warn" ? C.strong : C.mid;
-                  const tc = e.type === "critical" ? C.critical : e.type === "warn" ? C.strong : C.textMid;
+                  const dc = e.type === "critical" ? C.critical : e.type === "warn" ? C.warning : C.mid;
+                  const tc = e.type === "critical" ? C.critical : e.type === "warn" ? C.warning : C.textMid;
                   return (
                     <div key={i} style={{ display: "flex", gap: 10, paddingBottom: 10 }}>
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 10 }}>
