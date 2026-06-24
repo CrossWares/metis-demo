@@ -781,7 +781,7 @@ function StakeholderView({ project }) {
         {/* ヘッダー */}
         <div style={{padding:"10px 16px",borderBottom:`1px solid ${C.border}`,background:C.bgCard,display:"flex",alignItems:"center",gap:8,flexShrink:0,flexWrap:"wrap"}}>
           <div style={{width:7,height:7,borderRadius:"50%",background:C.human,flexShrink:0}}/>
-          <span style={{fontSize:11,fontWeight:700,color:C.human,fontFamily:"'DM Mono',monospace",letterSpacing:"0.08em"}}>STAKEHOLDERS</span>
+          <span style={{fontSize:11,fontWeight:700,color:C.textWeak,fontFamily:"'DM Mono',monospace",letterSpacing:"0.08em"}}>STAKEHOLDERS</span>
 
           {/* 複雑性スコア */}
           <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:8,padding:"2px 10px",background:C.bg,borderRadius:5,border:`1px solid ${C.border}`}}>
@@ -1666,9 +1666,9 @@ function GanttView({ project, onTaskSelect, selectedTaskId }) {
   return (
     <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 5px rgba(0,0,0,0.04)" }}>
       {/* ヘッダー */}
-      <div style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.bg }}>
+      <div style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.bgCard }}>
         <div style={{ width: 7, height: 7, borderRadius: "50%", background: C.thing, marginRight: 8 }} />
-        <span style={{ fontSize: 11, fontWeight: 700, color: C.thing, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>SCHEDULE VIEW</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>SCHEDULE VIEW</span>
         <span style={{ fontSize: 10, color: C.textWeak, marginLeft: 8 }}>タスクをクリックで詳細編集</span>
         <div style={{ flex: 1 }} />
         {/* 凡例 */}
@@ -1806,10 +1806,10 @@ function GravityView({ project }) {
     <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 5px rgba(0,0,0,0.04)" }}>
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.bg }}>
+      <div style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.bgCard }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
           <div style={{ width: 7, height: 7, borderRadius: "50%", background: C.human }} />
-          <span style={{ fontSize: 11, fontWeight: 700, color: C.human, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>GRAVITY VIEW</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>GRAVITY VIEW</span>
           <span style={{ fontSize: 10, color: C.textWeak, marginLeft: 4 }}>依存構造とリスクの重力分布</span>
         </div>
         {/* Tabs */}
@@ -1971,10 +1971,10 @@ function GravityView({ project }) {
 
 function ProjectListRow({ project, selected, onClick }) {
   const st = STATUS[project.status];
-  const scoreBadge = { critical: { bg: "#FEF2F2", color: "#991B1B" }, warn: { bg: "#FFFBEB", color: "#92400E" }, healthy: { bg: "#F0FDF4", color: "#166534" } }[project.status] || { bg: C.bg, color: C.textMid };
+  const scoreBadge = { critical: { bg: "#FEF2F2", color: C.critical }, warn: { bg: "#FFFBEB", color: "#92400E" }, healthy: { bg: "#F0FDF4", color: "#166534" } }[project.status] || { bg: C.bg, color: C.textMid };
   const critCount = project.alerts.filter(a => a.level === "critical").length;
   return (
-    <div onClick={() => onClick(project)} style={{ padding: "10px 14px", background: selected ? C.bg : C.bgCard, borderLeft: `3px solid ${selected ? st.color : "transparent"}`, borderBottom: `1px solid ${C.border}`, cursor: "pointer", transition: "background 0.1s" }}
+    <div onClick={() => onClick(project)} style={{ padding: "10px 14px", background: selected ? C.bg : C.bgCard, borderLeft: "3px solid transparent", borderBottom: `1px solid ${C.border}`, cursor: "pointer", transition: "background 0.1s" }}
       onMouseEnter={e => { if (!selected) e.currentTarget.style.background = C.bg; }}
       onMouseLeave={e => { if (!selected) e.currentTarget.style.background = C.bgCard; }}
     >
@@ -1999,7 +1999,7 @@ function ProjectListRow({ project, selected, onClick }) {
       </div>
       {critCount > 0 && (
         <div style={{ marginTop: 6 }}>
-          <span style={{ fontSize: 9, fontWeight: 600, padding: "1px 6px", borderRadius: 3, background: "#FEF2F2", color: "#991B1B" }}>Critical {critCount}</span>
+          <span style={{ fontSize: 9, fontWeight: 600, padding: "1px 6px", borderRadius: 3, background: "#FEF2F2", color: C.critical }}>Critical {critCount}</span>
         </div>
       )}
     </div>
@@ -2415,7 +2415,7 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
         {/* ヘッダー */}
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:10 }}>
           <div style={{ width:6, height:6, borderRadius:"50%", background:C.human, boxShadow:`0 0 6px ${C.human}` }} />
-          <span style={{ fontSize:11, fontWeight:700, color:C.human, fontFamily:"'DM Mono',monospace", letterSpacing:"0.06em" }}>SEMANTIC GHOST</span>
+          <span style={{ fontSize:11, fontWeight:700, color:C.textWeak, fontFamily:"'DM Mono',monospace", letterSpacing:"0.06em" }}>SEMANTIC GHOST</span>
           <span style={{ fontSize:10, color:C.textWeak, marginLeft:4 }}>{project.code} を参照中</span>
           <div style={{ flex:1 }} />
           <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:C.textWeak, fontSize:18 }}>×</button>
@@ -2572,7 +2572,7 @@ export default function App() {
         * { box-sizing: border-box; margin: 0; padding: 0; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: ${C.bg}; }
-        ::-webkit-scrollbar-thumb { background: ${C.mid}; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb { background: ${C.textWeak}; border-radius: 2px; }
       `}</style>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" />
 
@@ -2768,7 +2768,7 @@ export default function App() {
                   {p.alerts.map((a, i) => {
                     const dotColor = a.level === "critical" ? C.critical : a.level === "warn" ? C.warning : C.human;
                     const badgeBg  = a.level === "critical" ? "#FEF2F2" : a.level === "warn" ? "#FFFBEB" : "#F0FDF4";
-                    const badgeTc  = a.level === "critical" ? "#991B1B" : a.level === "warn" ? "#92400E" : "#166534";
+                    const badgeTc  = a.level === "critical" ? C.critical : a.level === "warn" ? "#92400E" : "#166534";
                     const badgeLabel = a.level === "critical" ? "Critical" : a.level === "warn" ? "Warning" : "Info";
                     const ax = AXIS[a.axis];
                     return (
