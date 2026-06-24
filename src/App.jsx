@@ -1970,38 +1970,36 @@ function GravityView({ project }) {
 }
 
 function ProjectListRow({ project, selected, onClick }) {
-  const sc = scoreColor(project.score);
-  const delta = project.trend.at(-1) - project.trend.at(-2);
+  const st = STATUS[project.status];
+  const scoreBadge = { critical: { bg: "#FEF2F2", color: "#991B1B" }, warn: { bg: "#FFFBEB", color: "#92400E" }, healthy: { bg: "#F0FDF4", color: "#166534" } }[project.status] || { bg: C.bg, color: C.textMid };
+  const critCount = project.alerts.filter(a => a.level === "critical").length;
   return (
-    <div onClick={() => onClick(project)} style={{ padding: "10px 14px", background: selected ? C.bg : C.bgCard, borderLeft: `3px solid ${selected ? sc : "transparent"}`, borderBottom: `1px solid ${C.border}`, cursor: "pointer", transition: "background 0.1s" }}
+    <div onClick={() => onClick(project)} style={{ padding: "10px 14px", background: selected ? C.bg : C.bgCard, borderLeft: `3px solid ${selected ? st.color : "transparent"}`, borderBottom: `1px solid ${C.border}`, cursor: "pointer", transition: "background 0.1s" }}
       onMouseEnter={e => { if (!selected) e.currentTarget.style.background = C.bg; }}
       onMouseLeave={e => { if (!selected) e.currentTarget.style.background = C.bgCard; }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-        <div>
-          <div style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", marginBottom: 2 }}>{project.code}</div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{project.name}</div>
-        </div>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: C.text, fontFamily: "'DM Mono', monospace", lineHeight: 1 }}>{to10(project.score)}</div>
-          <div style={{ fontSize: 9, color: C.textMid, fontFamily: "'DM Mono', monospace" }}>{delta >= 0 ? "▲" : "▼"}{to10(Math.abs(delta))}</div>
-        </div>
+      <div style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", marginBottom: 2 }}>{project.code}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: C.text, marginBottom: 6 }}>{project.name}</div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+        <span style={{ fontSize: 10, color: C.textMid }}>PM　{project.owner.split(" ")[0]}</span>
+        <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 7px", borderRadius: 4, background: scoreBadge.bg, color: scoreBadge.color, fontFamily: "'DM Mono', monospace" }}>{to10(project.score)} / 10</span>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <Sparkline data={project.trend} color={C.textWeak} w={68} h={18} />
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
-          {[{ l: "S", v: project.staticScore, c: C.thing }, { l: "D", v: project.dynamicScore, c: C.human }].map(ax => (
-            <div key={ax.l} style={{ display: "flex", gap: 5, alignItems: "center" }}>
-              <span style={{ fontSize: 8, color: C.textWeak, fontFamily: "'DM Mono', monospace", width: 10 }}>{ax.l}</span>
-              <Bar value={ax.v} color={ax.c} height={3} />
-              <span style={{ fontSize: 9, color: C.textMid, fontFamily: "'DM Mono', monospace", width: 18, textAlign: "right" }}>{to10(ax.v)}</span>
-            </div>
-          ))}
-        </div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+        <span style={{ fontSize: 9, color: C.textWeak }}>〆 {project.due}</span>
+        <span style={{ fontSize: 9, color: C.textMid }}>残 {project.daysLeft}日</span>
       </div>
-      {project.alerts.some(a => a.level === "critical") && (
-        <div style={{ marginTop: 5, fontSize: 9, color: C.critical, fontFamily: "'DM Mono', monospace" }}>
-          ● {project.alerts.filter(a => a.level === "critical").length} critical
+      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        {[{ l: "S", v: project.staticScore, c: C.thing }, { l: "D", v: project.dynamicScore, c: C.human }].map(ax => (
+          <div key={ax.l} style={{ display: "flex", gap: 5, alignItems: "center" }}>
+            <span style={{ fontSize: 8, color: C.textWeak, fontFamily: "'DM Mono', monospace", width: 10 }}>{ax.l}</span>
+            <Bar value={ax.v} color={ax.c} height={3} />
+            <span style={{ fontSize: 9, color: C.textMid, fontFamily: "'DM Mono', monospace", width: 18, textAlign: "right" }}>{to10(ax.v)}</span>
+          </div>
+        ))}
+      </div>
+      {critCount > 0 && (
+        <div style={{ marginTop: 6 }}>
+          <span style={{ fontSize: 9, fontWeight: 600, padding: "1px 6px", borderRadius: 3, background: "#FEF2F2", color: "#991B1B" }}>Critical {critCount}</span>
         </div>
       )}
     </div>
@@ -2599,7 +2597,7 @@ export default function App() {
             lineHeight: 1.4,
           }}>alpha</span>
         </div>
-        {["Dashboard","Glossary","Stakeholders"].map(tab => (
+        {["Dashboard","Stakeholders","Glossary"].map(tab => (
           <div key={tab} onClick={()=>setActiveNavTab(tab)} style={{ padding: "0 16px", height: 48, display: "flex", alignItems: "center", fontSize: 12, fontWeight: 600, color: tab === activeNavTab ? C.human : C.textWeak, borderBottom: tab === activeNavTab ? `2px solid ${C.human}` : "2px solid transparent", cursor: "pointer" }}>{tab}</div>
         ))}
         <div style={{ flex: 1 }} />
@@ -2674,41 +2672,8 @@ export default function App() {
             <button onClick={() => setAlertOpen(true)} style={{ position: "sticky", top: 8, float: "right", marginRight: 8, zIndex: 10, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 6, padding: "4px 10px", fontSize: 9, color: C.textWeak, cursor: "pointer", fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em" }}>ALERTS ▶</button>
           )}
 
-          {/* Header Card */}
-          <div style={{ margin: "14px 14px 0", background: C.bgCard, borderRadius: 10, border: `1px solid ${C.border}`, padding: "16px 20px", boxShadow: "0 1px 5px rgba(0,0,0,0.04)" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 14 }}>
-              <ScoreRing value={p.score} displayValue={to10(p.score)} size={72} color={st.color} textColor={C.text} sublabel="HEALTH" />
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                  <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>{p.code}</span>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: st.color, background: st.bg, border: `1px solid ${st.border}`, padding: "1px 8px", borderRadius: 3 }}>{st.label}</span>
-                </div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 10 }}>{p.name}</div>
-                <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-                  {[{ label: "PM", value: p.owner },{ label: "期日", value: p.due },{ label: "残日数", value: `${p.daysLeft}日` },{ label: "チーム", value: `${p.team}名` }].map(item => (
-                    <div key={item.label}>
-                      <div style={{ fontSize: 9, color: C.textWeak }}>{item.label}</div>
-                      <div style={{ fontSize: 11, color: C.textMid, fontFamily: "'DM Mono', monospace", marginTop: 1 }}>{item.value}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <Sparkline data={p.trend} color={C.textWeak} w={96} h={38} />
-                <div style={{ fontSize: 8, color: C.textWeak, marginTop: 3, fontFamily: "'DM Mono', monospace" }}>8-PERIOD TREND</div>
-              </div>
-            </div>
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                <span style={{ fontSize: 9, color: C.textWeak }}>進捗</span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: C.text, fontFamily: "'DM Mono', monospace" }}>{p.progress}%</span>
-              </div>
-              <Bar value={p.progress} color={C.text} height={5} />
-            </div>
-          </div>
-
           {/* Static / Dynamic */}
-          <div style={{ margin: "12px 14px 0", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div style={{ margin: "14px 14px 0", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <AxisBlock axis="S" scores={p.static} items={[{ key: "schedule", label: "スケジュール" },{ key: "tasks", label: "タスク管理" },{ key: "risk", label: "リスク・課題" }]} />
             <AxisBlock axis="D" scores={p.dynamic} items={[{ key: "stakeholder", label: "ステークホルダー" },{ key: "team", label: "チーム健全性" },{ key: "decision", label: "意思決定" }]} />
           </div>
@@ -2801,13 +2766,17 @@ export default function App() {
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {p.alerts.map((a, i) => {
-                    const bc = a.level === "critical" ? C.critical : a.level === "warn" ? C.warning : C.mid;
-                    const tc = a.level === "critical" ? C.critical : a.level === "warn" ? C.warning : C.textMid;
+                    const dotColor = a.level === "critical" ? C.critical : a.level === "warn" ? C.warning : C.human;
+                    const badgeBg  = a.level === "critical" ? "#FEF2F2" : a.level === "warn" ? "#FFFBEB" : "#F0FDF4";
+                    const badgeTc  = a.level === "critical" ? "#991B1B" : a.level === "warn" ? "#92400E" : "#166534";
+                    const badgeLabel = a.level === "critical" ? "Critical" : a.level === "warn" ? "Warning" : "Info";
                     const ax = AXIS[a.axis];
                     return (
-                      <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "7px 10px", background: C.bg, borderLeft: `3px solid ${bc}`, borderRadius: "0 6px 6px 0" }}>
+                      <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "7px 10px", background: C.bg, borderRadius: 6 }}>
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: dotColor, flexShrink: 0, marginTop: 4 }} />
                         <span style={{ fontSize: 8, fontWeight: 700, color: ax.color, background: ax.bg, padding: "1px 5px", borderRadius: 2, flexShrink: 0, fontFamily: "'DM Mono', monospace", marginTop: 1 }}>{ax.label}</span>
-                        <span style={{ fontSize: 11, color: tc, lineHeight: 1.5 }}>{a.text}</span>
+                        <span style={{ fontSize: 11, color: C.textMid, lineHeight: 1.5, flex: 1 }}>{a.text}</span>
+                        <span style={{ fontSize: 9, fontWeight: 600, padding: "1px 6px", borderRadius: 3, background: badgeBg, color: badgeTc, flexShrink: 0, alignSelf: "flex-start", marginTop: 1 }}>{badgeLabel}</span>
                       </div>
                     );
                   })}
@@ -2816,17 +2785,16 @@ export default function App() {
               <div style={{ padding: "12px 14px", flex: 1, overflowY: "auto" }}>
                 <div style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", marginBottom: 10 }}>RECENT EVENTS</div>
                 {p.events.map((e, i) => {
-                  const dc = e.type === "critical" ? C.critical : e.type === "warn" ? C.warning : C.mid;
-                  const tc = e.type === "critical" ? C.critical : e.type === "warn" ? C.warning : C.textMid;
+                  const dotColor = e.type === "critical" ? C.critical : e.type === "warn" ? C.warning : C.human;
                   return (
                     <div key={i} style={{ display: "flex", gap: 10, paddingBottom: 10 }}>
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 10 }}>
-                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: dc, flexShrink: 0, marginTop: 4 }} />
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: dotColor, flexShrink: 0, marginTop: 4 }} />
                         {i < p.events.length - 1 && <div style={{ width: 1, flex: 1, background: C.border, minHeight: 10 }} />}
                       </div>
                       <div>
                         <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>{e.date}　</span>
-                        <span style={{ fontSize: 11, color: tc, lineHeight: 1.5 }}>{e.text}</span>
+                        <span style={{ fontSize: 11, color: C.textMid, lineHeight: 1.5 }}>{e.text}</span>
                       </div>
                     </div>
                   );
