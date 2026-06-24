@@ -426,16 +426,16 @@ const ONT_NODES = [
   { id:"evm",       label:"EVM（アーンド・バリュー・マネジメント）", abbr:"EV", cat:"signal",  orbit:4 },
   { id:"variance",  label:"差異分析",                              abbr:"差異", cat:"signal",  orbit:4 },
   { id:"workload",  label:"作業工数",                              abbr:"工数", cat:"signal",  orbit:4 },
-  // orbit 4 — Deliverable サテライト
-  { id:"deliverable",label:"成果物",                              abbr:"成果", cat:"deliver", orbit:4 },
-  { id:"spec",      label:"仕様書",                                abbr:"仕様", cat:"deliver", orbit:4 },
-  { id:"gantt",     label:"ガントチャート",                        abbr:"ガン", cat:"deliver", orbit:4 },
-  { id:"taskboard", label:"タスク・ボード",                        abbr:"タス", cat:"deliver", orbit:4 },
-  { id:"req_doc",   label:"要件定義書",                            abbr:"要書", cat:"deliver", orbit:4 },
-  { id:"pj_plan",   label:"プロジェクト計画書",                    abbr:"計画", cat:"deliver", orbit:4 },
-  { id:"backlog",   label:"バックログ",                            abbr:"BL", cat:"deliver", orbit:4 },
-  { id:"benchmark", label:"ベンチマーク",                          abbr:"BM", cat:"deliver", orbit:4 },
-  { id:"leadtime",  label:"リードタイム",                          abbr:"LT", cat:"deliver", orbit:4 },
+  // orbit 5 — Deliverable サテライト（最外縁）
+  { id:"deliverable",label:"成果物",                              abbr:"成果", cat:"deliver", orbit:5 },
+  { id:"spec",      label:"仕様書",                                abbr:"仕様", cat:"deliver", orbit:5 },
+  { id:"gantt",     label:"ガントチャート",                        abbr:"ガン", cat:"deliver", orbit:5 },
+  { id:"taskboard", label:"タスク・ボード",                        abbr:"タス", cat:"deliver", orbit:5 },
+  { id:"req_doc",   label:"要件定義書",                            abbr:"要書", cat:"deliver", orbit:5 },
+  { id:"pj_plan",   label:"プロジェクト計画書",                    abbr:"計画", cat:"deliver", orbit:5 },
+  { id:"backlog",   label:"バックログ",                            abbr:"BL", cat:"deliver", orbit:5 },
+  { id:"benchmark", label:"ベンチマーク",                          abbr:"BM", cat:"deliver", orbit:5 },
+  { id:"leadtime",  label:"リードタイム",                          abbr:"LT", cat:"deliver", orbit:5 },
 ];
 const ONT_EDGES = [
   ["pm_core","baseline"],["pm_core","req_def"],["pm_core","plan4plan"],
@@ -469,20 +469,29 @@ function OntologyGraph() {
   const [tooltip, setTooltip] = useState(null);
   const posRef = useRef({});
 
-  function buildLayout(W) {
-    const cx=W/2, cy=W/2;
-    const byOrbit={};
-    for(let i=0;i<=5;i++) byOrbit[i]=[];
-    ONT_NODES.forEach(n=>byOrbit[n.orbit].push(n));
+  function buildLayout(W, H) {
+    const cx=W/2, cy=(H||W)/2;
+    const base=Math.min(W, H||W)*0.46;
+    const rScale=[0, 0.18, 0.34, 0.52, 0.70, 0.88];
+    const CAT_ANGLE={ concept:-Math.PI*0.5, org:Math.PI*0.1, proc:Math.PI*0.6, signal:Math.PI*1.1, people:-Math.PI*0.9, deliver:Math.PI*1.6 };
+    const CAT_SPAN={ concept:1.8, org:1.0, proc:1.4, signal:1.2, people:0.9, deliver:1.1 };
+    const byOrbitCat={};
+    ONT_NODES.forEach(n=>{ const k=`${n.orbit}_${n.cat}`; if(!byOrbitCat[k]) byOrbitCat[k]=[]; byOrbitCat[k].push(n); });
+    let seed=42;
+    function rnd(){ seed=(seed*1664525+1013904223)&0xffffffff; return (seed>>>0)/4294967295; }
     const pos={};
     ONT_NODES.forEach(n=>{
       if(n.orbit===0){ pos[n.id]={x:cx,y:cy}; return; }
-      const r=ONT_ORBIT_R[n.orbit]*W;
-      const group=byOrbit[n.orbit];
+      const r=(rScale[n.orbit]||0.88)*base;
+      const group=byOrbitCat[`${n.orbit}_${n.cat}`]||[n];
       const idx=group.findIndex(g=>g.id===n.id);
-      const offset=[0,0.5,1.0,1.6,0.3,0.8][n.orbit]||0;
-      const angle=(idx/group.length)*Math.PI*2+offset;
-      pos[n.id]={x:cx+Math.cos(angle)*r, y:cy+Math.sin(angle)*r};
+      const total=group.length;
+      const centerAng=CAT_ANGLE[n.cat]||0;
+      const span=CAT_SPAN[n.cat]||1.2;
+      const baseAng=total===1?centerAng:centerAng-span/2+(idx/(total-1))*span;
+      const jitter=(rnd()-0.5)*0.22*(n.orbit>=4?1.5:1.0);
+      const rOff=(rnd()-0.5)*base*0.05;
+      pos[n.id]={x:cx+Math.cos(baseAng+jitter)*(r+rOff), y:cy+Math.sin(baseAng+jitter)*(r+rOff)};
     });
     return pos;
   }
@@ -493,15 +502,17 @@ function OntologyGraph() {
     return {x:ax+dx/d*ra, y:ay+dy/d*ra};
   }
 
-  function draw(W, pos, filter, hov) {
+  function draw(W, H, pos, filter, hov) {
     const canvas=canvasRef.current;
     if(!canvas) return;
     const ctx=canvas.getContext("2d");
-    ctx.clearRect(0,0,W,W);
-    const cx=W/2, cy=W/2;
-    const orbitCol="rgba(0,0,0,0.16)";
+    ctx.clearRect(0,0,W,H);
+    const cx=W/2, cy=H/2;
+    const base=Math.min(W,H)*0.46;
+    const rScale=[0,0.18,0.34,0.52,0.70,0.88];
+    const orbitCol="rgba(0,0,0,0.10)";
     for(let i=1;i<=5;i++){
-      const r=ONT_ORBIT_R[i]*W;
+      const r=rScale[i]*base;
       ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
       ctx.strokeStyle=orbitCol; ctx.lineWidth=0.8;
       ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
@@ -547,27 +558,29 @@ function OntologyGraph() {
   useEffect(()=>{
     const canvas=canvasRef.current; if(!canvas) return;
     const dpr=window.devicePixelRatio||1;
-    const W=canvas.parentElement.clientWidth||300;
+    const W=canvas.parentElement.clientWidth||500;
+    const H=Math.round(W*0.88);
     canvas.style.width=W+"px";
-    canvas.style.height=W+"px";
+    canvas.style.height=H+"px";
     canvas.width=Math.round(W*dpr);
-    canvas.height=Math.round(W*dpr);
+    canvas.height=Math.round(H*dpr);
     const ctx=canvas.getContext("2d");
     ctx.scale(dpr,dpr);
-    const pos=buildLayout(W);
-    posRef.current={pos,W,dpr};
-    draw(W,pos,activeFilter,hovered);
+    const pos=buildLayout(W,H);
+    posRef.current={pos,W,H,dpr};
+    draw(W,H,pos,activeFilter,hovered);
     const ro=new ResizeObserver(()=>{
-      const nW=canvas.parentElement.clientWidth||300;
+      const nW=canvas.parentElement.clientWidth||500;
+      const nH=Math.round(nW*0.88);
       canvas.style.width=nW+"px";
-      canvas.style.height=nW+"px";
+      canvas.style.height=nH+"px";
       canvas.width=Math.round(nW*dpr);
-      canvas.height=Math.round(nW*dpr);
+      canvas.height=Math.round(nH*dpr);
       const c2=canvas.getContext("2d");
       c2.scale(dpr,dpr);
-      const nPos=buildLayout(nW);
-      posRef.current={pos:nPos,W:nW,dpr};
-      draw(nW,nPos,activeFilter,hovered);
+      const nPos=buildLayout(nW,nH);
+      posRef.current={pos:nPos,W:nW,H:nH,dpr};
+      draw(nW,nH,nPos,activeFilter,hovered);
     });
     ro.observe(canvas.parentElement);
     return ()=>ro.disconnect();
@@ -576,10 +589,10 @@ function OntologyGraph() {
   function handleMouseMove(e){
     const canvas=canvasRef.current; if(!canvas) return;
     const rect=canvas.getBoundingClientRect();
-    const {W}=posRef.current||{W:rect.width};
-    const sc=W/rect.width;
-    const mx=(e.clientX-rect.left)*sc;
-    const my=(e.clientY-rect.top)*sc;
+    const {W,H}=posRef.current||{W:rect.width,H:rect.height};
+    const scX=W/rect.width, scY=(H||W)/rect.height;
+    const mx=(e.clientX-rect.left)*scX;
+    const my=(e.clientY-rect.top)*scY;
     let found=null;
     ONT_NODES.forEach(n=>{
       if(activeFilter!=="all"&&n.cat!==activeFilter&&n.orbit!==0) return;
