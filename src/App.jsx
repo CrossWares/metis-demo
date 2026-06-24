@@ -472,7 +472,7 @@ function OntologyGraph() {
   function buildLayout(W, H) {
     const cx=W/2, cy=(H||W)/2;
     const base=W*0.47;
-    const rScale=[0, 0.18, 0.34, 0.52, 0.70, 0.88];
+    const rScale=[0, 0.18, 0.34, 0.52, 0.70, 0.96];
     const CAT_ANGLE={ concept:-Math.PI*0.5, org:Math.PI*0.1, proc:Math.PI*0.6, signal:Math.PI*1.1, people:-Math.PI*0.9, deliver:Math.PI*1.6 };
     const CAT_SPAN={ concept:1.8, org:1.0, proc:1.4, signal:1.2, people:0.9, deliver:1.1 };
     const byOrbitCat={};
@@ -480,6 +480,7 @@ function OntologyGraph() {
     let seed=42;
     function rnd(){ seed=(seed*1664525+1013904223)&0xffffffff; return (seed>>>0)/4294967295; }
     const pos={};
+    // 初期配置（jitterなし、角度均等）
     ONT_NODES.forEach(n=>{
       if(n.orbit===0){ pos[n.id]={x:cx,y:cy}; return; }
       const r=(rScale[n.orbit]||0.88)*base;
@@ -489,10 +490,28 @@ function OntologyGraph() {
       const centerAng=CAT_ANGLE[n.cat]||0;
       const span=CAT_SPAN[n.cat]||1.2;
       const baseAng=total===1?centerAng:centerAng-span/2+(idx/(total-1))*span;
-      const jitter=(rnd()-0.5)*0.22*(n.orbit>=4?1.5:1.0);
-      const rOff=(rnd()-0.5)*base*0.05;
-      pos[n.id]={x:cx+Math.cos(baseAng+jitter)*(r+rOff), y:cy+Math.sin(baseAng+jitter)*(r+rOff)};
+      // jitterを小さく抑える（0.08rad以内）
+      const jitter=(rnd()-0.5)*0.08;
+      pos[n.id]={x:cx+Math.cos(baseAng+jitter)*r, y:cy+Math.sin(baseAng+jitter)*r};
     });
+    // 反発処理：ノード同士が近すぎる場合に押し離す（20回反復）
+    const minDist=26; // ノード直径+余白
+    const ids=ONT_NODES.filter(n=>n.orbit>0).map(n=>n.id);
+    for(let iter=0;iter<20;iter++){
+      for(let i=0;i<ids.length;i++){
+        for(let j=i+1;j<ids.length;j++){
+          const a=pos[ids[i]], b=pos[ids[j]];
+          const dx=b.x-a.x, dy=b.y-a.y;
+          const d=Math.hypot(dx,dy)||0.01;
+          if(d<minDist){
+            const push=(minDist-d)/2;
+            const nx=dx/d, ny=dy/d;
+            pos[ids[i]]={x:a.x-nx*push*0.5, y:a.y-ny*push*0.5};
+            pos[ids[j]]={x:b.x+nx*push*0.5, y:b.y+ny*push*0.5};
+          }
+        }
+      }
+    }
     return pos;
   }
 
@@ -509,7 +528,7 @@ function OntologyGraph() {
     ctx.clearRect(0,0,W,H);
     const cx=W/2, cy=H/2;
     const base=W*0.47;
-    const rScale=[0,0.18,0.34,0.52,0.70,0.88];
+    const rScale=[0,0.18,0.34,0.52,0.70,0.96];
     const orbitCol="rgba(0,0,0,0.10)";
     for(let i=1;i<=5;i++){
       const r=rScale[i]*base;
@@ -1832,6 +1851,26 @@ function GravityView({ project }) {
   const chartRef  = useRef(null);
   const { nodes, edges, drift } = project.gravity;
   const gravNodes = project.gravity.nodes;
+
+  // データ未入力の場合は空状態を表示
+  if (!gravNodes || gravNodes.length === 0) {
+    return (
+      <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.bgCard, borderRadius: "10px 10px 0 0" }}>
+          <div style={{ width: 7, height: 7, borderRadius: "50%", background: C.human, marginRight: 8 }} />
+          <span style={{ fontSize: 11, fontWeight: 700, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>GRAVITY VIEW</span>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "60px 20px", gap: 12 }}>
+          <div style={{ width: 48, height: 48, borderRadius: "50%", border: `2px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontSize: 20, color: C.textWeak }}>⬡</span>
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 500, color: C.textMid }}>データ未入力</div>
+          <div style={{ fontSize: 11, color: C.textWeak, textAlign: "center", lineHeight: 1.6 }}>WBS・スケジュール・議事録が入力されると<br />Gravityグラフが生成されます</div>
+        </div>
+      </div>
+    );
+  }
+
   const maxC = Math.max(...gravNodes.map(n => n.coupling));
 
   const nodeColor = (n) => {
@@ -2063,7 +2102,7 @@ function ProjectListRow({ project, selected, onClick }) {
       <div style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", marginBottom: 2 }}>{project.code}</div>
       <div style={{ fontSize: 12, fontWeight: 600, color: C.text, marginBottom: 6 }}>{project.name}</div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-        <span style={{ fontSize: 10, color: C.textMid }}>PM　{project.owner.split(" ")[0]}</span>
+        <span style={{ fontSize: 10, color: C.textMid }}>PM　{project.stakeholderNames?.n2?.name || project.owner?.split(" ")[0] || ""}</span>
         <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 7px", borderRadius: 4, background: scoreBadge.bg, color: scoreBadge.color, fontFamily: "'DM Mono', monospace" }}>{to10(project.score)} / 10</span>
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
@@ -2157,27 +2196,23 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
     const newProject = {
       id: Date.now(), code: nextCode, name: form.name, owner: form.owner,
       due: form.due, daysLeft, progress: 0, team: teamCount || 5,
-      score: 70, staticScore: 70, dynamicScore: 70, status: "healthy",
-      trend: [70,70,70,70,70,70,70,70],
-      static:  { schedule: 70, tasks: 70, risk: 70 },
-      dynamic: { stakeholder: stakeList.length > 0 ? 75 : 60, team: 70, decision: 70 },
-      alerts: [{ level: "info", axis: "S", text: "プロジェクト開始 — 初期定義フェーズ" }],
+      score: 0, staticScore: 0, dynamicScore: 0, status: "healthy",
+      trend: [0,0,0,0,0,0,0,0],
+      static:  { schedule: 0, tasks: 0, risk: 0 },
+      dynamic: { stakeholder: 0, team: 0, decision: 0 },
+      alerts: [{ level: "info", axis: "S", text: "プロジェクト登録完了 — データ入力待ち" }],
       events: [{ date: new Date().toLocaleDateString("ja-JP", { month: "2-digit", day: "2-digit" }), type: "normal", text: "プロジェクト登録完了" }],
-      glossary: [], stakeholders: [
+      glossary: [],
+      stakeholderNames: { "n1":{ name:"", isVendor:false }, "n2":{ name:form.owner||"", isVendor:false }, "n3":{ name:"", isVendor:false } },
+      stakeholders: [
         { name: form.owner, role: "PM", status: "active" },
         ...(form.approver ? [{ name: form.approver, role: "承認者", status: "active" }] : []),
         ...stakeList.slice(0, 3).map(s => ({ name: s, role: "ステークホルダー", status: "active" })),
       ],
       gravity: {
-        nodes: [
-          { id: "承認",    coupling: 3.0, depStr: 2.8, changeProb: 40, commFreq: 55, x: 150, y: 70,  r: 18, type: "D" },
-          { id: "PM/PMO", coupling: 2.8, depStr: 2.5, changeProb: 35, commFreq: 65, x: 70,  y: 140, r: 16, type: "D" },
-          { id: "スケジュール", coupling: 2.5, depStr: 2.2, changeProb: 40, commFreq: 45, x: 230, y: 140, r: 14, type: "S" },
-          { id: "要件",   coupling: 2.2, depStr: 2.0, changeProb: 50, commFreq: 35, x: 150, y: 165, r: 13, type: "S" },
-          { id: "WBS",    coupling: 1.8, depStr: 1.5, changeProb: 30, commFreq: 30, x: 95,  y: 210, r: 11, type: "S" },
-        ],
-        edges: [{ s:0,t:1,w:2.8 },{ s:0,t:2,w:2.2 },{ s:1,t:3,w:2.0 },{ s:2,t:4,w:1.8 },{ s:3,t:4,w:1.5 }],
-        drift: { labels:["W1","W2","W3","W4","W5","W6","W7","W8"], plan:[100,87,74,61,48,35,22,9], actual:[100,87,74,61,48,35,22,9] },
+        nodes: [],
+        edges: [],
+        drift: { labels:["W1","W2","W3","W4","W5","W6","W7","W8"], plan:[100,87,74,61,48,35,22,9], actual:[100,100,100,100,100,100,100,100] },
       },
     };
     setCreating(false);
