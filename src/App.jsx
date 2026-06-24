@@ -471,7 +471,7 @@ function OntologyGraph() {
 
   function buildLayout(W, H) {
     const cx=W/2, cy=(H||W)/2;
-    const base=Math.min(W, H||W)*0.46;
+    const base=Math.min(W, H||W)*0.44;
     const rScale=[0, 0.18, 0.34, 0.52, 0.70, 0.88];
     const CAT_ANGLE={ concept:-Math.PI*0.5, org:Math.PI*0.1, proc:Math.PI*0.6, signal:Math.PI*1.1, people:-Math.PI*0.9, deliver:Math.PI*1.6 };
     const CAT_SPAN={ concept:1.8, org:1.0, proc:1.4, signal:1.2, people:0.9, deliver:1.1 };
@@ -508,7 +508,7 @@ function OntologyGraph() {
     const ctx=canvas.getContext("2d");
     ctx.clearRect(0,0,W,H);
     const cx=W/2, cy=H/2;
-    const base=Math.min(W,H)*0.46;
+    const base=Math.min(W,H)*0.44;
     const rScale=[0,0.18,0.34,0.52,0.70,0.88];
     const orbitCol="rgba(0,0,0,0.10)";
     for(let i=1;i<=5;i++){
@@ -559,7 +559,7 @@ function OntologyGraph() {
     const canvas=canvasRef.current; if(!canvas) return;
     const dpr=window.devicePixelRatio||1;
     const W=canvas.parentElement.clientWidth||500;
-    const H=Math.round(W*0.88);
+    const H=Math.round(W*1.05);
     canvas.style.width=W+"px";
     canvas.style.height=H+"px";
     canvas.width=Math.round(W*dpr);
@@ -571,7 +571,7 @@ function OntologyGraph() {
     draw(W,H,pos,activeFilter,hovered);
     const ro=new ResizeObserver(()=>{
       const nW=canvas.parentElement.clientWidth||500;
-      const nH=Math.round(nW*0.88);
+      const nH=Math.round(nW*1.05);
       canvas.style.width=nW+"px";
       canvas.style.height=nH+"px";
       canvas.width=Math.round(nW*dpr);
