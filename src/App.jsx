@@ -306,7 +306,7 @@ function AxisBlock({ axis, scores, items }) {
               {axis === "S" ? "STATIC AXIS" : "DYNAMIC AXIS"}
             </span>
           </div>
-          <div style={{ fontSize: 11, color: C.textMid }}>{axis === "S" ? "構造・計画の世界" : "人・関係性の世界"}</div>
+          <div style={{ fontSize: 11, color: C.textMid }}>{axis === "S" ? "計画管理領域" : "組織管理領域"}</div>
         </div>
         <ScoreRing value={avg} displayValue={to10(avg)} size={48} color={ax.color} textColor={C.text} sublabel="avg" />
       </div>
@@ -330,62 +330,137 @@ function AxisBlock({ axis, scores, items }) {
 
 // ── オントロジーグラフ（同心円軌道） ──
 const ONT_CATS = [
-  { id:"human",  label:"人・役割",       color:"#534AB7" },
-  { id:"org",    label:"組織・文化",     color:"#4A90C4" },
-  { id:"proc",   label:"プロセス",       color:"#5DB99A" },
-  { id:"signal", label:"状態・シグナル", color:"#8B3A5A" },
-  { id:"concept",label:"概念・定義",     color:"#C09040" },
+  { id:"concept",  label:"Concept",      color:"#534AB7" },
+  { id:"org",      label:"Organization", color:"#185FA5" },
+  { id:"proc",     label:"Process",      color:"#BA7517" },
+  { id:"signal",   label:"Signal",       color:"#993C1D" },
+  { id:"people",   label:"People",       color:"#1D9E75" },
+  { id:"deliver",  label:"Deliverable",  color:"#3B6D11" },
 ];
 const ONT_NODES = [
-  { id:"core",    label:"プロジェクト",    cat:"concept", orbit:0 },
-  { id:"pm",      label:"PM",              cat:"human",   orbit:1 },
-  { id:"risk",    label:"リスク管理",      cat:"concept", orbit:1 },
-  { id:"phase",   label:"フェーズ",        cat:"concept", orbit:1 },
-  { id:"pmo",     label:"PMO",             cat:"human",   orbit:2 },
-  { id:"done",    label:"完了定義",        cat:"concept", orbit:2 },
-  { id:"issue",   label:"課題対応",        cat:"signal",  orbit:2 },
-  { id:"meaning", label:"意味共有",        cat:"concept", orbit:2 },
-  { id:"hub",     label:"情報ハブ",        cat:"human",   orbit:3 },
-  { id:"sponsor", label:"ステークホルダー",cat:"human",   orbit:3 },
-  { id:"tacit",   label:"暗黙知",          cat:"concept", orbit:3 },
-  { id:"signal",  label:"シグナル",        cat:"signal",  orbit:3 },
-  { id:"approval",label:"承認フロー",      cat:"proc",    orbit:3 },
-  { id:"keyman",  label:"キーマン",        cat:"human",   orbit:4 },
-  { id:"vendor",  label:"ベンダー",        cat:"org",     orbit:4 },
-  { id:"culture", label:"組織文化",        cat:"org",     orbit:4 },
-  { id:"wbs",     label:"WBS",             cat:"proc",    orbit:4 },
-  { id:"change",  label:"変更管理",        cat:"proc",    orbit:4 },
-  { id:"formal",  label:"形式知",          cat:"concept", orbit:4 },
-  { id:"extern",  label:"外部知見",        cat:"human",   orbit:5 },
-  { id:"client",  label:"クライアント",    cat:"org",     orbit:5 },
-  { id:"vendorg", label:"ベンダ体制",      cat:"org",     orbit:5 },
-  { id:"escal",   label:"エスカレーション",cat:"proc",    orbit:5 },
-  { id:"report",  label:"報告",            cat:"proc",    orbit:5 },
-  { id:"meeting", label:"会議",            cat:"proc",    orbit:5 },
-  { id:"repline", label:"レポートライン",  cat:"proc",    orbit:5 },
-  { id:"scope",   label:"スコープクリープ",cat:"signal",  orbit:5 },
-  { id:"exit",    label:"工程未完了",      cat:"signal",  orbit:5 },
+  // orbit 0 — 中心核
+  { id:"pm_core", label:"プロジェクトマネジメント", cat:"concept", orbit:0, core:true },
+  // orbit 1 — Concept コアノード (8)
+  { id:"baseline",  label:"ベースライン",          cat:"concept", orbit:1, core:true },
+  { id:"req_def",   label:"要件定義",              cat:"concept", orbit:1, core:true },
+  { id:"plan4plan", label:"プラン・フォー・プラン", cat:"concept", orbit:1, core:true },
+  { id:"pj_design", label:"プロジェクト設計",      cat:"concept", orbit:1, core:true },
+  { id:"knw_mgmt",  label:"ナレッジ・マネジメント", cat:"concept", orbit:1, core:true },
+  { id:"risk_mgmt", label:"リスク・マネジメント",   cat:"concept", orbit:1, core:true },
+  { id:"chg_mgmt",  label:"変更管理",              cat:"concept", orbit:1, core:true },
+  { id:"gov",       label:"ガバナンス",             cat:"concept", orbit:1, core:true },
+  // orbit 1 — Org コアノード (4)
+  { id:"raci",      label:"RACIチャート",          cat:"org",     orbit:1, core:true },
+  { id:"dec_maker", label:"意思決定者",            cat:"org",     orbit:1, core:true },
+  { id:"dec_path",  label:"意思決定経路",          cat:"org",     orbit:1, core:true },
+  { id:"approval",  label:"承認権限",              cat:"org",     orbit:1, core:true },
+  // orbit 1 — People コアノード (2)
+  { id:"pm_role",   label:"プロジェクト・マネジャー", cat:"people", orbit:1, core:true },
+  { id:"keyman",    label:"キーマン",              cat:"people",  orbit:1, core:true },
+  // orbit 2 — Process コアノード (7)
+  { id:"wbs",       label:"WBS",                  cat:"proc",    orbit:2, core:true },
+  { id:"crit_path", label:"クリティカル・パス",    cat:"proc",    orbit:2, core:true },
+  { id:"phase_gate",label:"フェーズ・ゲート",      cat:"proc",    orbit:2, core:true },
+  { id:"accept",    label:"受入基準",              cat:"proc",    orbit:2, core:true },
+  { id:"prereq",    label:"前提条件",              cat:"proc",    orbit:2, core:true },
+  { id:"constraint",label:"制約条件",              cat:"proc",    orbit:2, core:true },
+  // orbit 2 — Signal コアノード (4)
+  { id:"scope_cr",  label:"スコープ・クリープ",    cat:"signal",  orbit:2, core:true },
+  { id:"req_chg",   label:"要件変更",              cat:"signal",  orbit:2, core:true },
+  { id:"conflict",  label:"コンフリクト",          cat:"signal",  orbit:2, core:true },
+  { id:"escal",     label:"エスカレーション",      cat:"signal",  orbit:2, core:true },
+  // orbit 2 — Concept コア続き
+  { id:"tacit",     label:"暗黙知",               cat:"concept", orbit:2, core:true },
+  // orbit 2 — Deliverable コアノード (3)
+  { id:"charter",   label:"プロジェクト憲章",      cat:"deliver", orbit:2, core:true },
+  { id:"roadmap",   label:"ロードマップ",          cat:"deliver", orbit:2, core:true },
+  { id:"milestone", label:"マイルストーン",        cat:"deliver", orbit:2, core:true },
+  // orbit 3 — Concept サテライト
+  { id:"formal",    label:"形式知",               cat:"concept", orbit:3 },
+  { id:"chng_mgmt2",label:"チェンジマネジメント",  cat:"concept", orbit:3 },
+  { id:"tailoring", label:"テーラリング",          cat:"concept", orbit:3 },
+  { id:"agile",     label:"アジャイル",            cat:"concept", orbit:3 },
+  { id:"waterfall", label:"ウォーターフォール",    cat:"concept", orbit:3 },
+  { id:"prog_mgmt", label:"プログラムマネジメント", cat:"concept", orbit:3 },
+  { id:"sys_anal",  label:"システム分析",          cat:"concept", orbit:3 },
+  { id:"six_sigma", label:"シックスシグマ",        cat:"concept", orbit:3 },
+  { id:"pj_scope",  label:"プロジェクト・スコープ", cat:"concept", orbit:3 },
+  // orbit 3 — Org サテライト
+  { id:"steer_co",  label:"ステアリングコミッティ", cat:"org",    orbit:3 },
+  { id:"coe",       label:"センター・オブ・エクセレンス", cat:"org", orbit:3 },
+  { id:"team_char", label:"チーム憲章",            cat:"org",     orbit:3 },
+  { id:"res_mgmt",  label:"資源管理",              cat:"org",     orbit:3 },
+  { id:"vendor",    label:"ベンダー",              cat:"org",     orbit:3 },
+  { id:"sh_mgmt",   label:"ステークホルダー管理",  cat:"org",     orbit:3 },
+  // orbit 3 — People サテライト
+  { id:"po",        label:"プロジェクト・オーナー", cat:"people", orbit:3 },
+  { id:"coaching",  label:"コーチング",            cat:"people",  orbit:3 },
+  { id:"mentoring", label:"メンタリング",          cat:"people",  orbit:3 },
+  // orbit 3 — Process サテライト
+  { id:"sch_mgmt",  label:"スケジュール管理",      cat:"proc",    orbit:3 },
+  { id:"sco_mgmt",  label:"スコープ管理",          cat:"proc",    orbit:3 },
+  { id:"risk_plan", label:"リスク管理",            cat:"proc",    orbit:3 },
+  { id:"comm_mgmt", label:"コミュニケーション管理", cat:"proc",   orbit:3 },
+  { id:"review",    label:"レビュー",              cat:"proc",    orbit:3 },
+  { id:"inspect",   label:"検収",                  cat:"proc",    orbit:3 },
+  { id:"walkthru",  label:"ウォークスルー",        cat:"proc",    orbit:3 },
+  { id:"retro",     label:"振り返り会議",          cat:"proc",    orbit:3 },
+  { id:"coord_mtg", label:"調整会議",              cat:"proc",    orbit:3 },
+  { id:"quality",   label:"品質管理",              cat:"proc",    orbit:3 },
+  { id:"scrum",     label:"スクラム",              cat:"proc",    orbit:3 },
+  { id:"sprint",    label:"スプリント",            cat:"proc",    orbit:3 },
+  { id:"iter",      label:"イテレーション",        cat:"proc",    orbit:3 },
+  { id:"timebox",   label:"タイムボックス",        cat:"proc",    orbit:3 },
+  { id:"kanban",    label:"カンバン方式",           cat:"proc",   orbit:3 },
+  { id:"pred",      label:"先行関係",              cat:"proc",    orbit:3 },
+  { id:"exit_crit", label:"イグジット条件",        cat:"proc",    orbit:3 },
+  // orbit 4 — Signal サテライト
+  { id:"trigger",   label:"トリガー条件",          cat:"signal",  orbit:4 },
+  { id:"stretch",   label:"ストレッチング",        cat:"signal",  orbit:4 },
+  { id:"appr_flow", label:"承認フロー",            cat:"signal",  orbit:4 },
+  { id:"info_scat", label:"情報分散",              cat:"signal",  orbit:4 },
+  { id:"conting",   label:"コンティンジェンシー計画", cat:"signal", orbit:4 },
+  { id:"risk_log",  label:"リスク・ログ",          cat:"signal",  orbit:4 },
+  { id:"issue_log", label:"課題ログ",              cat:"signal",  orbit:4 },
+  { id:"progress",  label:"進捗報告",              cat:"signal",  orbit:4 },
+  { id:"evm",       label:"EVM（アーンド・バリュー・マネジメント）", cat:"signal", orbit:4 },
+  { id:"variance",  label:"差異分析",              cat:"signal",  orbit:4 },
+  { id:"workload",  label:"作業工数",              cat:"signal",  orbit:4 },
+  // orbit 4 — Deliverable サテライト
+  { id:"deliverable",label:"成果物",              cat:"deliver",  orbit:4 },
+  { id:"spec",      label:"仕様書",               cat:"deliver",  orbit:4 },
+  { id:"gantt",     label:"ガントチャート",        cat:"deliver",  orbit:4 },
+  { id:"taskboard", label:"タスク・ボード",        cat:"deliver",  orbit:4 },
+  { id:"req_doc",   label:"要件定義書",            cat:"deliver",  orbit:4 },
+  { id:"pj_plan",   label:"プロジェクト計画書",    cat:"deliver",  orbit:4 },
+  { id:"backlog",   label:"バックログ",            cat:"deliver",  orbit:4 },
+  { id:"benchmark", label:"ベンチマーク",          cat:"deliver",  orbit:4 },
+  { id:"leadtime",  label:"リードタイム",          cat:"deliver",  orbit:4 },
 ];
 const ONT_EDGES = [
-  ["core","phase"],["core","done"],["core","risk"],["core","meaning"],
-  ["pm","pmo"],["pm","hub"],["pm","sponsor"],["pm","approval"],
-  ["pmo","approval"],["pmo","report"],
-  ["hub","pm"],["hub","keyman"],
-  ["vendor","vendorg"],["vendor","wbs"],
-  ["extern","pm"],
-  ["client","culture"],["client","vendorg"],
-  ["approval","done"],["approval","escal"],
-  ["wbs","change"],["change","escal"],
-  ["report","meeting"],
-  ["issue","signal"],["issue","repline"],["issue","scope"],["issue","exit"],
-  ["signal","report"],["signal","meeting"],
-  ["tacit","formal"],["tacit","meaning"],["formal","meaning"],
-  ["risk","issue"],["risk","signal"],
-  ["meaning","done"],["meaning","tacit"],
-  ["phase","done"],
+  ["pm_core","baseline"],["pm_core","req_def"],["pm_core","plan4plan"],
+  ["pm_core","gov"],["pm_core","chg_mgmt"],["pm_core","risk_mgmt"],
+  ["pm_core","pm_role"],["pm_core","raci"],
+  ["pm_role","keyman"],["pm_role","po"],["pm_role","dec_maker"],
+  ["dec_maker","dec_path"],["dec_path","approval"],["approval","appr_flow"],
+  ["raci","steer_co"],["raci","sh_mgmt"],
+  ["baseline","wbs"],["baseline","milestone"],["baseline","scope_cr"],
+  ["req_def","req_chg"],["req_def","req_doc"],["req_def","accept"],
+  ["plan4plan","phase_gate"],["plan4plan","prereq"],["plan4plan","constraint"],
+  ["chg_mgmt","req_chg"],["chg_mgmt","scope_cr"],
+  ["gov","steer_co"],["gov","dec_path"],
+  ["risk_mgmt","risk_log"],["risk_mgmt","conting"],["risk_mgmt","trigger"],
+  ["knw_mgmt","tacit"],["tacit","formal"],
+  ["wbs","crit_path"],["crit_path","milestone"],["milestone","roadmap"],
+  ["phase_gate","exit_crit"],["phase_gate","inspect"],
+  ["escal","conflict"],["conflict","coord_mtg"],
+  ["evm","variance"],["evm","progress"],
+  ["charter","pm_role"],["charter","roadmap"],
+  ["keyman","issue_log"],["keyman","info_scat"],
+  ["scrum","sprint"],["sprint","backlog"],["sprint","retro"],
 ];
 const ONT_CAT_COLOR = Object.fromEntries(ONT_CATS.map(c=>[c.id,c.color]));
-const ONT_ORBIT_R = [0, 0.10, 0.19, 0.28, 0.37, 0.46];
+const ONT_ORBIT_R = [0, 0.13, 0.26, 0.40, 0.50];
 
 function OntologyGraph() {
   const canvasRef = useRef(null);
@@ -412,7 +487,7 @@ function OntologyGraph() {
     return pos;
   }
 
-  function nodeR(n){ return n.orbit===0?18:14; }
+  function nodeR(n){ return n.orbit===0?20:(n.core?13:10); }
   function edgePt(ax,ay,ra,bx,by){
     const dx=bx-ax,dy=by-ay,d=Math.hypot(dx,dy)||1;
     return {x:ax+dx/d*ra, y:ay+dy/d*ra};
@@ -460,19 +535,12 @@ function OntologyGraph() {
       const r=nodeR(n)+(isHov?2:0);
       ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2);
       ctx.fillStyle=color+"22"; ctx.fill();
-      ctx.strokeStyle=color; ctx.lineWidth=n.orbit===0?2.0:(isHov?1.8:0.9); ctx.stroke();
-      ctx.fillStyle="#26215C";
+      ctx.strokeStyle=color; ctx.lineWidth=n.orbit===0?2.5:(n.core?1.6:0.8); ctx.stroke();
+      ctx.fillStyle=color;
       ctx.textAlign="center"; ctx.textBaseline="middle";
-      const label=n.label;
-      if(label.length>5){
-        const mid=Math.ceil(label.length/2);
-        ctx.font=`${n.orbit===0?600:500} ${n.orbit===0?9:8}px Noto Sans JP,sans-serif`;
-        ctx.fillText(label.slice(0,mid),p.x,p.y-4.5);
-        ctx.fillText(label.slice(mid),p.x,p.y+4.5);
-      } else {
-        ctx.font=`${n.orbit===0?600:500} ${n.orbit===0?10:9}px Noto Sans JP,sans-serif`;
-        ctx.fillText(label,p.x,p.y);
-      }
+      const ch=n.label[0]||"?";
+      ctx.font=`${n.orbit===0?700:(n.core?600:400)} ${n.orbit===0?14:(n.core?11:9)}px sans-serif`;
+      ctx.fillText(ch,p.x,p.y);
     });
   }
 
@@ -1121,6 +1189,7 @@ const GLOSSARY_DATA = {
     { term:"スコープ変更", def:"プロジェクトの対象範囲に加えられる変更。正式な合意プロセスを経て行われる点でスコープ・クリープと区別される。", isMetisOriginal:true },
     { term:"プロジェクト設計", def:"プロジェクト全体の進め方や構造をあらかじめ設計すること。体制・スケジュール・意思決定プロセスなどを含む。", isMetisOriginal:true },
     { term:"プロジェクト設計図", def:"プロジェクトの運営全体像を一覧できる形で示した設計情報。", isMetisOriginal:true },
+    { term:"要件定義", def:"プロジェクトで実現すべき機能・性能・制約条件を明確化し、関係者間で合意する活動。上流設計の中核をなし、ここでの曖昧さや合意不足がプロジェクト全体の崩壊トリガーとなる。", isMetisOriginal:true },
     { term:"要件変更", def:"要件定義が完了した後に発生する、要求内容の変更。", isMetisOriginal:true },
   ],
   "スケジュール管理": [
@@ -2138,7 +2207,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, paddingBottom: 8, borderBottom: `2px solid ${C.thing}` }}>
                 <div style={{ width: 3, height: 14, background: C.thing, borderRadius: 2 }} />
-                <span style={{ fontSize: 10, fontWeight: 700, color: C.thing, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>STATIC — 構造・計画</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: C.thing, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>STATIC — 計画管理領域</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {STATIC_FIELDS.map(f => <InputBox key={f.key} field={f} value={form[f.key] || ""} onChange={setField} axis="S" />)}
@@ -2147,7 +2216,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, paddingBottom: 8, borderBottom: `2px solid ${C.human}` }}>
                 <div style={{ width: 3, height: 14, background: C.human, borderRadius: 2 }} />
-                <span style={{ fontSize: 10, fontWeight: 700, color: C.human, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>DYNAMIC — 人・関係性</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: C.human, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>DYNAMIC — 組織管理領域</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {DYNAMIC_FIELDS.map(f => <InputBox key={f.key} field={f} value={form[f.key] || ""} onChange={setField} axis="D" />)}
