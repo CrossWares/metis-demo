@@ -788,26 +788,7 @@ function StakeholderView({ project }) {
     setSelectedId(null);
   }
   function updateNode(id, field, val) {
-    setNodes(ns => {
-      const updated = ns.map(n => n.id===id ? {...n,[field]:val} : n);
-      // name/isVendor変更時はlocalStorageのprojectsにも反映
-      if (field === "name" || field === "isVendor") {
-        try {
-          const saved = localStorage.getItem("metis_projects");
-          if (saved) {
-            const projs = JSON.parse(saved);
-            const idx = projs.findIndex(p => p.id === project.id);
-            if (idx >= 0) {
-              const sn = {...(projs[idx].stakeholderNames || {})};
-              sn[id] = {...(sn[id] || {}), [field]: val};
-              projs[idx] = {...projs[idx], stakeholderNames: sn};
-              localStorage.setItem("metis_projects", JSON.stringify(projs));
-            }
-          }
-        } catch(e) {}
-      }
-      return updated;
-    });
+    setNodes(ns=>ns.map(n=>n.id===id?{...n,[field]:val}:n));
   }
   function moveNode(id, drow, dcol) {
     setNodes(ns=>ns.map(n=>n.id===id?{...n, row:Math.max(0,n.row+drow), col:Math.max(0,n.col+dcol)}:n));
@@ -1557,20 +1538,7 @@ function initGlossary() {
 }
 
 function GlossaryView() {
-  const [glossary, setGlossary] = useState(() => {
-    const base = initGlossary();
-    try {
-      const saved = localStorage.getItem("metis_glossary_custom");
-      if (saved) {
-        const custom = JSON.parse(saved);
-        // カスタム用語をカテゴリに追加
-        Object.entries(custom).forEach(([cat, terms]) => {
-          if (base[cat]) base[cat] = [...base[cat], ...terms];
-        });
-      }
-    } catch(e) {}
-    return base;
-  });
+  const [glossary, setGlossary] = useState(initGlossary);
   const [activeCategory, setActiveCategory] = useState(GLOSSARY_CATS[0]);
   const [searchQuery, setSearchQuery] = useState("");
   const [editingId, setEditingId] = useState(null);
@@ -1599,28 +1567,14 @@ function GlossaryView() {
     setGlossary(g=>({...g,[cat]:g[cat].map(t=>t.id===id?{...t,...editBuf}:t)}));
     setEditingId(null);
   }
-  function saveCustomGlossary(newGlossary) {
-    try {
-      const baseTerms = initGlossary();
-      const custom = {};
-      GLOSSARY_CATS.forEach(cat => {
-        const baseIds = new Set(baseTerms[cat].map(t => t.term));
-        const customTerms = (newGlossary[cat] || []).filter(t => !baseIds.has(t.term));
-        if (customTerms.length > 0) custom[cat] = customTerms;
-      });
-      localStorage.setItem("metis_glossary_custom", JSON.stringify(custom));
-    } catch(e) {}
-  }
   function saveAdd(){
     if(!newBuf.term.trim()) return;
-    const updated = g => ({...g,[activeCategory]:[...g[activeCategory],{...newBuf,id:genId(),isCustom:true}]});
-    setGlossary(g => { const next = updated(g); saveCustomGlossary(next); return next; });
+    setGlossary(g=>({...g,[activeCategory]:[...g[activeCategory],{...newBuf,id:genId()}]}));
     setAddingNew(false); setNewBuf({term:"",def:""});
   }
   function doDelete(){
     if(!deleteConfirm) return;
-    const updated = g => ({...g,[deleteConfirm.cat]:g[deleteConfirm.cat].filter(t=>t.id!==deleteConfirm.id)});
-    setGlossary(g => { const next = updated(g); saveCustomGlossary(next); return next; });
+    setGlossary(g=>({...g,[deleteConfirm.cat]:g[deleteConfirm.cat].filter(t=>t.id!==deleteConfirm.id)}));
     setDeleteConfirm(null);
   }
 
@@ -2136,47 +2090,39 @@ function GravityView({ project }) {
   );
 }
 
-function ProjectListRow({ project, selected, onClick, isFirst, isLast, onMoveUp, onMoveDown }) {
+function ProjectListRow({ project, selected, onClick }) {
+  const st = STATUS[project.status];
   const scoreBadge = { critical: { bg: "#FEF2F2", color: C.critical }, warn: { bg: "#FFFBEB", color: "#92400E" }, healthy: { bg: "#F0FDF4", color: "#166534" } }[project.status] || { bg: C.bg, color: C.textMid };
   const critCount = project.alerts.filter(a => a.level === "critical").length;
-  const [hov, setHov] = React.useState(false);
   return (
-    <div style={{ position: "relative", borderBottom: `1px solid ${C.border}`, background: selected ? C.bg : hov ? C.bg : C.bgCard, transition: "background 0.1s" }}
-      onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+    <div onClick={() => onClick(project)} style={{ padding: "10px 14px", background: selected ? C.bg : C.bgCard, borderLeft: "3px solid transparent", borderBottom: `1px solid ${C.border}`, cursor: "pointer", transition: "background 0.1s" }}
+      onMouseEnter={e => { if (!selected) e.currentTarget.style.background = C.bg; }}
+      onMouseLeave={e => { if (!selected) e.currentTarget.style.background = C.bgCard; }}
     >
-      {hov && (
-        <div style={{ position: "absolute", right: 4, top: "50%", transform: "translateY(-50%)", display: "flex", flexDirection: "column", gap: 1, zIndex: 2 }}>
-          <button onClick={e=>{ e.stopPropagation(); onMoveUp(); }} disabled={isFirst}
-            style={{ fontSize: 9, lineHeight: 1, padding: "2px 5px", border: `1px solid ${C.border}`, borderRadius: 3, background: C.bgCard, color: isFirst ? C.textWeak : C.textMid, cursor: isFirst ? "default" : "pointer" }}>▲</button>
-          <button onClick={e=>{ e.stopPropagation(); onMoveDown(); }} disabled={isLast}
-            style={{ fontSize: 9, lineHeight: 1, padding: "2px 5px", border: `1px solid ${C.border}`, borderRadius: 3, background: C.bgCard, color: isLast ? C.textWeak : C.textMid, cursor: isLast ? "default" : "pointer" }}>▼</button>
+      <div style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", marginBottom: 2 }}>{project.code}</div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: C.text, marginBottom: 6 }}>{project.name}</div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+        <span style={{ fontSize: 10, color: C.textMid }}>PM　{project.stakeholderNames?.n2?.name || project.owner?.split(" ")[0] || ""}</span>
+        <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 7px", borderRadius: 4, background: scoreBadge.bg, color: scoreBadge.color, fontFamily: "'DM Mono', monospace" }}>{to10(project.score)} / 10</span>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+        <span style={{ fontSize: 9, color: C.textWeak }}>〆 {project.due}</span>
+        <span style={{ fontSize: 9, color: C.textMid }}>残 {project.daysLeft}日</span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        {[{ l: "S", v: project.staticScore, c: C.thing }, { l: "D", v: project.dynamicScore, c: C.human }].map(ax => (
+          <div key={ax.l} style={{ display: "flex", gap: 5, alignItems: "center" }}>
+            <span style={{ fontSize: 8, color: C.textWeak, fontFamily: "'DM Mono', monospace", width: 10 }}>{ax.l}</span>
+            <Bar value={ax.v} color={ax.c} height={3} />
+            <span style={{ fontSize: 9, color: C.textMid, fontFamily: "'DM Mono', monospace", width: 18, textAlign: "right" }}>{to10(ax.v)}</span>
+          </div>
+        ))}
+      </div>
+      {critCount > 0 && (
+        <div style={{ marginTop: 6 }}>
+          <span style={{ fontSize: 9, fontWeight: 600, padding: "1px 6px", borderRadius: 3, background: "#FEF2F2", color: C.critical }}>Critical {critCount}</span>
         </div>
       )}
-      <div onClick={() => onClick(project)} style={{ padding: "10px 12px", cursor: "pointer", paddingRight: hov ? 28 : 12 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: C.text, marginBottom: 6 }}>{project.name}</div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-          <span style={{ fontSize: 10, color: C.textMid }}>PM　{project.stakeholderNames?.n2?.name || project.owner?.split(" ")[0] || ""}</span>
-          <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 7px", borderRadius: 4, background: scoreBadge.bg, color: scoreBadge.color, fontFamily: "'DM Mono', monospace" }}>{to10(project.score)} / 10</span>
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-          <span style={{ fontSize: 9, color: C.textWeak }}>〆 {project.due}</span>
-          <span style={{ fontSize: 9, color: C.textMid }}>残 {project.daysLeft}日</span>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          {[{ l: "S", v: project.staticScore, c: C.thing }, { l: "D", v: project.dynamicScore, c: C.human }].map(ax => (
-            <div key={ax.l} style={{ display: "flex", gap: 5, alignItems: "center" }}>
-              <span style={{ fontSize: 8, color: C.textWeak, fontFamily: "'DM Mono', monospace", width: 10 }}>{ax.l}</span>
-              <Bar value={ax.v} color={ax.c} height={3} />
-              <span style={{ fontSize: 9, color: C.textMid, fontFamily: "'DM Mono', monospace", width: 18, textAlign: "right" }}>{to10(ax.v)}</span>
-            </div>
-          ))}
-        </div>
-        {critCount > 0 && (
-          <div style={{ marginTop: 6 }}>
-            <span style={{ fontSize: 9, fontWeight: 600, padding: "1px 6px", borderRadius: 3, background: "#FEF2F2", color: C.critical }}>Critical {critCount}</span>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
@@ -2681,30 +2627,8 @@ Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${
 
 
 export default function App() {
-  // localStorage から復元、なければ INITIAL_PROJECTS を使用
-  const [projects, setProjects] = useState(() => {
-    try {
-      const saved = localStorage.getItem("metis_projects");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch(e) {}
-    return INITIAL_PROJECTS;
-  });
-  const [selected, setSelected] = useState(() => {
-    try {
-      const savedId = localStorage.getItem("metis_selected_id");
-      const saved = localStorage.getItem("metis_projects");
-      if (saved && savedId) {
-        const parsed = JSON.parse(saved);
-        const found = parsed.find(p => String(p.id) === savedId);
-        if (found) return found;
-        if (parsed.length > 0) return parsed[0];
-      }
-    } catch(e) {}
-    return INITIAL_PROJECTS[0];
-  });
+  const [projects, setProjects] = useState(INITIAL_PROJECTS);
+  const [selected, setSelected] = useState(INITIAL_PROJECTS[0]);
   const [time, setTime]         = useState(new Date());
   const [ghostOpen, setGhostOpen]   = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -2718,14 +2642,6 @@ export default function App() {
   const pulseTimers = useRef([]);
 
   useEffect(() => { const t = setInterval(() => setTime(new Date()), 1000); return () => clearInterval(t); }, []);
-
-  // projects・selected をlocalStorageに永続化
-  useEffect(() => {
-    try { localStorage.setItem("metis_projects", JSON.stringify(projects)); } catch(e) {}
-  }, [projects]);
-  useEffect(() => {
-    try { localStorage.setItem("metis_selected_id", String(selected?.id)); } catch(e) {}
-  }, [selected?.id]);
 
   // プロジェクト切り替え時にGhostパルスをスケジュール
   useEffect(() => {
@@ -2755,7 +2671,7 @@ export default function App() {
 
   const nextCode = `PRJ-${String(projects.length + 1).padStart(3, "0")}`;
   const handleCreated = (newProject) => {
-    setProjects(prev => [newProject, ...prev]);
+    setProjects(prev => [...prev, newProject]);
     setSelected(newProject);
     setCreateOpen(false);
   };
@@ -2844,28 +2760,17 @@ export default function App() {
         <div style={{ width: 240, minWidth: 240, borderRight: `1px solid ${C.border}`, overflow: "auto", background: C.bgCard, display: "flex", flexDirection: "column", flexShrink: 0 }}>
           <div style={{ padding: "8px 14px 6px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
             <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>PROJECTS　{projects.length}</span>
-            <div style={{ display: "flex", gap: 6 }}>
-              <button
-                onClick={() => { if(window.confirm("デモデータをリセットしますか？")) { localStorage.removeItem("metis_projects"); localStorage.removeItem("metis_selected_id"); localStorage.removeItem("metis_glossary_custom"); window.location.reload(); }}}
-                style={{ fontSize: 9, color: C.textWeak, background: "transparent", border: `1px solid ${C.border}`, borderRadius: 5, padding: "3px 7px", cursor: "pointer" }}
-                title="データをリセット"
-              >↺</button>
-              <button
-                onClick={() => setCreateOpen(true)}
-                style={{ fontSize: 10, fontWeight: 700, color: C.human, background: "#EAF8F3", border: `1px solid ${C.weak}`, borderRadius: 5, padding: "3px 9px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
-                onMouseEnter={e => e.currentTarget.style.background = C.weak}
-                onMouseLeave={e => e.currentTarget.style.background = "#EAF8F3"}
-              >
-                <span style={{ fontSize: 13, lineHeight: 1 }}>+</span> 新規
-              </button>
-            </div>
+            <button
+              onClick={() => setCreateOpen(true)}
+              style={{ fontSize: 10, fontWeight: 700, color: C.human, background: "#EAF8F3", border: `1px solid ${C.weak}`, borderRadius: 5, padding: "3px 9px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+              onMouseEnter={e => e.currentTarget.style.background = C.weak}
+              onMouseLeave={e => e.currentTarget.style.background = "#EAF8F3"}
+            >
+              <span style={{ fontSize: 13, lineHeight: 1 }}>+</span> 新規
+            </button>
           </div>
           <div style={{ flex: 1, overflow: "auto" }}>
-            {projects.map((proj, idx) => <ProjectListRow key={proj.id} project={proj} selected={selected?.id === proj.id} onClick={setSelected}
-              isFirst={idx===0} isLast={idx===projects.length-1}
-              onMoveUp={()=>setProjects(prev=>{ const a=[...prev]; [a[idx-1],a[idx]]=[a[idx],a[idx-1]]; return a; })}
-              onMoveDown={()=>setProjects(prev=>{ const a=[...prev]; [a[idx],a[idx+1]]=[a[idx+1],a[idx]]; return a; })}
-            />)}
+            {projects.map(proj => <ProjectListRow key={proj.id} project={proj} selected={selected?.id === proj.id} onClick={setSelected} />)}
           </div>
         </div>
 
