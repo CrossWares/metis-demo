@@ -2220,7 +2220,8 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
   const [fileStatus, setFileStatus] = useState(null);
   const [creating, setCreating] = useState(false);
   const setField = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
-  const canProceed = form.name && form.due && form.scope && form.owner;
+  const validDue = form.due && !isNaN(new Date(form.due).getTime());
+  const canProceed = form.name && validDue && form.scope && form.owner;
 
   const handleFile = async (file) => {
     setFileStatus("loading");
@@ -2246,7 +2247,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
     await new Promise(r => setTimeout(r, 500));
     const teamCount = parseInt((form.team || "").match(/\d+/)?.[0] || "5");
     const stakeList = (form.stakeholders || "").split(/[、,，]/).map(s => s.trim()).filter(Boolean);
-    const daysLeft = Math.max(10, Math.floor((new Date(form.due) - new Date()) / 86400000));
+    const daysLeft = Math.max(10, Math.floor((new Date(form.due) - new Date()) / 86400000)) || 90;
     const newProject = {
       id: Date.now(), code: nextCode, name: form.name, owner: form.owner,
       due: form.due, daysLeft, progress: 0, team: teamCount || 5,
