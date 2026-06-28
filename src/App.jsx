@@ -330,62 +330,137 @@ function AxisBlock({ axis, scores, items }) {
 
 // ── オントロジーグラフ（同心円軌道） ──
 const ONT_CATS = [
-  { id:"human",  label:"人・役割",       color:"#534AB7" },
-  { id:"org",    label:"組織・文化",     color:"#4A90C4" },
-  { id:"proc",   label:"プロセス",       color:"#5DB99A" },
-  { id:"signal", label:"状態・シグナル", color:"#8B3A5A" },
-  { id:"concept",label:"概念・定義",     color:"#C09040" },
+  { id:"concept",  label:"Concept",      color:"#534AB7" },
+  { id:"org",      label:"Organization", color:"#185FA5" },
+  { id:"proc",     label:"Process",      color:"#BA7517" },
+  { id:"signal",   label:"Signal",       color:"#993C1D" },
+  { id:"people",   label:"People",       color:"#1D9E75" },
+  { id:"deliver",  label:"Deliverable",  color:"#3B6D11" },
 ];
 const ONT_NODES = [
-  { id:"core",    label:"プロジェクト",    cat:"concept", orbit:0 },
-  { id:"pm",      label:"PM",              cat:"human",   orbit:1 },
-  { id:"risk",    label:"リスク管理",      cat:"concept", orbit:1 },
-  { id:"phase",   label:"フェーズ",        cat:"concept", orbit:1 },
-  { id:"pmo",     label:"PMO",             cat:"human",   orbit:2 },
-  { id:"done",    label:"完了定義",        cat:"concept", orbit:2 },
-  { id:"issue",   label:"課題対応",        cat:"signal",  orbit:2 },
-  { id:"meaning", label:"意味共有",        cat:"concept", orbit:2 },
-  { id:"hub",     label:"情報ハブ",        cat:"human",   orbit:3 },
-  { id:"sponsor", label:"ステークホルダー",cat:"human",   orbit:3 },
-  { id:"tacit",   label:"暗黙知",          cat:"concept", orbit:3 },
-  { id:"signal",  label:"シグナル",        cat:"signal",  orbit:3 },
-  { id:"approval",label:"承認フロー",      cat:"proc",    orbit:3 },
-  { id:"keyman",  label:"キーマン",        cat:"human",   orbit:4 },
-  { id:"vendor",  label:"ベンダー",        cat:"org",     orbit:4 },
-  { id:"culture", label:"組織文化",        cat:"org",     orbit:4 },
-  { id:"wbs",     label:"WBS",             cat:"proc",    orbit:4 },
-  { id:"change",  label:"変更管理",        cat:"proc",    orbit:4 },
-  { id:"formal",  label:"形式知",          cat:"concept", orbit:4 },
-  { id:"extern",  label:"外部知見",        cat:"human",   orbit:5 },
-  { id:"client",  label:"クライアント",    cat:"org",     orbit:5 },
-  { id:"vendorg", label:"ベンダ体制",      cat:"org",     orbit:5 },
-  { id:"escal",   label:"エスカレーション",cat:"proc",    orbit:5 },
-  { id:"report",  label:"報告",            cat:"proc",    orbit:5 },
-  { id:"meeting", label:"会議",            cat:"proc",    orbit:5 },
-  { id:"repline", label:"レポートライン",  cat:"proc",    orbit:5 },
-  { id:"scope",   label:"スコープクリープ",cat:"signal",  orbit:5 },
-  { id:"exit",    label:"工程未完了",      cat:"signal",  orbit:5 },
+  // orbit 0 — 中心核
+  { id:"pm_core",   label:"プロジェクトマネジメント",              abbr:"PM", cat:"concept", orbit:0, core:true },
+  // orbit 1 — Concept コアノード
+  { id:"baseline",  label:"ベースライン",                          abbr:"ベー", cat:"concept", orbit:1, core:true },
+  { id:"req_def",   label:"要件定義",                              abbr:"要定", cat:"concept", orbit:1, core:true },
+  { id:"plan4plan", label:"プラン・フォー・プラン",                abbr:"P4P", cat:"concept", orbit:1, core:true },
+  { id:"pj_design", label:"プロジェクト設計",                      abbr:"設計", cat:"concept", orbit:1, core:true },
+  { id:"knw_mgmt",  label:"ナレッジ・マネジメント",                abbr:"ナレ", cat:"concept", orbit:1, core:true },
+  { id:"risk_mgmt", label:"リスク・マネジメント",                  abbr:"リス", cat:"concept", orbit:1, core:true },
+  { id:"chg_mgmt",  label:"変更管理",                              abbr:"変更", cat:"concept", orbit:1, core:true },
+  { id:"gov",       label:"ガバナンス",                            abbr:"ガバ", cat:"concept", orbit:1, core:true },
+  // orbit 1 — Org コアノード
+  { id:"raci",      label:"RACIチャート",                          abbr:"RA", cat:"org",     orbit:1, core:true },
+  { id:"dec_maker", label:"意思決定者",                            abbr:"決者", cat:"org",     orbit:1, core:true },
+  { id:"dec_path",  label:"意思決定経路",                          abbr:"決路", cat:"org",     orbit:1, core:true },
+  { id:"approval",  label:"承認権限",                              abbr:"承認", cat:"org",     orbit:1, core:true },
+  // orbit 1 — People コアノード
+  { id:"pm_role",   label:"プロジェクト・マネジャー",              abbr:"PM役", cat:"people",  orbit:1, core:true },
+  { id:"keyman",    label:"キーマン",                              abbr:"キー", cat:"people",  orbit:1, core:true },
+  // orbit 2 — Process コアノード
+  { id:"wbs",       label:"WBS",                                   abbr:"WB", cat:"proc",    orbit:2, core:true },
+  { id:"crit_path", label:"クリティカル・パス",                    abbr:"CP", cat:"proc",    orbit:2, core:true },
+  { id:"phase_gate",label:"フェーズ・ゲート",                      abbr:"FG", cat:"proc",    orbit:2, core:true },
+  { id:"accept",    label:"受入基準",                              abbr:"受入", cat:"proc",    orbit:2, core:true },
+  { id:"prereq",    label:"前提条件",                              abbr:"前提", cat:"proc",    orbit:2, core:true },
+  { id:"constraint",label:"制約条件",                              abbr:"制約", cat:"proc",    orbit:2, core:true },
+  // orbit 2 — Signal コアノード
+  { id:"scope_cr",  label:"スコープ・クリープ",                    abbr:"SC", cat:"signal",  orbit:2, core:true },
+  { id:"req_chg",   label:"要件変更",                              abbr:"要変", cat:"signal",  orbit:2, core:true },
+  { id:"conflict",  label:"コンフリクト",                          abbr:"コン", cat:"signal",  orbit:2, core:true },
+  { id:"escal",     label:"エスカレーション",                      abbr:"ES", cat:"signal",  orbit:2, core:true },
+  // orbit 2 — Concept コア続き
+  { id:"tacit",     label:"暗黙知",                                abbr:"暗黙", cat:"concept", orbit:2, core:true },
+  // orbit 2 — Deliverable コアノード
+  { id:"charter",   label:"プロジェクト憲章",                      abbr:"憲章", cat:"deliver", orbit:2, core:true },
+  { id:"roadmap",   label:"ロードマップ",                          abbr:"ロー", cat:"deliver", orbit:2, core:true },
+  { id:"milestone", label:"マイルストーン",                        abbr:"MS", cat:"deliver", orbit:2, core:true },
+  // orbit 3 — Concept サテライト
+  { id:"formal",    label:"形式知",                                abbr:"形式", cat:"concept", orbit:3 },
+  { id:"chng_mgmt2",label:"チェンジマネジメント",                  abbr:"CM", cat:"concept", orbit:3 },
+  { id:"tailoring", label:"テーラリング",                          abbr:"テー", cat:"concept", orbit:3 },
+  { id:"agile",     label:"アジャイル",                            abbr:"AG", cat:"concept", orbit:3 },
+  { id:"waterfall", label:"ウォーターフォール",                    abbr:"WF", cat:"concept", orbit:3 },
+  { id:"prog_mgmt", label:"プログラムマネジメント",                abbr:"PG", cat:"concept", orbit:3 },
+  { id:"sys_anal",  label:"システム分析",                          abbr:"SA", cat:"concept", orbit:3 },
+  { id:"six_sigma", label:"シックスシグマ",                        abbr:"6σ", cat:"concept", orbit:3 },
+  { id:"pj_scope",  label:"プロジェクト・スコープ",                abbr:"スコ", cat:"concept", orbit:3 },
+  // orbit 3 — Org サテライト
+  { id:"steer_co",  label:"ステアリングコミッティ",                abbr:"SC", cat:"org",     orbit:3 },
+  { id:"coe",       label:"センター・オブ・エクセレンス",          abbr:"Co", cat:"org",     orbit:3 },
+  { id:"team_char", label:"チーム憲章",                            abbr:"TM", cat:"org",     orbit:3 },
+  { id:"res_mgmt",  label:"資源管理",                              abbr:"資源", cat:"org",     orbit:3 },
+  { id:"vendor",    label:"ベンダー",                              abbr:"ベン", cat:"org",     orbit:3 },
+  { id:"sh_mgmt",   label:"ステークホルダー管理",                  abbr:"SH", cat:"org",     orbit:3 },
+  // orbit 3 — People サテライト
+  { id:"po",        label:"プロジェクト・オーナー",                abbr:"PO", cat:"people",  orbit:3 },
+  { id:"coaching",  label:"コーチング",                            abbr:"コチ", cat:"people",  orbit:3 },
+  { id:"mentoring", label:"メンタリング",                          abbr:"メン", cat:"people",  orbit:3 },
+  // orbit 3 — Process サテライト
+  { id:"sch_mgmt",  label:"スケジュール管理",                      abbr:"スケ", cat:"proc",    orbit:3 },
+  { id:"sco_mgmt",  label:"スコープ管理",                          abbr:"スコ", cat:"proc",    orbit:3 },
+  { id:"risk_plan", label:"リスク管理",                            abbr:"リ管", cat:"proc",    orbit:3 },
+  { id:"comm_mgmt", label:"コミュニケーション管理",                abbr:"コミ", cat:"proc",    orbit:3 },
+  { id:"review",    label:"レビュー",                              abbr:"レビ", cat:"proc",    orbit:3 },
+  { id:"inspect",   label:"検収",                                  abbr:"検収", cat:"proc",    orbit:3 },
+  { id:"walkthru",  label:"ウォークスルー",                        abbr:"WK", cat:"proc",    orbit:3 },
+  { id:"retro",     label:"振り返り会議",                          abbr:"振返", cat:"proc",    orbit:3 },
+  { id:"coord_mtg", label:"調整会議",                              abbr:"調整", cat:"proc",    orbit:3 },
+  { id:"quality",   label:"品質管理",                              abbr:"品質", cat:"proc",    orbit:3 },
+  { id:"scrum",     label:"スクラム",                              abbr:"SC", cat:"proc",    orbit:3 },
+  { id:"sprint",    label:"スプリント",                            abbr:"SP", cat:"proc",    orbit:3 },
+  { id:"iter",      label:"イテレーション",                        abbr:"IT", cat:"proc",    orbit:3 },
+  { id:"timebox",   label:"タイムボックス",                        abbr:"TB", cat:"proc",    orbit:3 },
+  { id:"kanban",    label:"カンバン方式",                          abbr:"カン", cat:"proc",    orbit:3 },
+  { id:"pred",      label:"先行関係",                              abbr:"先行", cat:"proc",    orbit:3 },
+  { id:"exit_crit", label:"イグジット条件",                        abbr:"EX", cat:"proc",    orbit:3 },
+  // orbit 4 — Signal サテライト
+  { id:"trigger",   label:"トリガー条件",                          abbr:"TR", cat:"signal",  orbit:4 },
+  { id:"stretch",   label:"ストレッチング",                        abbr:"ST", cat:"signal",  orbit:4 },
+  { id:"appr_flow", label:"承認フロー",                            abbr:"承F", cat:"signal",  orbit:4 },
+  { id:"info_scat", label:"情報分散",                              abbr:"情散", cat:"signal",  orbit:4 },
+  { id:"conting",   label:"コンティンジェンシー計画",              abbr:"CT", cat:"signal",  orbit:4 },
+  { id:"risk_log",  label:"リスク・ログ",                          abbr:"RL", cat:"signal",  orbit:4 },
+  { id:"issue_log", label:"課題ログ",                              abbr:"課ロ", cat:"signal",  orbit:4 },
+  { id:"progress",  label:"進捗報告",                              abbr:"進捗", cat:"signal",  orbit:4 },
+  { id:"evm",       label:"EVM（アーンド・バリュー・マネジメント）", abbr:"EV", cat:"signal",  orbit:4 },
+  { id:"variance",  label:"差異分析",                              abbr:"差異", cat:"signal",  orbit:4 },
+  { id:"workload",  label:"作業工数",                              abbr:"工数", cat:"signal",  orbit:4 },
+  // orbit 5 — Deliverable サテライト（最外縁）
+  { id:"deliverable",label:"成果物",                              abbr:"成果", cat:"deliver", orbit:5 },
+  { id:"spec",      label:"仕様書",                                abbr:"仕様", cat:"deliver", orbit:5 },
+  { id:"gantt",     label:"ガントチャート",                        abbr:"ガン", cat:"deliver", orbit:5 },
+  { id:"taskboard", label:"タスク・ボード",                        abbr:"タス", cat:"deliver", orbit:5 },
+  { id:"req_doc",   label:"要件定義書",                            abbr:"要書", cat:"deliver", orbit:5 },
+  { id:"pj_plan",   label:"プロジェクト計画書",                    abbr:"計画", cat:"deliver", orbit:5 },
+  { id:"backlog",   label:"バックログ",                            abbr:"BL", cat:"deliver", orbit:5 },
+  { id:"benchmark", label:"ベンチマーク",                          abbr:"BM", cat:"deliver", orbit:5 },
+  { id:"leadtime",  label:"リードタイム",                          abbr:"LT", cat:"deliver", orbit:5 },
 ];
 const ONT_EDGES = [
-  ["core","phase"],["core","done"],["core","risk"],["core","meaning"],
-  ["pm","pmo"],["pm","hub"],["pm","sponsor"],["pm","approval"],
-  ["pmo","approval"],["pmo","report"],
-  ["hub","pm"],["hub","keyman"],
-  ["vendor","vendorg"],["vendor","wbs"],
-  ["extern","pm"],
-  ["client","culture"],["client","vendorg"],
-  ["approval","done"],["approval","escal"],
-  ["wbs","change"],["change","escal"],
-  ["report","meeting"],
-  ["issue","signal"],["issue","repline"],["issue","scope"],["issue","exit"],
-  ["signal","report"],["signal","meeting"],
-  ["tacit","formal"],["tacit","meaning"],["formal","meaning"],
-  ["risk","issue"],["risk","signal"],
-  ["meaning","done"],["meaning","tacit"],
-  ["phase","done"],
+  ["pm_core","baseline"],["pm_core","req_def"],["pm_core","plan4plan"],
+  ["pm_core","gov"],["pm_core","chg_mgmt"],["pm_core","risk_mgmt"],
+  ["pm_core","pm_role"],["pm_core","raci"],
+  ["pm_role","keyman"],["pm_role","po"],["pm_role","dec_maker"],
+  ["dec_maker","dec_path"],["dec_path","approval"],["approval","appr_flow"],
+  ["raci","steer_co"],["raci","sh_mgmt"],
+  ["baseline","wbs"],["baseline","milestone"],["baseline","scope_cr"],
+  ["req_def","req_chg"],["req_def","req_doc"],["req_def","accept"],
+  ["plan4plan","phase_gate"],["plan4plan","prereq"],["plan4plan","constraint"],
+  ["chg_mgmt","req_chg"],["chg_mgmt","scope_cr"],
+  ["gov","steer_co"],["gov","dec_path"],
+  ["risk_mgmt","risk_log"],["risk_mgmt","conting"],["risk_mgmt","trigger"],
+  ["knw_mgmt","tacit"],["tacit","formal"],
+  ["wbs","crit_path"],["crit_path","milestone"],["milestone","roadmap"],
+  ["phase_gate","exit_crit"],["phase_gate","inspect"],
+  ["escal","conflict"],["conflict","coord_mtg"],
+  ["evm","variance"],["evm","progress"],
+  ["charter","pm_role"],["charter","roadmap"],
+  ["keyman","issue_log"],["keyman","info_scat"],
+  ["scrum","sprint"],["sprint","backlog"],["sprint","retro"],
 ];
 const ONT_CAT_COLOR = Object.fromEntries(ONT_CATS.map(c=>[c.id,c.color]));
-const ONT_ORBIT_R = [0, 0.10, 0.19, 0.28, 0.37, 0.46];
+const ONT_ORBIT_R = [0, 0.13, 0.26, 0.40, 0.50];
 
 function OntologyGraph() {
   const canvasRef = useRef(null);
@@ -394,39 +469,50 @@ function OntologyGraph() {
   const [tooltip, setTooltip] = useState(null);
   const posRef = useRef({});
 
-  function buildLayout(W) {
-    const cx=W/2, cy=W/2;
-    const byOrbit={};
-    for(let i=0;i<=5;i++) byOrbit[i]=[];
-    ONT_NODES.forEach(n=>byOrbit[n.orbit].push(n));
+  function buildLayout(W, H) {
+    const cx=W/2, cy=(H||W)/2;
+    const base=W*0.47;
+    const rScale=[0, 0.18, 0.34, 0.52, 0.70, 0.88];
+    const CAT_ANGLE={ concept:-Math.PI*0.5, org:Math.PI*0.1, proc:Math.PI*0.6, signal:Math.PI*1.1, people:-Math.PI*0.9, deliver:Math.PI*1.6 };
+    const CAT_SPAN={ concept:1.8, org:1.0, proc:1.4, signal:1.2, people:0.9, deliver:1.1 };
+    const byOrbitCat={};
+    ONT_NODES.forEach(n=>{ const k=`${n.orbit}_${n.cat}`; if(!byOrbitCat[k]) byOrbitCat[k]=[]; byOrbitCat[k].push(n); });
+    let seed=42;
+    function rnd(){ seed=(seed*1664525+1013904223)&0xffffffff; return (seed>>>0)/4294967295; }
     const pos={};
     ONT_NODES.forEach(n=>{
       if(n.orbit===0){ pos[n.id]={x:cx,y:cy}; return; }
-      const r=ONT_ORBIT_R[n.orbit]*W;
-      const group=byOrbit[n.orbit];
+      const r=(rScale[n.orbit]||0.88)*base;
+      const group=byOrbitCat[`${n.orbit}_${n.cat}`]||[n];
       const idx=group.findIndex(g=>g.id===n.id);
-      const offset=[0,0.5,1.0,1.6,0.3,0.8][n.orbit]||0;
-      const angle=(idx/group.length)*Math.PI*2+offset;
-      pos[n.id]={x:cx+Math.cos(angle)*r, y:cy+Math.sin(angle)*r};
+      const total=group.length;
+      const centerAng=CAT_ANGLE[n.cat]||0;
+      const span=CAT_SPAN[n.cat]||1.2;
+      const baseAng=total===1?centerAng:centerAng-span/2+(idx/(total-1))*span;
+      const jitter=(rnd()-0.5)*0.22*(n.orbit>=4?1.5:1.0);
+      const rOff=(rnd()-0.5)*base*0.05;
+      pos[n.id]={x:cx+Math.cos(baseAng+jitter)*(r+rOff), y:cy+Math.sin(baseAng+jitter)*(r+rOff)};
     });
     return pos;
   }
 
-  function nodeR(n){ return n.orbit===0?18:14; }
+  function nodeR(n){ return n.orbit===0?20:(n.core?13:10); }
   function edgePt(ax,ay,ra,bx,by){
     const dx=bx-ax,dy=by-ay,d=Math.hypot(dx,dy)||1;
     return {x:ax+dx/d*ra, y:ay+dy/d*ra};
   }
 
-  function draw(W, pos, filter, hov) {
+  function draw(W, H, pos, filter, hov) {
     const canvas=canvasRef.current;
     if(!canvas) return;
     const ctx=canvas.getContext("2d");
-    ctx.clearRect(0,0,W,W);
-    const cx=W/2, cy=W/2;
-    const orbitCol="rgba(0,0,0,0.16)";
+    ctx.clearRect(0,0,W,H);
+    const cx=W/2, cy=H/2;
+    const base=W*0.47;
+    const rScale=[0,0.18,0.34,0.52,0.70,0.88];
+    const orbitCol="rgba(0,0,0,0.10)";
     for(let i=1;i<=5;i++){
-      const r=ONT_ORBIT_R[i]*W;
+      const r=rScale[i]*base;
       ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
       ctx.strokeStyle=orbitCol; ctx.lineWidth=0.8;
       ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
@@ -460,46 +546,41 @@ function OntologyGraph() {
       const r=nodeR(n)+(isHov?2:0);
       ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2);
       ctx.fillStyle=color+"22"; ctx.fill();
-      ctx.strokeStyle=color; ctx.lineWidth=n.orbit===0?2.0:(isHov?1.8:0.9); ctx.stroke();
-      ctx.fillStyle="#26215C";
+      ctx.strokeStyle=color; ctx.lineWidth=n.orbit===0?2.5:(n.core?1.6:0.8); ctx.stroke();
+      ctx.fillStyle=color;
       ctx.textAlign="center"; ctx.textBaseline="middle";
-      const label=n.label;
-      if(label.length>5){
-        const mid=Math.ceil(label.length/2);
-        ctx.font=`${n.orbit===0?600:500} ${n.orbit===0?9:8}px Noto Sans JP,sans-serif`;
-        ctx.fillText(label.slice(0,mid),p.x,p.y-4.5);
-        ctx.fillText(label.slice(mid),p.x,p.y+4.5);
-      } else {
-        ctx.font=`${n.orbit===0?600:500} ${n.orbit===0?10:9}px Noto Sans JP,sans-serif`;
-        ctx.fillText(label,p.x,p.y);
-      }
+      const ch=n.abbr||n.label.slice(0,2);
+      ctx.font=`${n.orbit===0?700:(n.core?600:400)} ${n.orbit===0?11:(n.core?9:8)}px sans-serif`;
+      ctx.fillText(ch,p.x,p.y);
     });
   }
 
   useEffect(()=>{
     const canvas=canvasRef.current; if(!canvas) return;
     const dpr=window.devicePixelRatio||1;
-    const W=canvas.parentElement.clientWidth||300;
+    const W=canvas.parentElement.clientWidth||500;
+    const H=Math.round(W*0.95);
     canvas.style.width=W+"px";
-    canvas.style.height=W+"px";
+    canvas.style.height=H+"px";
     canvas.width=Math.round(W*dpr);
-    canvas.height=Math.round(W*dpr);
+    canvas.height=Math.round(H*dpr);
     const ctx=canvas.getContext("2d");
     ctx.scale(dpr,dpr);
-    const pos=buildLayout(W);
-    posRef.current={pos,W,dpr};
-    draw(W,pos,activeFilter,hovered);
+    const pos=buildLayout(W,H);
+    posRef.current={pos,W,H,dpr};
+    draw(W,H,pos,activeFilter,hovered);
     const ro=new ResizeObserver(()=>{
-      const nW=canvas.parentElement.clientWidth||300;
+      const nW=canvas.parentElement.clientWidth||500;
+      const nH=Math.round(nW*0.95);
       canvas.style.width=nW+"px";
-      canvas.style.height=nW+"px";
+      canvas.style.height=nH+"px";
       canvas.width=Math.round(nW*dpr);
-      canvas.height=Math.round(nW*dpr);
+      canvas.height=Math.round(nH*dpr);
       const c2=canvas.getContext("2d");
       c2.scale(dpr,dpr);
-      const nPos=buildLayout(nW);
-      posRef.current={pos:nPos,W:nW,dpr};
-      draw(nW,nPos,activeFilter,hovered);
+      const nPos=buildLayout(nW,nH);
+      posRef.current={pos:nPos,W:nW,H:nH,dpr};
+      draw(nW,nH,nPos,activeFilter,hovered);
     });
     ro.observe(canvas.parentElement);
     return ()=>ro.disconnect();
@@ -508,10 +589,10 @@ function OntologyGraph() {
   function handleMouseMove(e){
     const canvas=canvasRef.current; if(!canvas) return;
     const rect=canvas.getBoundingClientRect();
-    const {W}=posRef.current||{W:rect.width};
-    const sc=W/rect.width;
-    const mx=(e.clientX-rect.left)*sc;
-    const my=(e.clientY-rect.top)*sc;
+    const {W,H}=posRef.current||{W:rect.width,H:rect.height};
+    const scX=W/rect.width, scY=(H||W)/rect.height;
+    const mx=(e.clientX-rect.left)*scX;
+    const my=(e.clientY-rect.top)*scY;
     let found=null;
     ONT_NODES.forEach(n=>{
       if(activeFilter!=="all"&&n.cat!==activeFilter&&n.orbit!==0) return;
@@ -1121,6 +1202,7 @@ const GLOSSARY_DATA = {
     { term:"スコープ変更", def:"プロジェクトの対象範囲に加えられる変更。正式な合意プロセスを経て行われる点でスコープ・クリープと区別される。", isMetisOriginal:true },
     { term:"プロジェクト設計", def:"プロジェクト全体の進め方や構造をあらかじめ設計すること。体制・スケジュール・意思決定プロセスなどを含む。", isMetisOriginal:true },
     { term:"プロジェクト設計図", def:"プロジェクトの運営全体像を一覧できる形で示した設計情報。", isMetisOriginal:true },
+    { term:"要件定義", def:"プロジェクトで実現すべき機能・性能・制約条件を明確化し、関係者間で合意する活動。上流設計の中核をなし、ここでの曖昧さや合意不足がプロジェクト全体の崩壊トリガーとなる。", isMetisOriginal:true },
     { term:"要件変更", def:"要件定義が完了した後に発生する、要求内容の変更。", isMetisOriginal:true },
   ],
   "スケジュール管理": [
@@ -1666,7 +1748,7 @@ function GanttView({ project, onTaskSelect, selectedTaskId }) {
   return (
     <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 5px rgba(0,0,0,0.04)" }}>
       {/* ヘッダー */}
-      <div style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.bg }}>
+      <div style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.bgCard }}>
         <div style={{ width: 7, height: 7, borderRadius: "50%", background: C.thing, marginRight: 8 }} />
         <span style={{ fontSize: 11, fontWeight: 700, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>SCHEDULE VIEW</span>
         <span style={{ fontSize: 10, color: C.textWeak, marginLeft: 8 }}>タスクをクリックで詳細編集</span>
@@ -1748,30 +1830,8 @@ function GravityView({ project }) {
   const [selectedNode, setSelectedNode] = useState(null);
   const canvasRef = useRef(null);
   const chartRef  = useRef(null);
-
-  const gravNodes = project?.gravity?.nodes || [];
-  const edges = project?.gravity?.edges || [];
-  const drift = project?.gravity?.drift || { labels:[], plan:[], actual:[] };
-
-  // Hooks後にearly return（Reactルール遵守）
-  if (gravNodes.length === 0) {
-    return (
-      <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.bgCard, borderRadius: "10px 10px 0 0" }}>
-          <div style={{ width: 7, height: 7, borderRadius: "50%", background: C.human, marginRight: 8 }} />
-          <span style={{ fontSize: 11, fontWeight: 700, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>GRAVITY VIEW</span>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "60px 20px", gap: 12 }}>
-          <div style={{ width: 48, height: 48, borderRadius: "50%", border: `2px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ fontSize: 22, color: C.textWeak }}>⬡</span>
-          </div>
-          <div style={{ fontSize: 13, fontWeight: 500, color: C.textMid }}>データ未入力</div>
-          <div style={{ fontSize: 11, color: C.textWeak, textAlign: "center", lineHeight: 1.6 }}>WBS・スケジュール・議事録が入力されると<br />Gravityグラフが生成されます</div>
-        </div>
-      </div>
-    );
-  }
-
+  const { nodes, edges, drift } = project.gravity;
+  const gravNodes = project.gravity.nodes;
   const maxC = Math.max(...gravNodes.map(n => n.coupling));
 
   const nodeColor = (n) => {
@@ -1828,7 +1888,7 @@ function GravityView({ project }) {
     <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 5px rgba(0,0,0,0.04)" }}>
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.bg }}>
+      <div style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.bgCard }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
           <div style={{ width: 7, height: 7, borderRadius: "50%", background: C.human }} />
           <span style={{ fontSize: 11, fontWeight: 700, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>GRAVITY VIEW</span>
@@ -1850,7 +1910,7 @@ function GravityView({ project }) {
       </div>
 
       {activeTab === "gravity" && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 0 }}>
 
           {/* SVGグラフ */}
           <div style={{ padding: "14px 16px", borderRight: `1px solid ${C.border}` }}>
@@ -1996,7 +2056,7 @@ function ProjectListRow({ project, selected, onClick }) {
   const scoreBadge = { critical: { bg: "#FEF2F2", color: C.critical }, warn: { bg: "#FFFBEB", color: "#92400E" }, healthy: { bg: "#F0FDF4", color: "#166534" } }[project.status] || { bg: C.bg, color: C.textMid };
   const critCount = project.alerts.filter(a => a.level === "critical").length;
   return (
-    <div onClick={() => onClick(project)} style={{ padding: "10px 14px", background: selected ? C.bg : C.bgCard, borderLeft: `3px solid ${selected ? st.color : "transparent"}`, borderBottom: `1px solid ${C.border}`, cursor: "pointer", transition: "background 0.1s" }}
+    <div onClick={() => onClick(project)} style={{ padding: "10px 14px", background: selected ? C.bg : C.bgCard, borderLeft: "3px solid transparent", borderBottom: `1px solid ${C.border}`, cursor: "pointer", transition: "background 0.1s" }}
       onMouseEnter={e => { if (!selected) e.currentTarget.style.background = C.bg; }}
       onMouseLeave={e => { if (!selected) e.currentTarget.style.background = C.bgCard; }}
     >
@@ -2067,8 +2127,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
   const [fileStatus, setFileStatus] = useState(null);
   const [creating, setCreating] = useState(false);
   const setField = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
-  const validDue = form.due && !isNaN(new Date(form.due).getTime());
-  const canProceed = form.name && validDue && form.scope && form.owner;
+  const canProceed = form.name && form.due && form.scope && form.owner;
 
   const handleFile = async (file) => {
     setFileStatus("loading");
@@ -2094,15 +2153,15 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
     await new Promise(r => setTimeout(r, 500));
     const teamCount = parseInt((form.team || "").match(/\d+/)?.[0] || "5");
     const stakeList = (form.stakeholders || "").split(/[、,，]/).map(s => s.trim()).filter(Boolean);
-    const daysLeft = Math.max(10, Math.floor((new Date(form.due) - new Date()) / 86400000)) || 90;
+    const daysLeft = Math.max(10, Math.floor((new Date(form.due) - new Date()) / 86400000));
     const newProject = {
       id: Date.now(), code: nextCode, name: form.name, owner: form.owner,
       due: form.due, daysLeft, progress: 0, team: teamCount || 5,
-      score: 0, staticScore: 0, dynamicScore: 0, status: "healthy",
-      trend: [0,0,0,0,0,0,0,0],
-      static:  { schedule: 0, tasks: 0, risk: 0 },
-      dynamic: { stakeholder: 0, team: 0, decision: 0 },
-      alerts: [{ level: "info", axis: "S", text: "プロジェクト登録完了 — データ入力待ち" }],
+      score: 70, staticScore: 70, dynamicScore: 70, status: "healthy",
+      trend: [70,70,70,70,70,70,70,70],
+      static:  { schedule: 70, tasks: 70, risk: 70 },
+      dynamic: { stakeholder: stakeList.length > 0 ? 75 : 60, team: 70, decision: 70 },
+      alerts: [{ level: "info", axis: "S", text: "プロジェクト開始 — 初期定義フェーズ" }],
       events: [{ date: new Date().toLocaleDateString("ja-JP", { month: "2-digit", day: "2-digit" }), type: "normal", text: "プロジェクト登録完了" }],
       glossary: [], stakeholders: [
         { name: form.owner, role: "PM", status: "active" },
@@ -2110,8 +2169,15 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
         ...stakeList.slice(0, 3).map(s => ({ name: s, role: "ステークホルダー", status: "active" })),
       ],
       gravity: {
-        nodes: [], edges: [],
-        drift: { labels:["W1","W2","W3","W4","W5","W6","W7","W8"], plan:[100,87,74,61,48,35,22,9], actual:[100,100,100,100,100,100,100,100] },
+        nodes: [
+          { id: "承認",    coupling: 3.0, depStr: 2.8, changeProb: 40, commFreq: 55, x: 150, y: 70,  r: 18, type: "D" },
+          { id: "PM/PMO", coupling: 2.8, depStr: 2.5, changeProb: 35, commFreq: 65, x: 70,  y: 140, r: 16, type: "D" },
+          { id: "スケジュール", coupling: 2.5, depStr: 2.2, changeProb: 40, commFreq: 45, x: 230, y: 140, r: 14, type: "S" },
+          { id: "要件",   coupling: 2.2, depStr: 2.0, changeProb: 50, commFreq: 35, x: 150, y: 165, r: 13, type: "S" },
+          { id: "WBS",    coupling: 1.8, depStr: 1.5, changeProb: 30, commFreq: 30, x: 95,  y: 210, r: 11, type: "S" },
+        ],
+        edges: [{ s:0,t:1,w:2.8 },{ s:0,t:2,w:2.2 },{ s:1,t:3,w:2.0 },{ s:2,t:4,w:1.8 },{ s:3,t:4,w:1.5 }],
+        drift: { labels:["W1","W2","W3","W4","W5","W6","W7","W8"], plan:[100,87,74,61,48,35,22,9], actual:[100,87,74,61,48,35,22,9] },
       },
     };
     setCreating(false);
@@ -2129,7 +2195,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
           <div style={{ width: 7, height: 7, borderRadius: "50%", background: C.human }} />
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>新規プロジェクト作成</div>
-            <div style={{ fontSize: 10, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>{nextCode}　— プロジェクトを登録</div>
+            <div style={{ fontSize: 10, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>{nextCode}</div>
           </div>
           <div style={{ flex: 1 }} />
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: C.textWeak, fontSize: 18 }}>×</button>
@@ -2154,7 +2220,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, paddingBottom: 8, borderBottom: `2px solid ${C.thing}` }}>
                 <div style={{ width: 3, height: 14, background: C.thing, borderRadius: 2 }} />
-                <span style={{ fontSize: 10, fontWeight: 700, color: C.thing, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>STATIC — 構造・計画</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: C.thing, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>STATIC — 計画管理領域</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {STATIC_FIELDS.map(f => <InputBox key={f.key} field={f} value={form[f.key] || ""} onChange={setField} axis="S" />)}
@@ -2163,7 +2229,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, paddingBottom: 8, borderBottom: `2px solid ${C.human}` }}>
                 <div style={{ width: 3, height: 14, background: C.human, borderRadius: 2 }} />
-                <span style={{ fontSize: 10, fontWeight: 700, color: C.human, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>DYNAMIC — 人・関係性</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: C.human, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>DYNAMIC — 組織管理領域</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {DYNAMIC_FIELDS.map(f => <InputBox key={f.key} field={f} value={form[f.key] || ""} onChange={setField} axis="D" />)}
@@ -2177,7 +2243,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
           <div style={{ fontSize: 10, color: C.textWeak }}><span style={{ color: C.critical }}>*</span> は必須項目</div>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={onClose} style={{ fontSize: 12, color: C.textMid, background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 18px", cursor: "pointer" }}>キャンセル</button>
-            <button onClick={handleCreate} disabled={!canProceed || creating} style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: canProceed && !creating ? C.human : C.mid, border: "none", borderRadius: 8, padding: "8px 24px", cursor: canProceed && !creating ? "pointer" : "default", display: "flex", alignItems: "center", gap: 8 }}>
+            <button onClick={handleCreate} disabled={!canProceed || creating} style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: canProceed && !creating ? C.human : C.textWeak, border: "none", borderRadius: 8, padding: "8px 24px", cursor: canProceed && !creating ? "pointer" : "default", display: "flex", alignItems: "center", gap: 8 }}>
               {creating ? "作成中…" : "プロジェクトを登録"}
               {!creating && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M7 3l3 3-3 3" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
             </button>
@@ -2570,7 +2636,7 @@ export default function App() {
 
   const nextCode = `PRJ-${String(projects.length + 1).padStart(3, "0")}`;
   const handleCreated = (newProject) => {
-    setProjects(prev => [newProject, ...prev]);
+    setProjects(prev => [...prev, newProject]);
     setSelected(newProject);
     setCreateOpen(false);
   };
@@ -2589,6 +2655,9 @@ export default function App() {
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: ${C.bg}; }
         ::-webkit-scrollbar-thumb { background: ${C.textWeak}; border-radius: 2px; }
+        ::placeholder { color: #C8C8C8; opacity: 1; }
+        ::-webkit-input-placeholder { color: #C8C8C8; }
+        ::-moz-placeholder { color: #C8C8C8; opacity: 1; }
       `}</style>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" />
 
