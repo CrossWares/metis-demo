@@ -1,4 +1,21 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, Component } from "react";
+
+export class ErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(e) { return { error: e }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: 32, fontFamily: "monospace", background: "#1a0000", color: "#ff6b6b", height: "100vh", overflow: "auto" }}>
+          <div style={{ fontSize: 18, fontWeight: "bold", marginBottom: 16 }}>⚠ React Error</div>
+          <pre style={{ fontSize: 13, whiteSpace: "pre-wrap", color: "#ffaaaa" }}>{this.state.error?.message}</pre>
+          <pre style={{ fontSize: 11, whiteSpace: "pre-wrap", color: "#ff8888", marginTop: 16 }}>{this.state.error?.stack}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const C = {
   strong:   "#534AB7",
