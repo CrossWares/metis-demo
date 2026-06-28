@@ -2935,8 +2935,8 @@ export default function App() {
               </div>
               <div style={{ padding: "10px 14px", borderTop: `1px solid ${C.border}`, flexShrink: 0 }}>
                 <button onClick={() => {
-                  setProjects(ps => ps.map(proj => proj.id === p.id ? { ...proj, tasks: proj.tasks.map(t => t.id === taskEditBuf.id ? taskEditBuf : t) } : proj));
-                  setSelected(s => ({ ...s, tasks: s.tasks.map(t => t.id === taskEditBuf.id ? taskEditBuf : t) }));
+                  setProjects(ps => ps.map(proj => proj.id === p.id ? { ...proj, tasks: (proj.tasks||[]).map(t => t.id === taskEditBuf.id ? taskEditBuf : t) } : proj));
+                  setSelected(s => ({ ...s, tasks: (s.tasks||[]).map(t => t.id === taskEditBuf.id ? taskEditBuf : t) }));
                   setSelectedTask(taskEditBuf);
                 }} style={{ width: "100%", padding: "8px 0", background: C.human, color: "#fff", border: "none", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
                   保存
