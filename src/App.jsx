@@ -1895,11 +1895,12 @@ function GravityView({ project }) {
   const [selectedNode, setSelectedNode] = useState(null);
   const canvasRef = useRef(null);
   const chartRef  = useRef(null);
-  const { nodes, edges, drift } = project.gravity;
-  const gravNodes = project.gravity.nodes;
 
-  // データ未入力の場合は空状態を表示
-  if (!gravNodes || gravNodes.length === 0) {
+  const gravNodes = project?.gravity?.nodes || [];
+  const { edges, drift } = project?.gravity || { edges: [], drift: {} };
+
+  // データ未入力の場合は空状態を表示（Hooksの後）
+  if (gravNodes.length === 0) {
     return (
       <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10 }}>
         <div style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.bgCard, borderRadius: "10px 10px 0 0" }}>
@@ -2683,38 +2684,8 @@ Gravity上位ノード: ${(p.gravity?.nodes||[]).slice(0,3).map(n=>`${n.id}(coup
 
 export default function App() {
   // localStorage から復元、なければ INITIAL_PROJECTS を使用
-  const [projects, setProjects] = useState(() => {
-    try {
-      const saved = localStorage.getItem("metis_projects");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // 必須フィールドの存在チェック
-        if (Array.isArray(parsed) && parsed.length > 0 &&
-            parsed[0].id && parsed[0].name && parsed[0].alerts &&
-            parsed[0].events && parsed[0].static && parsed[0].dynamic) {
-          return parsed;
-        }
-      }
-    } catch(e) {}
-    // 古い/壊れたデータはクリア
-    localStorage.removeItem("metis_projects");
-    localStorage.removeItem("metis_selected_id");
-    return INITIAL_PROJECTS;
-  });
-  const [selected, setSelected] = useState(() => {
-    try {
-      const savedId = localStorage.getItem("metis_selected_id");
-      const saved = localStorage.getItem("metis_projects");
-      if (saved && savedId) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].alerts) {
-          const found = parsed.find(p => String(p.id) === savedId);
-          return found || parsed[0];
-        }
-      }
-    } catch(e) {}
-    return INITIAL_PROJECTS[0];
-  });
+  const [projects, setProjects] = useState(INITIAL_PROJECTS);
+  const [selected, setSelected] = useState(INITIAL_PROJECTS[0]);
   const [time, setTime]         = useState(new Date());
   const [ghostOpen, setGhostOpen]   = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -2728,14 +2699,9 @@ export default function App() {
   const pulseTimers = useRef([]);
 
   useEffect(() => { const t = setInterval(() => setTime(new Date()), 1000); return () => clearInterval(t); }, []);
-
-  // projects・selected をlocalStorageに永続化
-  useEffect(() => {
-    try { localStorage.setItem("metis_projects", JSON.stringify(projects)); } catch(e) {}
-  }, [projects]);
-  useEffect(() => {
-    try { localStorage.setItem("metis_selected_id", String(selected?.id)); } catch(e) {}
-  }, [selected?.id]);
+  // localStorage永続化（一時無効化中）
+  // useEffect(() => { try { localStorage.setItem("metis_projects", JSON.stringify(projects)); } catch(e) {} }, [projects]);
+  // useEffect(() => { try { localStorage.setItem("metis_selected_id", String(selected?.id)); } catch(e) {} }, [selected?.id]);
 
   // プロジェクト切り替え時にGhostパルスをスケジュール
   useEffect(() => {
