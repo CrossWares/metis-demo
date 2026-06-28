@@ -1849,8 +1849,8 @@ function GravityView({ project }) {
   const [selectedNode, setSelectedNode] = useState(null);
   const canvasRef = useRef(null);
   const chartRef  = useRef(null);
-  const { nodes, edges, drift } = project.gravity;
-  const gravNodes = project.gravity.nodes;
+  const { nodes, edges, drift } = project?.gravity || { nodes: [], edges: [], drift: { labels:[], plan:[], actual:[] } };
+  const gravNodes = nodes || [];
 
   // データ未入力の場合は空状態を表示
   if (!gravNodes || gravNodes.length === 0) {
