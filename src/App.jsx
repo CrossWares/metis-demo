@@ -2139,7 +2139,7 @@ function GravityView({ project }) {
 function ProjectListRow({ project, selected, onClick, isFirst, isLast, onMoveUp, onMoveDown }) {
   const scoreBadge = { critical: { bg: "#FEF2F2", color: C.critical }, warn: { bg: "#FFFBEB", color: "#92400E" }, healthy: { bg: "#F0FDF4", color: "#166534" } }[project.status] || { bg: C.bg, color: C.textMid };
   const critCount = project.alerts.filter(a => a.level === "critical").length;
-  const [hov, setHov] = React.useState(false);
+  const [hov, setHov] = useState(false);
   return (
     <div style={{ position: "relative", borderBottom: `1px solid ${C.border}`, background: selected ? C.bg : hov ? C.bg : C.bgCard, transition: "background 0.1s" }}
       onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
@@ -2687,9 +2687,9 @@ export default function App() {
       const saved = localStorage.getItem("metis_projects");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].id && parsed[0].name) return parsed;
       }
-    } catch(e) {}
+    } catch(e) { localStorage.removeItem("metis_projects"); }
     return INITIAL_PROJECTS;
   });
   const [selected, setSelected] = useState(() => {
@@ -2698,9 +2698,10 @@ export default function App() {
       const saved = localStorage.getItem("metis_projects");
       if (saved && savedId) {
         const parsed = JSON.parse(saved);
-        const found = parsed.find(p => String(p.id) === savedId);
-        if (found) return found;
-        if (parsed.length > 0) return parsed[0];
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].id) {
+          const found = parsed.find(p => String(p.id) === savedId);
+          return found || parsed[0];
+        }
       }
     } catch(e) {}
     return INITIAL_PROJECTS[0];
