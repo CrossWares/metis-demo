@@ -2462,11 +2462,11 @@ function GhostSearch({ project, visible, onClose, onApplyData, initialQuery }) {
 
   const buildContext = (p) => `あなたはPMO Intelligence「Metis」のAIアシスタントです。以下のプロジェクトデータを参照して日本語で答えてください。
 読みやすさのため、2〜3文ごとに必ず改行（空行）を入れて段落分けしてください。一つの段落に詰め込みすぎず、要因が複数ある場合は段落ごとに分けて説明してください。マークダウンの見出しや装飾記号（#や**など）は使わないでください。
-${p.code} ${p.name} / スコア${p.score}(S:${p.staticScore} D:${p.dynamicScore}) / ${p.status} / PM:${p.owner} / 残${p.daysLeft}日 / 進捗${p.progress}%
-Static: schedule${p.static.schedule} tasks${p.static.tasks} risk${p.static.risk}
-Dynamic: stakeholder${p.dynamic.stakeholder} team${p.dynamic.team} decision${p.dynamic.decision}
-アラート: ${p.alerts.map(a=>`[${a.level}][${a.axis}]${a.text}`).join(" / ")}
-Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${n.coupling})`).join(", ")}`;
+${p.code||""} ${p.name} / スコア${p.score}(S:${p.staticScore} D:${p.dynamicScore}) / ${p.status} / PM:${p.owner} / 残${p.daysLeft}日 / 進捗${p.progress||0}%
+Static: schedule${p.static?.schedule||0} tasks${p.static?.tasks||0} risk${p.static?.risk||0}
+Dynamic: stakeholder${p.dynamic?.stakeholder||0} team${p.dynamic?.team||0} decision${p.dynamic?.decision||0}
+アラート: ${(p.alerts||[]).map(a=>`[${a.level}][${a.axis}]${a.text}`).join(" / ")}
+Gravity上位ノード: ${(p.gravity?.nodes||[]).slice(0,3).map(n=>`${n.id}(coupling:${n.coupling})`).join(", ")}`;
 
   const parseCSV = (text) => {
     const lines = text.split("\n").map(l=>l.trim()).filter(Boolean);
@@ -2763,8 +2763,8 @@ export default function App() {
 
   const p = selected;
   const st = STATUS[p.status];
-  const avgStatic  = Math.round(Object.values(p.static).reduce((a,v)=>a+v,0)/3);
-  const avgDynamic = Math.round(Object.values(p.dynamic).reduce((a,v)=>a+v,0)/3);
+  const avgStatic  = Math.round(Object.values(p.static  || {schedule:0,tasks:0,risk:0}).reduce((a,v)=>a+v,0)/3);
+  const avgDynamic = Math.round(Object.values(p.dynamic || {stakeholder:0,team:0,decision:0}).reduce((a,v)=>a+v,0)/3);
   const portfolioAvg = Math.round(projects.reduce((a,pr)=>a+pr.score,0)/projects.length);
 
   return (
