@@ -295,7 +295,9 @@ function Bar({ value, color, height = 4 }) {
 
 function AxisBlock({ axis, scores, items }) {
   const ax = AXIS[axis];
-  const avg = Math.round(Object.values(scores).reduce((a, v) => a + v, 0) / Object.values(scores).length);
+  const safeScores = scores || {};
+  const vals = Object.values(safeScores);
+  const avg = vals.length ? Math.round(vals.reduce((a, v) => a + v, 0) / vals.length) : 0;
   return (
     <div style={{ flex: 1, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", boxShadow: "0 1px 5px rgba(0,0,0,0.04)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
@@ -312,7 +314,7 @@ function AxisBlock({ axis, scores, items }) {
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {items.map((item, i) => {
-          const v = scores[item.key];
+          const v = safeScores[item.key] || 0;
           return (
             <div key={i}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
