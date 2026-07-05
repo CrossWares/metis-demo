@@ -2409,9 +2409,9 @@ function GhostSearch({ project, visible, onClose, onApplyData, initialQuery }) {
   const buildContext = (p) => `あなたはPMO Intelligence「Metis」のAIアシスタントです。以下のプロジェクトデータを参照して日本語で答えてください。
 読みやすさのため、2〜3文ごとに必ず改行（空行）を入れて段落分けしてください。一つの段落に詰め込みすぎず、要因が複数ある場合は段落ごとに分けて説明してください。マークダウンの見出しや装飾記号（#や**など）は使わないでください。
 ${p.code} ${p.name} / スコア${p.score}(S:${p.staticScore} D:${p.dynamicScore}) / ${p.status} / PM:${p.owner} / 残${p.daysLeft}日 / 進捗${p.progress}%
-Static: schedule${p.static.schedule} tasks${p.static.tasks} risk${p.static.risk}
-Dynamic: stakeholder${p.dynamic.stakeholder} team${p.dynamic.team} decision${p.dynamic.decision}
-アラート: ${p.alerts.map(a=>`[${a.level}][${a.axis}]${a.text}`).join(" / ")}
+Static: schedule${p.static?.schedule||0} tasks${p.static?.tasks||0} risk${p.static?.risk||0}
+Dynamic: stakeholder${p.dynamic?.stakeholder||0} team${p.dynamic?.team||0} decision${p.dynamic?.decision||0}
+アラート: ${(p.alerts||[]).map(a=>`[${a.level}][${a.axis}]${a.text}`).join(" / ")}
 Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${n.coupling})`).join(", ")}`;
 
   const parseCSV = (text) => {
@@ -2678,8 +2678,8 @@ export default function App() {
 
   const p = selected;
   const st = STATUS[p.status];
-  const avgStatic  = Math.round(Object.values(p.static).reduce((a,v)=>a+v,0)/3);
-  const avgDynamic = Math.round(Object.values(p.dynamic).reduce((a,v)=>a+v,0)/3);
+  const avgStatic  = Math.round(Object.values(p.static || {schedule:0,tasks:0,risk:0}).reduce((a,v)=>a+v,0)/3);
+  const avgDynamic = Math.round(Object.values(p.dynamic || {stakeholder:0,team:0,decision:0}).reduce((a,v)=>a+v,0)/3);
   const portfolioAvg = Math.round(projects.reduce((a,pr)=>a+pr.score,0)/projects.length);
 
   return (
@@ -2878,14 +2878,14 @@ export default function App() {
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                   <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>ACTIVE ALERTS</span>
                   <button onClick={() => setAlertOpen(false)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: C.textWeak, fontSize: 14, lineHeight: 1, padding: "0 2px" }}>✕</button>
-                  {p.alerts.filter(a => a.level === "critical").length > 0 && (
+                  {(p.alerts||[]).filter(a => a.level === "critical").length > 0 && (
                     <span style={{ fontSize: 9, fontWeight: 700, color: C.critical, background: "#FEF2F2", border: `1px solid #FCA5A5`, padding: "1px 6px", borderRadius: 3, fontFamily: "'DM Mono', monospace" }}>
-                      {p.alerts.filter(a => a.level === "critical").length} critical
+                      {(p.alerts||[]).filter(a => a.level === "critical").length} critical
                     </span>
                   )}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {p.alerts.map((a, i) => {
+                  {(p.alerts||[]).map((a, i) => {
                     const dotColor = a.level === "critical" ? C.critical : a.level === "warn" ? C.warning : C.human;
                     const badgeBg  = a.level === "critical" ? "#FEF2F2" : a.level === "warn" ? "#FFFBEB" : "#F0FDF4";
                     const badgeTc  = a.level === "critical" ? C.critical : a.level === "warn" ? "#92400E" : "#166534";
@@ -2904,13 +2904,13 @@ export default function App() {
               </div>
               <div style={{ padding: "12px 14px", flex: 1, overflowY: "auto" }}>
                 <div style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", marginBottom: 10 }}>RECENT EVENTS</div>
-                {p.events.map((e, i) => {
+                {(p.events||[]).map((e, i) => {
                   const dotColor = e.type === "critical" ? C.critical : e.type === "warn" ? C.warning : C.human;
                   return (
                     <div key={i} style={{ display: "flex", gap: 10, paddingBottom: 10 }}>
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 10 }}>
                         <div style={{ width: 6, height: 6, borderRadius: "50%", background: dotColor, flexShrink: 0, marginTop: 4 }} />
-                        {i < p.events.length - 1 && <div style={{ width: 1, flex: 1, background: C.border, minHeight: 10 }} />}
+                        {i < (p.events||[]).length - 1 && <div style={{ width: 1, flex: 1, background: C.border, minHeight: 10 }} />}
                       </div>
                       <div>
                         <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>{e.date}　</span>
