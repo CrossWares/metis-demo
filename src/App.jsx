@@ -2412,7 +2412,7 @@ ${p.code} ${p.name} / スコア${p.score}(S:${p.staticScore} D:${p.dynamicScore}
 Static: schedule${p.static?.schedule||0} tasks${p.static?.tasks||0} risk${p.static?.risk||0}
 Dynamic: stakeholder${p.dynamic?.stakeholder||0} team${p.dynamic?.team||0} decision${p.dynamic?.decision||0}
 アラート: ${(p.alerts||[]).map(a=>`[${a.level}][${a.axis}]${a.text}`).join(" / ")}
-Gravity上位ノード: ${p.gravity.nodes.slice(0,3).map(n=>`${n.id}(coupling:${n.coupling})`).join(", ")}`;
+Gravity上位ノード: ${(p.gravity?.nodes||[]).slice(0,3).map(n=>`${n.id}(coupling:${n.coupling})`).join(", ")}`;
 
   const parseCSV = (text) => {
     const lines = text.split("\n").map(l=>l.trim()).filter(Boolean);
