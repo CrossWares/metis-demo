@@ -44,13 +44,14 @@ function createEmptyProject(overrides = {}) {
       drift: { labels: [], plan: [], actual: [] },
     },
     isSample: false,
+    archived: false,
     ...overrides,
   };
 }
 
 const INITIAL_PROJECTS = [
   {
-    id: 1, name: "基幹システム刷新 Phase2", code: "PRJ-001", isSample: true,
+    id: 1, name: "基幹システム刷新 Phase2", code: "PRJ-001", isSample: true, archived: false,
     score: 42, staticScore: 35, dynamicScore: 49, status: "critical",
     owner: "田中 誠", due: "2025-08-31", daysLeft: 113, progress: 38, team: 14,
     trend: [68, 65, 61, 58, 54, 50, 46, 42],
@@ -128,7 +129,7 @@ const INITIAL_PROJECTS = [
     stakeholderNames: { "n1":{name:"渡辺",isVendor:false}, "n2":{name:"山崎",isVendor:false}, "n3":{name:"前田",isVendor:false}, "n4":{name:"佐藤",isVendor:true}, "n5":{name:"斎藤",isVendor:true}, "n6":{name:"遠藤",isVendor:true}, "n7":{name:"村上",isVendor:true}, "n8":{name:"林",isVendor:true}, "n9":{name:"後藤",isVendor:true}, "n10":{name:"西村",isVendor:true}, "n11":{name:"小林",isVendor:true}, "n12":{name:"藤井",isVendor:true}, "n13":{name:"田中",isVendor:true}, "n14":{name:"太田",isVendor:true}, "n15":{name:"松本",isVendor:true}, "n16":{name:"山口",isVendor:true}, "n17":{name:"佐々木",isVendor:true}, "n18":{name:"清水",isVendor:true}, "n19":{name:"山本",isVendor:true}, "n20":{name:"井上",isVendor:true}, "n21":{name:"山田",isVendor:true}, "n22":{name:"鈴木",isVendor:true}, "n23":{name:"坂本",isVendor:true} },
   },
   {
-    id: 2, name: "顧客データ統合PF", code: "PRJ-002", isSample: true,
+    id: 2, name: "顧客データ統合PF", code: "PRJ-002", isSample: true, archived: false,
     score: 71, staticScore: 72, dynamicScore: 70, status: "warn",
     owner: "佐藤 麻衣", due: "2025-11-30", daysLeft: 204, progress: 52, team: 8,
     trend: [68, 70, 69, 72, 71, 73, 71, 71],
@@ -199,7 +200,7 @@ const INITIAL_PROJECTS = [
     stakeholderNames: { "n1":{name:"阿部",isVendor:false}, "n2":{name:"遠藤",isVendor:false}, "n3":{name:"前田",isVendor:false}, "n4":{name:"佐々木",isVendor:true}, "n5":{name:"石川",isVendor:true}, "n6":{name:"田中",isVendor:true}, "n7":{name:"藤田",isVendor:true}, "n8":{name:"後藤",isVendor:true}, "n9":{name:"高橋",isVendor:true}, "n10":{name:"福田",isVendor:true}, "n11":{name:"山崎",isVendor:true}, "n12":{name:"井上",isVendor:true}, "n13":{name:"青木",isVendor:true}, "n14":{name:"村上",isVendor:true}, "n15":{name:"小林",isVendor:true}, "n16":{name:"近藤",isVendor:true}, "n17":{name:"木村",isVendor:true}, "n18":{name:"林",isVendor:true}, "n19":{name:"山田",isVendor:true}, "n20":{name:"山本",isVendor:true}, "n21":{name:"佐藤",isVendor:true}, "n22":{name:"山口",isVendor:true}, "n23":{name:"中村",isVendor:true} },
   },
   {
-    id: 3, name: "AIアシスタント導入", code: "PRJ-003", isSample: true,
+    id: 3, name: "AIアシスタント導入", code: "PRJ-003", isSample: true, archived: false,
     score: 88, staticScore: 90, dynamicScore: 86, status: "healthy",
     owner: "木村 隆", due: "2025-07-15", daysLeft: 66, progress: 78, team: 5,
     trend: [78, 80, 82, 83, 85, 86, 88, 88],
@@ -2124,7 +2125,7 @@ function GravityView({ project }) {
   );
 }
 
-function ProjectListRow({ project, selected, onClick }) {
+function ProjectListRow({ project, selected, onClick, onArchive, onRestore }) {
   const st = STATUS[project.status];
   const scoreBadge = { critical: { bg: "#FEF2F2", color: C.critical }, warn: { bg: "#FFFBEB", color: "#92400E" }, healthy: { bg: "#F0FDF4", color: "#166534" } }[project.status] || { bg: C.bg, color: C.textMid };
   const critCount = project.alerts.filter(a => a.level === "critical").length;
@@ -2137,6 +2138,20 @@ function ProjectListRow({ project, selected, onClick }) {
         <span style={{ position: "absolute", top: 8, right: 10, fontSize: 8, fontWeight: 600, color: C.textWeak, letterSpacing: "0.05em", fontFamily: "'DM Mono', monospace", opacity: 0.55 }}>
           SAMPLE
         </span>
+      )}
+      {!project.isSample && onArchive && (
+        <button onClick={e => { e.stopPropagation(); onArchive(project); }} title="アーカイブ"
+          style={{ position: "absolute", top: 6, right: 8, fontSize: 9, color: C.textWeak, background: "none", border: "none", cursor: "pointer", padding: 3, opacity: 0.5, lineHeight: 1 }}
+          onMouseEnter={e => e.currentTarget.style.opacity = 1}
+          onMouseLeave={e => e.currentTarget.style.opacity = 0.5}>
+          🗄
+        </button>
+      )}
+      {onRestore && (
+        <button onClick={e => { e.stopPropagation(); onRestore(project); }}
+          style={{ position: "absolute", top: 6, right: 8, fontSize: 9, fontWeight: 600, color: C.human, background: "#EAF8F3", border: `1px solid ${C.weak}`, borderRadius: 4, padding: "2px 7px", cursor: "pointer" }}>
+          復元
+        </button>
       )}
       <div style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", marginBottom: 2 }}>{project.code}</div>
       <div style={{ fontSize: 12, fontWeight: 600, color: C.text, marginBottom: 6 }}>{project.name}</div>
@@ -2675,6 +2690,8 @@ export default function App() {
   const [ghostApplyTarget, setGhostApplyTarget] = useState(null); // {type, rows}
   const [ghostPulses, setGhostPulses] = useState([]);   // 表示中の通知スタック
   const [ghostContext, setGhostContext] = useState(null); // Ghost展開時の初期クエリ
+  const [sortBy, setSortBy] = useState("created_desc"); // created_desc | created_asc | score_asc | name_asc
+  const [showArchived, setShowArchived] = useState(false); // 左パネル: アクティブ/アーカイブ表示切替
   const pulseTimers = useRef([]);
 
   useEffect(() => { const t = setInterval(() => setTime(new Date()), 1000); return () => clearInterval(t); }, []);
@@ -2707,10 +2724,31 @@ export default function App() {
 
   const nextCode = `PRJ-${String(projects.length + 1).padStart(3, "0")}`;
   const handleCreated = (newProject) => {
-    setProjects(prev => [...prev, newProject]);
+    setProjects(prev => [newProject, ...prev]);
     setSelected(newProject);
     setCreateOpen(false);
   };
+
+  // アーカイブ: 一覧から隠すが削除はしない(復元可能)。Demo PRJ(isSample)は対象外。
+  const handleArchive = (proj) => {
+    setProjects(prev => prev.map(p => p.id === proj.id ? { ...p, archived: true } : p));
+    if (selected?.id === proj.id) {
+      const next = projects.find(p => p.id !== proj.id && !p.archived);
+      if (next) setSelected(next);
+    }
+  };
+  const handleRestore = (proj) => {
+    setProjects(prev => prev.map(p => p.id === proj.id ? { ...p, archived: false } : p));
+  };
+
+  const visibleProjects = projects.filter(p => showArchived ? p.archived : !p.archived);
+  const sortedProjects = [...visibleProjects].sort((a, b) => {
+    if (sortBy === "created_asc")  return a.id - b.id;
+    if (sortBy === "score_asc")    return a.score - b.score; // 危険な(スコアが低い)順
+    if (sortBy === "name_asc")     return a.name.localeCompare(b.name, "ja");
+    return b.id - a.id; // created_desc (default)
+  });
+  const archivedCount = projects.filter(p => p.archived).length;
 
   const p = selected;
   const st = STATUS[p.status];
@@ -2795,18 +2833,46 @@ export default function App() {
         {/* LEFT — 全タブ共通プロジェクトリスト */}
         <div style={{ width: 240, minWidth: 240, borderRight: `1px solid ${C.border}`, overflow: "auto", background: C.bgCard, display: "flex", flexDirection: "column", flexShrink: 0 }}>
           <div style={{ padding: "8px 14px 6px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-            <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>PROJECTS　{projects.length}</span>
-            <button
-              onClick={() => setCreateOpen(true)}
-              style={{ fontSize: 10, fontWeight: 700, color: C.human, background: "#EAF8F3", border: `1px solid ${C.weak}`, borderRadius: 5, padding: "3px 9px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
-              onMouseEnter={e => e.currentTarget.style.background = C.weak}
-              onMouseLeave={e => e.currentTarget.style.background = "#EAF8F3"}
-            >
-              <span style={{ fontSize: 13, lineHeight: 1 }}>+</span> 新規
-            </button>
+            <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>
+              {showArchived ? "ARCHIVED　" : "PROJECTS　"}{sortedProjects.length}
+            </span>
+            {!showArchived && (
+              <button
+                onClick={() => setCreateOpen(true)}
+                style={{ fontSize: 10, fontWeight: 700, color: C.human, background: "#EAF8F3", border: `1px solid ${C.weak}`, borderRadius: 5, padding: "3px 9px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                onMouseEnter={e => e.currentTarget.style.background = C.weak}
+                onMouseLeave={e => e.currentTarget.style.background = "#EAF8F3"}
+              >
+                <span style={{ fontSize: 13, lineHeight: 1 }}>+</span> 新規
+              </button>
+            )}
           </div>
+          {!showArchived && (
+            <div style={{ padding: "6px 14px", borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
+              <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+                style={{ width: "100%", fontSize: 10, color: C.textMid, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 5, padding: "4px 6px", fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
+                <option value="created_desc">作成日時（新しい順）</option>
+                <option value="created_asc">作成日時（古い順）</option>
+                <option value="score_asc">ヘルススコア（危険な順）</option>
+                <option value="name_asc">名前順</option>
+              </select>
+            </div>
+          )}
           <div style={{ flex: 1, overflow: "auto" }}>
-            {projects.map(proj => <ProjectListRow key={proj.id} project={proj} selected={selected?.id === proj.id} onClick={setSelected} />)}
+            {sortedProjects.map(proj => (
+              <ProjectListRow key={proj.id} project={proj} selected={selected?.id === proj.id} onClick={setSelected}
+                onArchive={!showArchived ? handleArchive : null}
+                onRestore={showArchived ? handleRestore : null} />
+            ))}
+            {!showArchived && sortedProjects.length === 0 && (
+              <div style={{ padding: "24px 14px", fontSize: 11, color: C.textWeak, textAlign: "center" }}>プロジェクトがありません</div>
+            )}
+          </div>
+          <div style={{ padding: "7px 14px", borderTop: `1px solid ${C.border}`, flexShrink: 0 }}>
+            <button onClick={() => setShowArchived(v => !v)}
+              style={{ fontSize: 9, color: C.textWeak, background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Mono', monospace", padding: 0 }}>
+              {showArchived ? "← アクティブ一覧に戻る" : `アーカイブ済み（${archivedCount}）`}
+            </button>
           </div>
         </div>
 
