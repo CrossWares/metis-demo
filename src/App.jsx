@@ -19,9 +19,38 @@ const scoreColor = (v) => v >= 70 ? C.thing : v >= 40 ? C.warning : C.critical;
 // 内部データは100点満点のまま、表示のみ10点満点(小数第1位)に変換
 const to10 = (v) => (v / 10).toFixed(1);
 
+// ── Project State Contract ──
+// 各Viewコンポーネント(GravityView/ScheduleView/StakeholderView/AlertPanel/
+// EventTimeline/GhostSearch等)が前提とする全フィールドを「空状態」で列挙する。
+// Demo PRJ(isSample:true)も新規作成PRJも、必ずこの関数の返り値をベースに
+// フィールドを上書きする形で組み立てること。個別にプロパティを手書きしない。
+function createEmptyProject(overrides = {}) {
+  return {
+    id: null, code: "", name: "", owner: "",
+    due: "", daysLeft: 0, progress: 0, team: 0,
+    score: 0, staticScore: 0, dynamicScore: 0, status: "healthy",
+    trend: [0, 0, 0, 0, 0, 0, 0, 0],
+    tasks: [],
+    static:  { schedule: 0, tasks: 0, risk: 0 },
+    dynamic: { stakeholder: 0, team: 0, decision: 0 },
+    alerts: [],
+    events: [],
+    glossary: [],
+    stakeholders: [],
+    stakeholderNames: {},
+    gravity: {
+      nodes: [],
+      edges: [],
+      drift: { labels: [], plan: [], actual: [] },
+    },
+    isSample: false,
+    ...overrides,
+  };
+}
+
 const INITIAL_PROJECTS = [
   {
-    id: 1, name: "基幹システム刷新 Phase2", code: "PRJ-001",
+    id: 1, name: "基幹システム刷新 Phase2", code: "PRJ-001", isSample: true,
     score: 42, staticScore: 35, dynamicScore: 49, status: "critical",
     owner: "田中 誠", due: "2025-08-31", daysLeft: 113, progress: 38, team: 14,
     trend: [68, 65, 61, 58, 54, 50, 46, 42],
@@ -99,7 +128,7 @@ const INITIAL_PROJECTS = [
     stakeholderNames: { "n1":{name:"渡辺",isVendor:false}, "n2":{name:"山崎",isVendor:false}, "n3":{name:"前田",isVendor:false}, "n4":{name:"佐藤",isVendor:true}, "n5":{name:"斎藤",isVendor:true}, "n6":{name:"遠藤",isVendor:true}, "n7":{name:"村上",isVendor:true}, "n8":{name:"林",isVendor:true}, "n9":{name:"後藤",isVendor:true}, "n10":{name:"西村",isVendor:true}, "n11":{name:"小林",isVendor:true}, "n12":{name:"藤井",isVendor:true}, "n13":{name:"田中",isVendor:true}, "n14":{name:"太田",isVendor:true}, "n15":{name:"松本",isVendor:true}, "n16":{name:"山口",isVendor:true}, "n17":{name:"佐々木",isVendor:true}, "n18":{name:"清水",isVendor:true}, "n19":{name:"山本",isVendor:true}, "n20":{name:"井上",isVendor:true}, "n21":{name:"山田",isVendor:true}, "n22":{name:"鈴木",isVendor:true}, "n23":{name:"坂本",isVendor:true} },
   },
   {
-    id: 2, name: "顧客データ統合PF", code: "PRJ-002",
+    id: 2, name: "顧客データ統合PF", code: "PRJ-002", isSample: true,
     score: 71, staticScore: 72, dynamicScore: 70, status: "warn",
     owner: "佐藤 麻衣", due: "2025-11-30", daysLeft: 204, progress: 52, team: 8,
     trend: [68, 70, 69, 72, 71, 73, 71, 71],
@@ -170,7 +199,7 @@ const INITIAL_PROJECTS = [
     stakeholderNames: { "n1":{name:"阿部",isVendor:false}, "n2":{name:"遠藤",isVendor:false}, "n3":{name:"前田",isVendor:false}, "n4":{name:"佐々木",isVendor:true}, "n5":{name:"石川",isVendor:true}, "n6":{name:"田中",isVendor:true}, "n7":{name:"藤田",isVendor:true}, "n8":{name:"後藤",isVendor:true}, "n9":{name:"高橋",isVendor:true}, "n10":{name:"福田",isVendor:true}, "n11":{name:"山崎",isVendor:true}, "n12":{name:"井上",isVendor:true}, "n13":{name:"青木",isVendor:true}, "n14":{name:"村上",isVendor:true}, "n15":{name:"小林",isVendor:true}, "n16":{name:"近藤",isVendor:true}, "n17":{name:"木村",isVendor:true}, "n18":{name:"林",isVendor:true}, "n19":{name:"山田",isVendor:true}, "n20":{name:"山本",isVendor:true}, "n21":{name:"佐藤",isVendor:true}, "n22":{name:"山口",isVendor:true}, "n23":{name:"中村",isVendor:true} },
   },
   {
-    id: 3, name: "AIアシスタント導入", code: "PRJ-003",
+    id: 3, name: "AIアシスタント導入", code: "PRJ-003", isSample: true,
     score: 88, staticScore: 90, dynamicScore: 86, status: "healthy",
     owner: "木村 隆", due: "2025-07-15", daysLeft: 66, progress: 78, team: 5,
     trend: [78, 80, 82, 83, 85, 86, 88, 88],
@@ -1854,6 +1883,41 @@ function GravityView({ project }) {
   const { nodes, edges, drift } = project?.gravity || { nodes: [], edges: [], drift: { labels:[], plan:[], actual:[] } };
   const gravNodes = nodes || [];
 
+  // Drift chartをCanvas2Dで描画
+  // NOTE: このHookは必ず早期returnより前に置くこと。
+  // gravNodesの有無でHooks呼び出し数が変わると、Project切り替え時に
+  // 同一コンポーネントインスタンス内でHooks数不一致となりReactがクラッシュする(白画面化)。
+  useEffect(() => {
+    if (activeTab !== "drift" || !canvasRef.current) return;
+    if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; }
+    const { labels, plan, actual } = drift || { labels: [], plan: [], actual: [] };
+
+    // Dynamic import of Chart.js via window.Chart (loaded globally)
+    const draw = () => {
+      if (!window.Chart) { setTimeout(draw, 100); return; }
+      chartRef.current = new window.Chart(canvasRef.current, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            { label: "予測", data: plan,   borderColor: "#534AB7", borderWidth: 2, borderDash: [5,3], pointRadius: 0, fill: false, tension: 0.3 },
+            { label: "実績", data: actual, borderColor: "#5DB99A", borderWidth: 2, pointRadius: 3,    pointBackgroundColor: "#5DB99A", fill: "-1", backgroundColor: "rgba(175,169,236,0.22)", tension: 0.3 },
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+            y: { min: 0, max: 110, ticks: { font: { size: 10 }, callback: v => v + "%" }, grid: { color: "rgba(0,0,0,0.05)" } }
+          }
+        }
+      });
+    };
+    draw();
+    return () => { if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; } };
+  }, [activeTab, project]);
+
   // データ未入力の場合は空状態を表示
   if (!gravNodes || gravNodes.length === 0) {
     return (
@@ -1889,38 +1953,6 @@ function GravityView({ project }) {
     if (w >= 2)   return { stroke: "#AFA9EC", width: w * 0.5, opacity: 0.55 };
     return              { stroke: "#C8EDE3", width: 1.0,     opacity: 0.45 };
   };
-
-  // Drift chartをCanvas2Dで描画
-  useEffect(() => {
-    if (activeTab !== "drift" || !canvasRef.current) return;
-    if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; }
-    const { labels, plan, actual } = drift;
-
-    // Dynamic import of Chart.js via window.Chart (loaded globally)
-    const draw = () => {
-      if (!window.Chart) { setTimeout(draw, 100); return; }
-      chartRef.current = new window.Chart(canvasRef.current, {
-        type: "line",
-        data: {
-          labels,
-          datasets: [
-            { label: "予測", data: plan,   borderColor: "#534AB7", borderWidth: 2, borderDash: [5,3], pointRadius: 0, fill: false, tension: 0.3 },
-            { label: "実績", data: actual, borderColor: "#5DB99A", borderWidth: 2, pointRadius: 3,    pointBackgroundColor: "#5DB99A", fill: "-1", backgroundColor: "rgba(175,169,236,0.22)", tension: 0.3 },
-          ]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-            y: { min: 0, max: 110, ticks: { font: { size: 10 }, callback: v => v + "%" }, grid: { color: "rgba(0,0,0,0.05)" } }
-          }
-        }
-      });
-    };
-    draw();
-    return () => { if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; } };
-  }, [activeTab, project]);
 
   const avgCoupling = (gravNodes.reduce((a, n) => a + n.coupling, 0) / gravNodes.length).toFixed(1);
   const highGravity = gravNodes.filter(n => n.coupling / maxC > 0.7).length;
@@ -2097,10 +2129,15 @@ function ProjectListRow({ project, selected, onClick }) {
   const scoreBadge = { critical: { bg: "#FEF2F2", color: C.critical }, warn: { bg: "#FFFBEB", color: "#92400E" }, healthy: { bg: "#F0FDF4", color: "#166534" } }[project.status] || { bg: C.bg, color: C.textMid };
   const critCount = project.alerts.filter(a => a.level === "critical").length;
   return (
-    <div onClick={() => onClick(project)} style={{ padding: "10px 14px", background: selected ? C.bg : C.bgCard, borderLeft: "3px solid transparent", borderBottom: `1px solid ${C.border}`, cursor: "pointer", transition: "background 0.1s" }}
+    <div onClick={() => onClick(project)} style={{ position: "relative", padding: "10px 14px", background: selected ? C.bg : C.bgCard, borderLeft: "3px solid transparent", borderBottom: `1px solid ${C.border}`, cursor: "pointer", transition: "background 0.1s" }}
       onMouseEnter={e => { if (!selected) e.currentTarget.style.background = C.bg; }}
       onMouseLeave={e => { if (!selected) e.currentTarget.style.background = C.bgCard; }}
     >
+      {project.isSample && (
+        <span style={{ position: "absolute", top: 8, right: 10, fontSize: 8, fontWeight: 600, color: C.textWeak, letterSpacing: "0.05em", fontFamily: "'DM Mono', monospace", opacity: 0.55 }}>
+          SAMPLE
+        </span>
+      )}
       <div style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace", marginBottom: 2 }}>{project.code}</div>
       <div style={{ fontSize: 12, fontWeight: 600, color: C.text, marginBottom: 6 }}>{project.name}</div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
@@ -2195,17 +2232,14 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
     const teamCount = parseInt((form.team || "").match(/\d+/)?.[0] || "5");
     const stakeList = (form.stakeholders || "").split(/[、,，]/).map(s => s.trim()).filter(Boolean);
     const daysLeft = Math.max(10, Math.floor((new Date(form.due) - new Date()) / 86400000));
-    const newProject = {
+    // Project State Contract(createEmptyProject)をベースに、フォーム入力分だけ上書きする。
+    // 体制図(stakeholderNames)はPMも含め全ロールをブランクのままにする
+    // (=StakeholderViewのhasNameロジックにより自動でグレーアウト表示される)。
+    const newProject = createEmptyProject({
       id: Date.now(), code: nextCode, name: form.name, owner: form.owner,
-      due: form.due, daysLeft, progress: 0, team: teamCount || 5,
-      score: 0, staticScore: 0, dynamicScore: 0, status: "healthy",
-      trend: [0,0,0,0,0,0,0,0],
-      static:  { schedule: 0, tasks: 0, risk: 0 },
-      dynamic: { stakeholder: 0, team: 0, decision: 0 },
+      due: form.due, daysLeft, team: teamCount || 5,
       alerts: [{ level: "info", axis: "S", text: "プロジェクト登録完了 — データ入力待ち" }],
       events: [{ date: new Date().toLocaleDateString("ja-JP", { month: "2-digit", day: "2-digit" }), type: "normal", text: "プロジェクト登録完了" }],
-      glossary: [],
-      stakeholderNames: { "n1":{ name:"", isVendor:false }, "n2":{ name:form.owner||"", isVendor:false }, "n3":{ name:"", isVendor:false } },
       stakeholders: [
         { name: form.owner, role: "PM", status: "active" },
         ...(form.approver ? [{ name: form.approver, role: "承認者", status: "active" }] : []),
@@ -2216,7 +2250,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
         edges: [],
         drift: { labels:["W1","W2","W3","W4","W5","W6","W7","W8"], plan:[100,87,74,61,48,35,22,9], actual:[100,100,100,100,100,100,100,100] },
       },
-    };
+    });
     setCreating(false);
     onCreated(newProject);
     setForm({}); setFileStatus(null);
