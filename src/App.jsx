@@ -2542,18 +2542,22 @@ function GhostSearch({ project, visible, onClose, onApplyData, onApplyGravity, i
     const stakeholderSummary = filledRoles.length
       ? filledRoles.map(n => {
           const label = (n.label || "").replace(/\n/g, "");
-          const scopePart = n.scope ? `担当:${n.scope}` : "";
-          const notePart = n.note ? `備考:${n.note}` : "";
-          return `${label}=${n.name}${scopePart ? "(" + scopePart + (notePart ? "/" + notePart : "") + ")" : (notePart ? "(" + notePart + ")" : "")}`;
+          const parts = [];
+          if (n.scope) parts.push(`担当:${n.scope}`);
+          if (n.note) parts.push(`備考:${n.note}`);
+          if (n.isVendor) parts.push("外部ベンダ");
+          if (n.hasNote) parts.push("要確認事項あり");
+          return `${label}=${n.name}${parts.length ? "(" + parts.join("/") + ")" : ""}`;
         }).join(" / ")
       : "未入力";
     return `あなたはPMO Intelligence「Metis」のAIアシスタントです。以下のプロジェクトデータを参照して日本語で答えてください。
 読みやすさのため、2〜3文ごとに必ず改行（空行）を入れて段落分けしてください。一つの段落に詰め込みすぎず、要因が複数ある場合は段落ごとに分けて説明してください。マークダウンの見出しや装飾記号（#や**など）は使わないでください。
+体制データの扱い方について: 各ロールの担当範囲(担当)・備考・外部ベンダ有無・要確認事項の有無は、その人物の重要性を判断する定性的な材料です。数値的な重み付けはまだ設計されていないため厳密なスコアとしては扱わず、「担当範囲が広い」「備考や確認事項が多い」「複数の重要な依存関係を持つ」といった情報が多い人物ほど、プロジェクト運営上の重要度・キーマン度が高い可能性がある、という定性的な推論材料として扱ってください。断定はせず、「〜という情報が多く、重要人物である可能性があります」のように根拠を添えて答えてください。
 ${p.code} ${p.name} / スコア${p.score}(S:${p.staticScore} D:${p.dynamicScore}) / ${p.status} / PM:${p.owner} / 残${p.daysLeft}日 / 進捗${p.progress}%
 Static: schedule${p.static?.schedule||0} tasks${p.static?.tasks||0} risk${p.static?.risk||0}
 Dynamic: stakeholder${p.dynamic?.stakeholder||0} team${p.dynamic?.team||0} decision${p.dynamic?.decision||0}
 アラート: ${(p.alerts||[]).map(a=>`[${a.level}][${a.axis}]${a.text}`).join(" / ")}
-体制(役割=氏名、担当/備考): ${stakeholderSummary}
+体制(役割=氏名、担当/備考/外部ベンダ/要確認事項): ${stakeholderSummary}
 Gravity上位ノード: ${(p.gravity?.nodes||[]).slice(0,3).map(n=>`${n.id}(coupling:${n.coupling})`).join(", ")}`;
   };
 
