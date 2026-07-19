@@ -38,6 +38,7 @@ function createEmptyProject(overrides = {}) {
     glossary: [],
     stakeholders: [],
     stakeholderNames: {},
+    stakeholderChart: null, // null = 未編集(StakeholderView側の固定テンプレートを使用)。編集/CSV取込後は{nodes,edges}が入る。
     gravity: {
       nodes: [],
       edges: [],
@@ -737,10 +738,14 @@ const DEFAULT_CHART = {
   ]
 };
 
-function StakeholderView({ project }) {
+function StakeholderView({ project, onChange }) {
   // ── 初期データ ──
+  // project.stakeholderChart が既にあれば(=編集済み or CSV取込済み)それを正として使う。
+  // 無ければ従来通り、固定テンプレート23ノードに project.stakeholderNames(名前のみ)を適用する。
   const sNames = project?.stakeholderNames || {};
-  const initNodes = () => [
+  const initNodes = () => {
+    if (project?.stakeholderChart?.nodes) return project.stakeholderChart.nodes;
+    return [
     { id:"n1",  label:"プロジェクト\nオーナー",              row:0, col:4,  name:sNames.n1?.name||"", isVendor:sNames.n1?.isVendor||false, scope:"", note:"" },
     { id:"n2",  label:"PM",                                   row:1, col:4,  name:sNames.n2?.name||"", isVendor:sNames.n2?.isVendor||false, scope:"", note:"" },
     { id:"n3",  label:"PMO",                                  row:1, col:7,  name:sNames.n3?.name||"", isVendor:sNames.n3?.isVendor||false, scope:"", note:"" },
@@ -764,8 +769,11 @@ function StakeholderView({ project }) {
     { id:"n21", label:"PG",            row:5, col:5,  name:sNames.n21?.name||"", isVendor:sNames.n21?.isVendor||false, scope:"", note:"" },
     { id:"n22", label:"PG",            row:5, col:6,  name:sNames.n22?.name||"", isVendor:sNames.n22?.isVendor||false, scope:"", note:"" },
     { id:"n23", label:"PG",            row:5, col:7,  name:sNames.n23?.name||"", isVendor:sNames.n23?.isVendor||false, scope:"", note:"" },
-  ];
-  const initEdges = () => [
+    ];
+  };
+  const initEdges = () => {
+    if (project?.stakeholderChart?.edges) return project.stakeholderChart.edges;
+    return [
     ["n1","n2"],["n2","n3"],
     ["n2","n4"],["n2","n5"],
     ["n4","n6"],["n4","n7"],["n4","n8"],
@@ -774,7 +782,8 @@ function StakeholderView({ project }) {
     ["n9","n15"],["n10","n16"],["n11","n17"],
     ["n12","n18"],["n13","n19"],["n14","n20"],
     ["n15","n21"],["n16","n22"],["n17","n23"],
-  ];
+    ];
+  };
 
   const [nodes, setNodes] = useState(initNodes);
   const [edges, setEdges] = useState(initEdges);
@@ -791,6 +800,13 @@ function StakeholderView({ project }) {
     setEdges(initEdges());
     setSelectedId(null);
   }, [project?.id]);
+
+  // 編集内容を親(project.stakeholderChart)へ書き戻す。
+  // 初回マウント時・プロジェクト切り替え直後も含め、nodes/edgesが変わるたび毎回同期する。
+  useEffect(() => {
+    if (!onChange) return;
+    onChange({ nodes, edges });
+  }, [nodes, edges]);
 
   const COL_W=110, ROW_H=88, PAD_X=20, PAD_Y=24, BOX_W=94, BOX_H=60;
   const maxCol = Math.max(...nodes.map(n=>n.col), 0);
@@ -2227,8 +2243,8 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
     try {
       const text = await file.text();
       const snippet = text.slice(0, 4000);
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST", headers: { "Content-Type": "application/json", "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+      const res = await fetch("/api/claude", {
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000,
           system: `プロジェクト情報を以下のJSON形式で抽出。見つからない項目は空文字。JSONのみ返す。{"name":"","due":"","scope":"","assumption":"","success":"","owner":"","stakeholders":"","approver":"","team":"","risks":""}`,
           messages: [{ role: "user", content: `以下のファイルからプロジェクト情報を抽出:\n\n${snippet}` }] }),
@@ -2438,7 +2454,7 @@ function GhostPulse({ pulse, onDismiss, onExpand }) {
   );
 }
 
-function GhostSearch({ project, visible, onClose, onApplyData, initialQuery }) {
+function GhostSearch({ project, visible, onClose, onApplyData, onApplyGravity, initialQuery }) {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -2457,13 +2473,27 @@ function GhostSearch({ project, visible, onClose, onApplyData, initialQuery }) {
     if (visible && initialQuery) setQuery(initialQuery);
   }, [visible, initialQuery]);
 
-  const buildContext = (p) => `あなたはPMO Intelligence「Metis」のAIアシスタントです。以下のプロジェクトデータを参照して日本語で答えてください。
+  const buildContext = (p) => {
+    // 体制図: stakeholderChart(編集済み/CSV取込済み)を優先。未編集なら旧stakeholderNamesのみ参照。
+    const chartNodes = p.stakeholderChart?.nodes || [];
+    const filledRoles = chartNodes.filter(n => n.name);
+    const stakeholderSummary = filledRoles.length
+      ? filledRoles.map(n => {
+          const label = (n.label || "").replace(/\n/g, "");
+          const scopePart = n.scope ? `担当:${n.scope}` : "";
+          const notePart = n.note ? `備考:${n.note}` : "";
+          return `${label}=${n.name}${scopePart ? "(" + scopePart + (notePart ? "/" + notePart : "") + ")" : (notePart ? "(" + notePart + ")" : "")}`;
+        }).join(" / ")
+      : "未入力";
+    return `あなたはPMO Intelligence「Metis」のAIアシスタントです。以下のプロジェクトデータを参照して日本語で答えてください。
 読みやすさのため、2〜3文ごとに必ず改行（空行）を入れて段落分けしてください。一つの段落に詰め込みすぎず、要因が複数ある場合は段落ごとに分けて説明してください。マークダウンの見出しや装飾記号（#や**など）は使わないでください。
 ${p.code} ${p.name} / スコア${p.score}(S:${p.staticScore} D:${p.dynamicScore}) / ${p.status} / PM:${p.owner} / 残${p.daysLeft}日 / 進捗${p.progress}%
 Static: schedule${p.static?.schedule||0} tasks${p.static?.tasks||0} risk${p.static?.risk||0}
 Dynamic: stakeholder${p.dynamic?.stakeholder||0} team${p.dynamic?.team||0} decision${p.dynamic?.decision||0}
 アラート: ${(p.alerts||[]).map(a=>`[${a.level}][${a.axis}]${a.text}`).join(" / ")}
+体制(役割=氏名、担当/備考): ${stakeholderSummary}
 Gravity上位ノード: ${(p.gravity?.nodes||[]).slice(0,3).map(n=>`${n.id}(coupling:${n.coupling})`).join(", ")}`;
+  };
 
   const parseCSV = (text) => {
     const lines = text.split("\n").map(l=>l.trim()).filter(Boolean);
@@ -2478,19 +2508,23 @@ Gravity上位ノード: ${(p.gravity?.nodes||[]).slice(0,3).map(n=>`${n.id}(coup
     setLoading(true);
 
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", { method:"POST", headers:{"Content-Type":"application/json", "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true"},
-        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000,
-          system:`あなたはCSVファイルの用途を判定するAIです。ヘッダー情報からファイルの種類を判定し、必ずJSONのみで返してください。
+      const res = await fetch("/api/claude", { method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1500,
+          system:`あなたはCSVファイルの用途を判定し、可能であれば正規化データも抽出するAIです。必ずJSONのみで返してください（前置き・説明文は禁止）。
 判定結果は以下のいずれか: "schedule"（WBS・ガントチャート・スケジュール）, "stakeholders"（体制図・組織図・役割一覧）, "unknown"（判定不能）
-返すJSONの形式: {"type":"schedule","message":"WBS・スケジュールデータと判定しました。スケジュールビューに反映しますか？","confidence":"high"}`,
+
+typeが"schedule"の場合、以下の形式でtasks配列も返してください（読み取れない項目は妥当な推測でよい。精度は低くても構わない）:
+tasks: [{"id":"t1","name":"タスク名","assignee":"担当者名（不明なら空文字）","start":"YYYY-MM-DD","end":"YYYY-MM-DD","progress":0-100の数値,"status":"done|active|delay|pending"}]
+
+返すJSONの形式: {"type":"schedule","message":"...","confidence":"high","tasks":[...]}（stakeholders/unknownの場合はtasksキーは省略可）`,
           messages:[{ role:"user", content:`CSVヘッダー: ${headerStr}
-最初の3行: ${rows.slice(0,3).map(r=>Object.values(r).join(",")).join(" / ")}` }] }) });
+全${rows.length}行のうち最初の15行: ${rows.slice(0,15).map(r=>Object.values(r).join(",")).join(" / ")}` }] }) });
       const data = await res.json();
       const raw = data.content?.[0]?.text || "{}";
       const clean = raw.replace(/```json|```/g,"").trim();
       const result = JSON.parse(clean);
 
-      setPendingAction({ type: result.type, csvText, header, rows, filename });
+      setPendingAction({ type: result.type, csvText, header, rows, filename, tasks: result.tasks || null });
       setMessages(prev=>[...prev, { role:"assistant", text: result.message || "ファイルを読み込みました。" }]);
 
       if(result.type !== "unknown") {
@@ -2499,6 +2533,48 @@ Gravity上位ノード: ${(p.gravity?.nodes||[]).slice(0,3).map(n=>`${n.id}(coup
     } catch(e) {
       setMessages(prev=>[...prev, { role:"assistant", text:"ファイルの解析中にエラーが発生しました。" }]);
     }
+
+    // ── Node/Edge抽出(Excel Edge Ontology準拠) ──
+    // CSVの種別判定(schedule/stakeholders/unknown)とは独立して、
+    // ファイル内容から意味的なノード・エッジを抽出しGravityへ反映する。
+    // 精度は求めず、読み取れる範囲でベストエフォートに構造化する。
+    if (onApplyGravity) {
+      try {
+        const existingIds = (project.gravity?.nodes || []).map(n => n.id);
+        const sampleText = rows.slice(0, 20).map(r => Object.entries(r).map(([k,v])=>`${k}:${v}`).join(" ")).join("\n");
+        const exRes = await fetch("/api/claude", { method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1500,
+            system:`あなたはプロジェクトドキュメント(CSV/議事録/WBS等)からMetisのナレッジグラフ用のノードとエッジを抽出するAIです。
+必ずJSONのみを返してください（前置き・説明・マークダウン記号は一切禁止）。
+
+■ ノード分類(category)は次の5種類のいずれか: Concept(概念・抽象概念) / Organization(人物・役職・チーム・ベンダー) / Process(手順・作業・成果物生成プロセス) / Issue(問題・リスク・懸念事項) / Artifact(成果物・文書・システム)
+■ エッジ種別(edge_type)は次の5種類のいずれか:
+  Structural(所属する/管理する/所有する/報告する)
+  Dependency(依存する/参照する/必要とする/制約される)
+  Temporal(先行する/後続する/トリガーする/完了条件となる)
+  Governance(承認する/決定する/委任する/エスカレーションする)
+  Knowledge(学習する/引き継ぐ/利用する/派生する/共有する)
+
+既存ノード(重複させず、可能な限りこれらを再利用してsourceやtargetに使う): ${existingIds.join(", ") || "なし"}
+
+返すJSON形式(このキーのみ):
+{"nodes":[{"id":"ノード名(短い名詞、既存ノードと表記揺れさせない)","category":"Concept|Organization|Process|Issue|Artifact"}],
+ "edges":[{"source":"ノード名","target":"ノード名","edge_type":"Structural|Dependency|Temporal|Governance|Knowledge","direction":"→|↔","strength":0.0から1.0の数値,"frequency":"daily|weekly|per-phase|event-driven|once","label":"動詞句","note":"根拠の要約(20字以内)"}]}
+精度は多少低くても構いません。読み取れる範囲でベストエフォートに構造化してください。ノードは最大12個、エッジは最大18個までに絞ってください。読み取れる関係が無ければ空配列を返してください。`,
+            messages:[{ role:"user", content:`ファイル名: ${filename}\nヘッダー: ${headerStr}\n内容:\n${sampleText}` }] }) });
+        const exData = await exRes.json();
+        const exRaw = exData.content?.[0]?.text || "{}";
+        const exClean = exRaw.replace(/```json|```/g,"").trim();
+        const extracted = JSON.parse(exClean);
+        if ((extracted.nodes?.length || extracted.edges?.length)) {
+          onApplyGravity(extracted);
+          setMessages(prev=>[...prev, { role:"assistant", text:`セマンティックスペースに ${extracted.nodes?.length||0} 個のノードと ${extracted.edges?.length||0} 本のエッジ(候補)を反映しました。精度は保証されないため、Gravity Viewで内容をご確認ください。` }]);
+        }
+      } catch (e) {
+        // 抽出失敗はサイレントに無視(CSV種別判定自体は成功しているため、ここで会話を止めない)
+      }
+    }
+
     setLoading(false);
   };
 
@@ -2517,7 +2593,7 @@ Gravity上位ノード: ${(p.gravity?.nodes||[]).slice(0,3).map(n=>`${n.id}(coup
   };
 
   const handleApply = (type, rows) => {
-    onApplyData(type, rows);
+    onApplyData(type, rows, pendingAction?.tasks || null);
     setMessages(prev=>[...prev, { role:"assistant", text: type==="schedule" ? "スケジュールビューに反映しました。ダッシュボードでご確認ください。" : "Stakeholdersタブに体制図を反映しました。" }]);
     setPendingAction(null);
   };
@@ -2532,7 +2608,7 @@ Gravity上位ノード: ${(p.gravity?.nodes||[]).slice(0,3).map(n=>`${n.id}(coup
     setMessages(prev => [...prev, { role:"assistant", text:"", streaming:true, id:streamId }]);
 
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", { method:"POST", headers:{"Content-Type":"application/json", "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true"},
+      const res = await fetch("/api/claude", { method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000, system:buildContext(project), stream:true,
           messages:[...messages.filter(m=>m.role==="user"||m.role==="assistant").map(m=>({ role:m.role==="user"?"user":"assistant", content:m.text })), { role:"user", content:q }] }) });
 
@@ -2750,6 +2826,108 @@ export default function App() {
   });
   const archivedCount = projects.filter(p => p.archived).length;
 
+  // Stakeholdersタブでの編集(役割名・業務スコープ・メモ・体制構造)をprojectに永続化する
+  const handleStakeholderChartChange = (chart) => {
+    if (!selected) return;
+    setProjects(prev => prev.map(pr => pr.id === selected.id ? { ...pr, stakeholderChart: chart } : pr));
+    setSelected(prevSel => (prevSel && prevSel.id === selected.id) ? { ...prevSel, stakeholderChart: chart } : prevSel);
+  };
+
+  // GhostでCSV取り込み→"stakeholders"と判定された場合、role/name/parent行から
+  // 体制図(nodes/edges)を組み立ててproject.stakeholderChartへ実際に反映する。
+  // (以前はここが未接続で、成功メッセージだけ出て実際は何も反映されないデッドコードだった)
+  useEffect(() => {
+    if (!ghostApplyTarget || ghostApplyTarget.type !== "stakeholders" || !selected) return;
+    const rows = ghostApplyTarget.rows || [];
+    if (rows.length === 0 || !("role" in (rows[0] || {}))) { setGhostApplyTarget(null); return; }
+
+    const nodeMap = {};
+    rows.forEach((r, i) => {
+      nodeMap[r.role] = { id: "csv" + i, label: (r.role || "").replace(/\s+/g, "\n"), name: r.name || "", row: 0, col: 0, scope: "", note: "" };
+    });
+    const colCount = {};
+    const visited = {};
+    const roots = rows.filter(r => !r.parent || !nodeMap[r.parent]);
+    const queue = roots.map(r => ({ role: r.role, row: 0 }));
+    while (queue.length) {
+      const { role, row } = queue.shift();
+      if (visited[role] || !nodeMap[role]) continue;
+      visited[role] = true;
+      colCount[row] = colCount[row] || 0;
+      nodeMap[role].row = row;
+      nodeMap[role].col = colCount[row];
+      colCount[row]++;
+      rows.filter(r => r.parent === role).forEach(child => queue.push({ role: child.role, row: row + 1 }));
+    }
+    const newEdges = [];
+    rows.forEach(r => { if (r.parent && nodeMap[r.parent] && nodeMap[r.role]) newEdges.push([nodeMap[r.parent].id, nodeMap[r.role].id]); });
+    const chart = { nodes: Object.values(nodeMap), edges: newEdges };
+
+    setProjects(prev => prev.map(pr => pr.id === selected.id ? { ...pr, stakeholderChart: chart } : pr));
+    setSelected(prevSel => (prevSel && prevSel.id === selected.id) ? { ...prevSel, stakeholderChart: chart } : prevSel);
+    setGhostApplyTarget(null);
+  }, [ghostApplyTarget]);
+
+  // GhostでCSV取り込み→"schedule"と判定された場合、Claudeが正規化したtasks配列を
+  // project.tasksへ実際に反映する(以前はここも未接続で反映されなかった)。
+  useEffect(() => {
+    if (!ghostApplyTarget || ghostApplyTarget.type !== "schedule" || !selected) return;
+    const tasks = ghostApplyTarget.tasks;
+    if (!tasks || !tasks.length) { setGhostApplyTarget(null); return; }
+    setProjects(prev => prev.map(pr => pr.id === selected.id ? { ...pr, tasks } : pr));
+    setSelected(prevSel => (prevSel && prevSel.id === selected.id) ? { ...prevSel, tasks } : prevSel);
+    setGhostApplyTarget(null);
+  }, [ghostApplyTarget]);
+
+  // Ghostが抽出したNode/Edge(Excel Edge Ontology準拠)をproject.gravityへマージする。
+  // 既存ノードは重複させず、新規ノードのみ追加。表示側(GravityView)は既存の
+  // coupling/depStr/changeProb/commFreqを前提にしているため、ここで一度だけ
+  // strength/frequency/edge_typeから互換値を計算してノードに直接持たせる
+  // (GravityView側のコードは変更不要)。
+  const handleGravityExtract = (extracted) => {
+    if (!selected) return;
+    const existingNodes = selected.gravity?.nodes || [];
+    const existingIds = new Set(existingNodes.map(n => n.id));
+    const newNodesRaw = (extracted.nodes || []).filter(n => n.id && !existingIds.has(n.id));
+    const allEdgesRaw = (extracted.edges || []).filter(e => e.source && e.target && e.edge_type);
+
+    const FREQ_SCORE = { daily: 100, weekly: 70, "per-phase": 50, "event-driven": 30, once: 10 };
+    const TYPE_MAP = { Concept: "concept", Organization: "org", Process: "proc", Issue: "signal", Artifact: "concept" };
+
+    const computeDerived = (nodeId) => {
+      const touching = allEdgesRaw.filter(e => e.source === nodeId || e.target === nodeId);
+      const strengths = touching.map(e => typeof e.strength === "number" ? e.strength : 0.5);
+      const coupling = strengths.length ? +(strengths.reduce((a, b) => a + b, 0) / strengths.length * 5).toFixed(1) : 1.0;
+      const depStrengths = touching.filter(e => e.edge_type === "Dependency").map(e => typeof e.strength === "number" ? e.strength : 0.5);
+      const depStr = depStrengths.length ? +(depStrengths.reduce((a, b) => a + b, 0) / depStrengths.length * 5).toFixed(1) : coupling;
+      const commFreq = touching.length ? Math.round(touching.reduce((a, e) => a + (FREQ_SCORE[e.frequency] || 30), 0) / touching.length) : 30;
+      const volatile = touching.filter(e => e.edge_type === "Temporal" || e.edge_type === "Governance").length;
+      const changeProb = touching.length ? Math.min(90, Math.max(20, Math.round((volatile / touching.length) * 90))) : 50;
+      return { coupling, depStr, changeProb, commFreq };
+    };
+
+    const newNodes = newNodesRaw.slice(0, 12).map(n => ({
+      id: n.id,
+      category: n.category || "Concept",
+      type: TYPE_MAP[n.category] || "concept",
+      orbit: 3,
+      source: "imported", // 手作業のデモデータと区別するためのタグ
+      ...computeDerived(n.id),
+    }));
+
+    const existingEdgeKeys = new Set((selected.gravity?.edges || []).filter(e => e.source && e.target).map(e => `${e.source}|${e.target}|${e.edge_type}`));
+    const newEdges = allEdgesRaw.filter(e => !existingEdgeKeys.has(`${e.source}|${e.target}|${e.edge_type}`)).slice(0, 18);
+
+    const chart = {
+      nodes: [...existingNodes, ...newNodes],
+      edges: [...(selected.gravity?.edges || []), ...newEdges],
+      drift: selected.gravity?.drift || { labels: [], plan: [], actual: [] },
+    };
+
+    setProjects(prev => prev.map(pr => pr.id === selected.id ? { ...pr, gravity: chart } : pr));
+    setSelected(prevSel => (prevSel && prevSel.id === selected.id) ? { ...prevSel, gravity: chart } : prevSel);
+  };
+
   const p = selected;
   const st = STATUS[p.status];
   const avgStatic  = Math.round(Object.values(p.static || {schedule:0,tasks:0,risk:0}).reduce((a,v)=>a+v,0)/3);
@@ -2883,7 +3061,7 @@ export default function App() {
           </div>
         ) : activeNavTab === "Stakeholders" ? (
           <div style={{ flex: 1, overflow: "hidden", display: "flex" }}>
-            <StakeholderView project={selected} />
+            <StakeholderView project={selected} onChange={handleStakeholderChartChange} />
           </div>
         ) : (
         <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
@@ -3052,7 +3230,7 @@ export default function App() {
         <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>Metis　alpha　v0.2.0</span>
       </div>
 
-      <GhostSearch project={selected} visible={ghostOpen} onClose={() => { setGhostOpen(false); setGhostContext(null); }} onApplyData={(type, rows) => { setGhostApplyTarget({ type, rows }); if(type === "stakeholders") setActiveNavTab("Stakeholders"); }} initialQuery={ghostContext} />
+      <GhostSearch project={selected} visible={ghostOpen} onClose={() => { setGhostOpen(false); setGhostContext(null); }} onApplyData={(type, rows, tasks) => { setGhostApplyTarget({ type, rows, tasks }); if(type === "stakeholders") setActiveNavTab("Stakeholders"); if(type === "schedule") setActiveNavTab("Dashboard"); }} onApplyGravity={handleGravityExtract} initialQuery={ghostContext} />
       <CreateProjectModal visible={createOpen} onClose={() => setCreateOpen(false)} onCreated={handleCreated} nextCode={nextCode} />
 
       {/* Ghost スライドイン通知スタック */}
