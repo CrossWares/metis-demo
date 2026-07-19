@@ -86,34 +86,34 @@ const INITIAL_PROJECTS = [
     ],
     gravity: {
       nodes: [
-        { id:"プロジェクト", coupling:4.1, depStr:3.3, changeProb:55, commFreq:56, orbit:0, type:"concept" },
-        { id:"PM", coupling:3.1, depStr:2.9, changeProb:31, commFreq:79, orbit:1, type:"human" },
-        { id:"リスク管理", coupling:2.6, depStr:2.1, changeProb:49, commFreq:89, orbit:1, type:"concept" },
-        { id:"フェーズ", coupling:4.0, depStr:3.6, changeProb:73, commFreq:53, orbit:1, type:"concept" },
-        { id:"PMO", coupling:3.6, depStr:3.1, changeProb:20, commFreq:45, orbit:2, type:"human" },
-        { id:"完了定義", coupling:4.2, depStr:3.6, changeProb:39, commFreq:52, orbit:2, type:"concept" },
-        { id:"課題対応", coupling:4.9, depStr:4.2, changeProb:31, commFreq:73, orbit:2, type:"signal" },
-        { id:"意味共有", coupling:2.7, depStr:2.6, changeProb:53, commFreq:30, orbit:2, type:"concept" },
-        { id:"情報ハブ", coupling:4.3, depStr:3.9, changeProb:68, commFreq:35, orbit:3, type:"human" },
-        { id:"ステークホルダー", coupling:3.9, depStr:3.8, changeProb:66, commFreq:49, orbit:3, type:"human" },
-        { id:"暗黙知", coupling:4.3, depStr:3.5, changeProb:49, commFreq:62, orbit:3, type:"concept" },
-        { id:"シグナル", coupling:5.0, depStr:4.9, changeProb:32, commFreq:73, orbit:3, type:"signal" },
-        { id:"承認フロー", coupling:3.2, depStr:3.0, changeProb:66, commFreq:45, orbit:3, type:"proc" },
-        { id:"キーマン", coupling:3.4, depStr:2.9, changeProb:54, commFreq:34, orbit:4, type:"human" },
-        { id:"ベンダー", coupling:4.0, depStr:3.3, changeProb:51, commFreq:45, orbit:4, type:"org" },
-        { id:"組織文化", coupling:3.7, depStr:3.2, changeProb:48, commFreq:66, orbit:4, type:"org" },
-        { id:"WBS", coupling:4.6, depStr:4.4, changeProb:49, commFreq:29, orbit:4, type:"proc" },
-        { id:"変更管理", coupling:4.5, depStr:4.0, changeProb:28, commFreq:52, orbit:4, type:"proc" },
-        { id:"形式知", coupling:4.8, depStr:4.4, changeProb:60, commFreq:52, orbit:4, type:"concept" },
-        { id:"外部知見", coupling:4.1, depStr:3.6, changeProb:78, commFreq:43, orbit:5, type:"human" },
-        { id:"クライアント", coupling:3.2, depStr:2.7, changeProb:53, commFreq:79, orbit:5, type:"org" },
-        { id:"ベンダ体制", coupling:4.7, depStr:4.1, changeProb:48, commFreq:42, orbit:5, type:"org" },
-        { id:"エスカレーション", coupling:3.8, depStr:3.1, changeProb:26, commFreq:39, orbit:5, type:"proc" },
-        { id:"報告", coupling:2.9, depStr:2.4, changeProb:74, commFreq:33, orbit:5, type:"proc" },
-        { id:"会議", coupling:3.5, depStr:3.2, changeProb:79, commFreq:92, orbit:5, type:"proc" },
-        { id:"レポートライン", coupling:3.1, depStr:2.8, changeProb:21, commFreq:39, orbit:5, type:"proc" },
-        { id:"スコープクリープ", coupling:4.2, depStr:3.8, changeProb:54, commFreq:68, orbit:5, type:"signal" },
-        { id:"工程未完了", coupling:2.8, depStr:2.5, changeProb:78, commFreq:25, orbit:5, type:"signal" },
+        { id:"プロジェクト", coupling:4.1, depStr:3.3, changeProb:55, commFreq:56, orbit:0, category:"Concept" },
+        { id:"PM", coupling:3.1, depStr:2.9, changeProb:31, commFreq:79, orbit:1, category:"Organization" },
+        { id:"リスク管理", coupling:2.6, depStr:2.1, changeProb:49, commFreq:89, orbit:1, category:"Concept" },
+        { id:"フェーズ", coupling:4.0, depStr:3.6, changeProb:73, commFreq:53, orbit:1, category:"Concept" },
+        { id:"PMO", coupling:3.6, depStr:3.1, changeProb:20, commFreq:45, orbit:2, category:"Organization" },
+        { id:"完了定義", coupling:4.2, depStr:3.6, changeProb:39, commFreq:52, orbit:2, category:"Concept" },
+        { id:"課題対応", coupling:4.9, depStr:4.2, changeProb:31, commFreq:73, orbit:2, category:"Issue" },
+        { id:"意味共有", coupling:2.7, depStr:2.6, changeProb:53, commFreq:30, orbit:2, category:"Concept" },
+        { id:"情報ハブ", coupling:4.3, depStr:3.9, changeProb:68, commFreq:35, orbit:3, category:"Organization" },
+        { id:"ステークホルダー", coupling:3.9, depStr:3.8, changeProb:66, commFreq:49, orbit:3, category:"Organization" },
+        { id:"暗黙知", coupling:4.3, depStr:3.5, changeProb:49, commFreq:62, orbit:3, category:"Concept" },
+        { id:"シグナル", coupling:5.0, depStr:4.9, changeProb:32, commFreq:73, orbit:3, category:"Issue" },
+        { id:"承認フロー", coupling:3.2, depStr:3.0, changeProb:66, commFreq:45, orbit:3, category:"Process" },
+        { id:"キーマン", coupling:3.4, depStr:2.9, changeProb:54, commFreq:34, orbit:4, category:"Organization" },
+        { id:"ベンダー", coupling:4.0, depStr:3.3, changeProb:51, commFreq:45, orbit:4, category:"Organization" },
+        { id:"組織文化", coupling:3.7, depStr:3.2, changeProb:48, commFreq:66, orbit:4, category:"Organization" },
+        { id:"WBS", coupling:4.6, depStr:4.4, changeProb:49, commFreq:29, orbit:4, category:"Process" },
+        { id:"変更管理", coupling:4.5, depStr:4.0, changeProb:28, commFreq:52, orbit:4, category:"Process" },
+        { id:"形式知", coupling:4.8, depStr:4.4, changeProb:60, commFreq:52, orbit:4, category:"Concept" },
+        { id:"外部知見", coupling:4.1, depStr:3.6, changeProb:78, commFreq:43, orbit:5, category:"Organization" },
+        { id:"クライアント", coupling:3.2, depStr:2.7, changeProb:53, commFreq:79, orbit:5, category:"Organization" },
+        { id:"ベンダ体制", coupling:4.7, depStr:4.1, changeProb:48, commFreq:42, orbit:5, category:"Organization" },
+        { id:"エスカレーション", coupling:3.8, depStr:3.1, changeProb:26, commFreq:39, orbit:5, category:"Process" },
+        { id:"報告", coupling:2.9, depStr:2.4, changeProb:74, commFreq:33, orbit:5, category:"Process" },
+        { id:"会議", coupling:3.5, depStr:3.2, changeProb:79, commFreq:92, orbit:5, category:"Process" },
+        { id:"レポートライン", coupling:3.1, depStr:2.8, changeProb:21, commFreq:39, orbit:5, category:"Process" },
+        { id:"スコープクリープ", coupling:4.2, depStr:3.8, changeProb:54, commFreq:68, orbit:5, category:"Issue" },
+        { id:"工程未完了", coupling:2.8, depStr:2.5, changeProb:78, commFreq:25, orbit:5, category:"Issue" },
       ],
       edges: [
         { s:0,t:1,w:3.1 },{ s:0,t:2,w:2.6 },{ s:0,t:3,w:4.0 },{ s:0,t:6,w:4.9 },
@@ -158,34 +158,34 @@ const INITIAL_PROJECTS = [
     ],
     gravity: {
       nodes: [
-        { id:"プロジェクト", coupling:2.4, depStr:2.2, changeProb:21, commFreq:58, orbit:0, type:"concept" },
-        { id:"PM", coupling:3.8, depStr:3.7, changeProb:45, commFreq:58, orbit:1, type:"human" },
-        { id:"リスク管理", coupling:2.0, depStr:1.8, changeProb:44, commFreq:89, orbit:1, type:"concept" },
-        { id:"フェーズ", coupling:1.8, depStr:1.7, changeProb:66, commFreq:83, orbit:1, type:"concept" },
-        { id:"PMO", coupling:3.3, depStr:2.9, changeProb:41, commFreq:29, orbit:2, type:"human" },
-        { id:"完了定義", coupling:2.5, depStr:2.0, changeProb:44, commFreq:44, orbit:2, type:"concept" },
-        { id:"課題対応", coupling:2.4, depStr:2.3, changeProb:77, commFreq:37, orbit:2, type:"signal" },
-        { id:"意味共有", coupling:3.8, depStr:3.5, changeProb:51, commFreq:43, orbit:2, type:"concept" },
-        { id:"情報ハブ", coupling:2.1, depStr:2.0, changeProb:85, commFreq:70, orbit:3, type:"human" },
-        { id:"ステークホルダー", coupling:2.4, depStr:1.9, changeProb:64, commFreq:51, orbit:3, type:"human" },
-        { id:"暗黙知", coupling:2.6, depStr:2.1, changeProb:51, commFreq:37, orbit:3, type:"concept" },
-        { id:"シグナル", coupling:2.4, depStr:2.1, changeProb:83, commFreq:70, orbit:3, type:"signal" },
-        { id:"承認フロー", coupling:2.4, depStr:2.0, changeProb:58, commFreq:52, orbit:3, type:"proc" },
-        { id:"キーマン", coupling:2.1, depStr:1.9, changeProb:61, commFreq:58, orbit:4, type:"human" },
-        { id:"ベンダー", coupling:2.0, depStr:1.9, changeProb:53, commFreq:28, orbit:4, type:"org" },
-        { id:"組織文化", coupling:1.9, depStr:1.6, changeProb:80, commFreq:66, orbit:4, type:"org" },
-        { id:"WBS", coupling:3.2, depStr:2.9, changeProb:84, commFreq:64, orbit:4, type:"proc" },
-        { id:"変更管理", coupling:3.7, depStr:3.2, changeProb:38, commFreq:31, orbit:4, type:"proc" },
-        { id:"形式知", coupling:2.8, depStr:2.5, changeProb:36, commFreq:36, orbit:4, type:"concept" },
-        { id:"外部知見", coupling:2.2, depStr:2.0, changeProb:55, commFreq:84, orbit:5, type:"human" },
-        { id:"クライアント", coupling:2.7, depStr:2.3, changeProb:68, commFreq:93, orbit:5, type:"org" },
-        { id:"ベンダ体制", coupling:3.2, depStr:3.0, changeProb:83, commFreq:25, orbit:5, type:"org" },
-        { id:"エスカレーション", coupling:3.7, depStr:3.3, changeProb:78, commFreq:63, orbit:5, type:"proc" },
-        { id:"報告", coupling:3.1, depStr:2.8, changeProb:57, commFreq:26, orbit:5, type:"proc" },
-        { id:"会議", coupling:1.9, depStr:1.7, changeProb:61, commFreq:56, orbit:5, type:"proc" },
-        { id:"レポートライン", coupling:2.5, depStr:2.4, changeProb:39, commFreq:82, orbit:5, type:"proc" },
-        { id:"スコープクリープ", coupling:3.2, depStr:2.9, changeProb:64, commFreq:86, orbit:5, type:"signal" },
-        { id:"工程未完了", coupling:1.9, depStr:1.7, changeProb:56, commFreq:64, orbit:5, type:"signal" },
+        { id:"プロジェクト", coupling:2.4, depStr:2.2, changeProb:21, commFreq:58, orbit:0, category:"Concept" },
+        { id:"PM", coupling:3.8, depStr:3.7, changeProb:45, commFreq:58, orbit:1, category:"Organization" },
+        { id:"リスク管理", coupling:2.0, depStr:1.8, changeProb:44, commFreq:89, orbit:1, category:"Concept" },
+        { id:"フェーズ", coupling:1.8, depStr:1.7, changeProb:66, commFreq:83, orbit:1, category:"Concept" },
+        { id:"PMO", coupling:3.3, depStr:2.9, changeProb:41, commFreq:29, orbit:2, category:"Organization" },
+        { id:"完了定義", coupling:2.5, depStr:2.0, changeProb:44, commFreq:44, orbit:2, category:"Concept" },
+        { id:"課題対応", coupling:2.4, depStr:2.3, changeProb:77, commFreq:37, orbit:2, category:"Issue" },
+        { id:"意味共有", coupling:3.8, depStr:3.5, changeProb:51, commFreq:43, orbit:2, category:"Concept" },
+        { id:"情報ハブ", coupling:2.1, depStr:2.0, changeProb:85, commFreq:70, orbit:3, category:"Organization" },
+        { id:"ステークホルダー", coupling:2.4, depStr:1.9, changeProb:64, commFreq:51, orbit:3, category:"Organization" },
+        { id:"暗黙知", coupling:2.6, depStr:2.1, changeProb:51, commFreq:37, orbit:3, category:"Concept" },
+        { id:"シグナル", coupling:2.4, depStr:2.1, changeProb:83, commFreq:70, orbit:3, category:"Issue" },
+        { id:"承認フロー", coupling:2.4, depStr:2.0, changeProb:58, commFreq:52, orbit:3, category:"Process" },
+        { id:"キーマン", coupling:2.1, depStr:1.9, changeProb:61, commFreq:58, orbit:4, category:"Organization" },
+        { id:"ベンダー", coupling:2.0, depStr:1.9, changeProb:53, commFreq:28, orbit:4, category:"Organization" },
+        { id:"組織文化", coupling:1.9, depStr:1.6, changeProb:80, commFreq:66, orbit:4, category:"Organization" },
+        { id:"WBS", coupling:3.2, depStr:2.9, changeProb:84, commFreq:64, orbit:4, category:"Process" },
+        { id:"変更管理", coupling:3.7, depStr:3.2, changeProb:38, commFreq:31, orbit:4, category:"Process" },
+        { id:"形式知", coupling:2.8, depStr:2.5, changeProb:36, commFreq:36, orbit:4, category:"Concept" },
+        { id:"外部知見", coupling:2.2, depStr:2.0, changeProb:55, commFreq:84, orbit:5, category:"Organization" },
+        { id:"クライアント", coupling:2.7, depStr:2.3, changeProb:68, commFreq:93, orbit:5, category:"Organization" },
+        { id:"ベンダ体制", coupling:3.2, depStr:3.0, changeProb:83, commFreq:25, orbit:5, category:"Organization" },
+        { id:"エスカレーション", coupling:3.7, depStr:3.3, changeProb:78, commFreq:63, orbit:5, category:"Process" },
+        { id:"報告", coupling:3.1, depStr:2.8, changeProb:57, commFreq:26, orbit:5, category:"Process" },
+        { id:"会議", coupling:1.9, depStr:1.7, changeProb:61, commFreq:56, orbit:5, category:"Process" },
+        { id:"レポートライン", coupling:2.5, depStr:2.4, changeProb:39, commFreq:82, orbit:5, category:"Process" },
+        { id:"スコープクリープ", coupling:3.2, depStr:2.9, changeProb:64, commFreq:86, orbit:5, category:"Issue" },
+        { id:"工程未完了", coupling:1.9, depStr:1.7, changeProb:56, commFreq:64, orbit:5, category:"Issue" },
       ],
       edges: [
         { s:0,t:1,w:3.8 },{ s:0,t:2,w:2.0 },{ s:1,t:4,w:3.3 },{ s:1,t:12,w:2.4 },
@@ -226,34 +226,34 @@ const INITIAL_PROJECTS = [
     ],
     gravity: {
       nodes: [
-        { id:"プロジェクト", coupling:1.7, depStr:1.4, changeProb:43, commFreq:26, orbit:0, type:"concept" },
-        { id:"PM", coupling:1.9, depStr:1.8, changeProb:63, commFreq:84, orbit:1, type:"human" },
-        { id:"リスク管理", coupling:1.2, depStr:1.2, changeProb:35, commFreq:42, orbit:1, type:"concept" },
-        { id:"フェーズ", coupling:2.1, depStr:1.9, changeProb:61, commFreq:80, orbit:1, type:"concept" },
-        { id:"PMO", coupling:1.3, depStr:1.1, changeProb:79, commFreq:68, orbit:2, type:"human" },
-        { id:"完了定義", coupling:1.1, depStr:1.1, changeProb:51, commFreq:81, orbit:2, type:"concept" },
-        { id:"課題対応", coupling:2.6, depStr:2.2, changeProb:21, commFreq:55, orbit:2, type:"signal" },
-        { id:"意味共有", coupling:2.8, depStr:2.6, changeProb:78, commFreq:92, orbit:2, type:"concept" },
-        { id:"情報ハブ", coupling:1.0, depStr:0.9, changeProb:68, commFreq:90, orbit:3, type:"human" },
-        { id:"ステークホルダー", coupling:1.7, depStr:1.5, changeProb:82, commFreq:43, orbit:3, type:"human" },
-        { id:"暗黙知", coupling:1.7, depStr:1.4, changeProb:74, commFreq:64, orbit:3, type:"concept" },
-        { id:"シグナル", coupling:2.3, depStr:2.1, changeProb:37, commFreq:38, orbit:3, type:"signal" },
-        { id:"承認フロー", coupling:2.0, depStr:1.6, changeProb:56, commFreq:68, orbit:3, type:"proc" },
-        { id:"キーマン", coupling:2.3, depStr:2.3, changeProb:66, commFreq:90, orbit:4, type:"human" },
-        { id:"ベンダー", coupling:1.0, depStr:0.9, changeProb:65, commFreq:66, orbit:4, type:"org" },
-        { id:"組織文化", coupling:2.1, depStr:1.9, changeProb:40, commFreq:69, orbit:4, type:"org" },
-        { id:"WBS", coupling:1.6, depStr:1.4, changeProb:62, commFreq:77, orbit:4, type:"proc" },
-        { id:"変更管理", coupling:1.9, depStr:1.8, changeProb:75, commFreq:53, orbit:4, type:"proc" },
-        { id:"形式知", coupling:2.7, depStr:2.6, changeProb:24, commFreq:31, orbit:4, type:"concept" },
-        { id:"外部知見", coupling:1.6, depStr:1.4, changeProb:77, commFreq:61, orbit:5, type:"human" },
-        { id:"クライアント", coupling:1.1, depStr:0.9, changeProb:59, commFreq:43, orbit:5, type:"org" },
-        { id:"ベンダ体制", coupling:1.1, depStr:1.0, changeProb:45, commFreq:53, orbit:5, type:"org" },
-        { id:"エスカレーション", coupling:2.3, depStr:2.0, changeProb:80, commFreq:42, orbit:5, type:"proc" },
-        { id:"報告", coupling:2.2, depStr:1.8, changeProb:85, commFreq:42, orbit:5, type:"proc" },
-        { id:"会議", coupling:2.3, depStr:2.2, changeProb:81, commFreq:63, orbit:5, type:"proc" },
-        { id:"レポートライン", coupling:2.2, depStr:2.0, changeProb:31, commFreq:61, orbit:5, type:"proc" },
-        { id:"スコープクリープ", coupling:2.0, depStr:1.8, changeProb:76, commFreq:49, orbit:5, type:"signal" },
-        { id:"工程未完了", coupling:1.5, depStr:1.2, changeProb:61, commFreq:46, orbit:5, type:"signal" },
+        { id:"プロジェクト", coupling:1.7, depStr:1.4, changeProb:43, commFreq:26, orbit:0, category:"Concept" },
+        { id:"PM", coupling:1.9, depStr:1.8, changeProb:63, commFreq:84, orbit:1, category:"Organization" },
+        { id:"リスク管理", coupling:1.2, depStr:1.2, changeProb:35, commFreq:42, orbit:1, category:"Concept" },
+        { id:"フェーズ", coupling:2.1, depStr:1.9, changeProb:61, commFreq:80, orbit:1, category:"Concept" },
+        { id:"PMO", coupling:1.3, depStr:1.1, changeProb:79, commFreq:68, orbit:2, category:"Organization" },
+        { id:"完了定義", coupling:1.1, depStr:1.1, changeProb:51, commFreq:81, orbit:2, category:"Concept" },
+        { id:"課題対応", coupling:2.6, depStr:2.2, changeProb:21, commFreq:55, orbit:2, category:"Issue" },
+        { id:"意味共有", coupling:2.8, depStr:2.6, changeProb:78, commFreq:92, orbit:2, category:"Concept" },
+        { id:"情報ハブ", coupling:1.0, depStr:0.9, changeProb:68, commFreq:90, orbit:3, category:"Organization" },
+        { id:"ステークホルダー", coupling:1.7, depStr:1.5, changeProb:82, commFreq:43, orbit:3, category:"Organization" },
+        { id:"暗黙知", coupling:1.7, depStr:1.4, changeProb:74, commFreq:64, orbit:3, category:"Concept" },
+        { id:"シグナル", coupling:2.3, depStr:2.1, changeProb:37, commFreq:38, orbit:3, category:"Issue" },
+        { id:"承認フロー", coupling:2.0, depStr:1.6, changeProb:56, commFreq:68, orbit:3, category:"Process" },
+        { id:"キーマン", coupling:2.3, depStr:2.3, changeProb:66, commFreq:90, orbit:4, category:"Organization" },
+        { id:"ベンダー", coupling:1.0, depStr:0.9, changeProb:65, commFreq:66, orbit:4, category:"Organization" },
+        { id:"組織文化", coupling:2.1, depStr:1.9, changeProb:40, commFreq:69, orbit:4, category:"Organization" },
+        { id:"WBS", coupling:1.6, depStr:1.4, changeProb:62, commFreq:77, orbit:4, category:"Process" },
+        { id:"変更管理", coupling:1.9, depStr:1.8, changeProb:75, commFreq:53, orbit:4, category:"Process" },
+        { id:"形式知", coupling:2.7, depStr:2.6, changeProb:24, commFreq:31, orbit:4, category:"Concept" },
+        { id:"外部知見", coupling:1.6, depStr:1.4, changeProb:77, commFreq:61, orbit:5, category:"Organization" },
+        { id:"クライアント", coupling:1.1, depStr:0.9, changeProb:59, commFreq:43, orbit:5, category:"Organization" },
+        { id:"ベンダ体制", coupling:1.1, depStr:1.0, changeProb:45, commFreq:53, orbit:5, category:"Organization" },
+        { id:"エスカレーション", coupling:2.3, depStr:2.0, changeProb:80, commFreq:42, orbit:5, category:"Process" },
+        { id:"報告", coupling:2.2, depStr:1.8, changeProb:85, commFreq:42, orbit:5, category:"Process" },
+        { id:"会議", coupling:2.3, depStr:2.2, changeProb:81, commFreq:63, orbit:5, category:"Process" },
+        { id:"レポートライン", coupling:2.2, depStr:2.0, changeProb:31, commFreq:61, orbit:5, category:"Process" },
+        { id:"スコープクリープ", coupling:2.0, depStr:1.8, changeProb:76, commFreq:49, orbit:5, category:"Issue" },
+        { id:"工程未完了", coupling:1.5, depStr:1.2, changeProb:61, commFreq:46, orbit:5, category:"Issue" },
       ],
       edges: [
         { s:0,t:1,w:1.9 },{ s:0,t:3,w:2.1 },{ s:1,t:4,w:1.3 },{ s:1,t:12,w:2.0 },
@@ -366,9 +366,8 @@ const ONT_CATS = [
   { id:"concept",  label:"Concept",      color:"#534AB7" },
   { id:"org",      label:"Organization", color:"#185FA5" },
   { id:"proc",     label:"Process",      color:"#BA7517" },
-  { id:"signal",   label:"Signal",       color:"#993C1D" },
-  { id:"people",   label:"People",       color:"#1D9E75" },
-  { id:"deliver",  label:"Deliverable",  color:"#3B6D11" },
+  { id:"issue",    label:"Issue",        color:"#993C1D" },
+  { id:"artifact", label:"Artifact",     color:"#3B6D11" },
 ];
 const ONT_NODES = [
   // orbit 0 — 中心核
@@ -388,8 +387,8 @@ const ONT_NODES = [
   { id:"dec_path",  label:"意思決定経路",                          abbr:"決路", cat:"org",     orbit:1, core:true },
   { id:"approval",  label:"承認権限",                              abbr:"承認", cat:"org",     orbit:1, core:true },
   // orbit 1 — People コアノード
-  { id:"pm_role",   label:"プロジェクト・マネジャー",              abbr:"PM役", cat:"people",  orbit:1, core:true },
-  { id:"keyman",    label:"キーマン",                              abbr:"キー", cat:"people",  orbit:1, core:true },
+  { id:"pm_role",   label:"プロジェクト・マネジャー",              abbr:"PM役", cat:"org",  orbit:1, core:true },
+  { id:"keyman",    label:"キーマン",                              abbr:"キー", cat:"org",  orbit:1, core:true },
   // orbit 2 — Process コアノード
   { id:"wbs",       label:"WBS",                                   abbr:"WB", cat:"proc",    orbit:2, core:true },
   { id:"crit_path", label:"クリティカル・パス",                    abbr:"CP", cat:"proc",    orbit:2, core:true },
@@ -398,16 +397,16 @@ const ONT_NODES = [
   { id:"prereq",    label:"前提条件",                              abbr:"前提", cat:"proc",    orbit:2, core:true },
   { id:"constraint",label:"制約条件",                              abbr:"制約", cat:"proc",    orbit:2, core:true },
   // orbit 2 — Signal コアノード
-  { id:"scope_cr",  label:"スコープ・クリープ",                    abbr:"SC", cat:"signal",  orbit:2, core:true },
-  { id:"req_chg",   label:"要件変更",                              abbr:"要変", cat:"signal",  orbit:2, core:true },
-  { id:"conflict",  label:"コンフリクト",                          abbr:"コン", cat:"signal",  orbit:2, core:true },
-  { id:"escal",     label:"エスカレーション",                      abbr:"ES", cat:"signal",  orbit:2, core:true },
+  { id:"scope_cr",  label:"スコープ・クリープ",                    abbr:"SC", cat:"issue",  orbit:2, core:true },
+  { id:"req_chg",   label:"要件変更",                              abbr:"要変", cat:"issue",  orbit:2, core:true },
+  { id:"conflict",  label:"コンフリクト",                          abbr:"コン", cat:"issue",  orbit:2, core:true },
+  { id:"escal",     label:"エスカレーション",                      abbr:"ES", cat:"issue",  orbit:2, core:true },
   // orbit 2 — Concept コア続き
   { id:"tacit",     label:"暗黙知",                                abbr:"暗黙", cat:"concept", orbit:2, core:true },
   // orbit 2 — Deliverable コアノード
-  { id:"charter",   label:"プロジェクト憲章",                      abbr:"憲章", cat:"deliver", orbit:2, core:true },
-  { id:"roadmap",   label:"ロードマップ",                          abbr:"ロー", cat:"deliver", orbit:2, core:true },
-  { id:"milestone", label:"マイルストーン",                        abbr:"MS", cat:"deliver", orbit:2, core:true },
+  { id:"charter",   label:"プロジェクト憲章",                      abbr:"憲章", cat:"artifact", orbit:2, core:true },
+  { id:"roadmap",   label:"ロードマップ",                          abbr:"ロー", cat:"artifact", orbit:2, core:true },
+  { id:"milestone", label:"マイルストーン",                        abbr:"MS", cat:"artifact", orbit:2, core:true },
   // orbit 3 — Concept サテライト
   { id:"formal",    label:"形式知",                                abbr:"形式", cat:"concept", orbit:3 },
   { id:"chng_mgmt2",label:"チェンジマネジメント",                  abbr:"CM", cat:"concept", orbit:3 },
@@ -426,9 +425,9 @@ const ONT_NODES = [
   { id:"vendor",    label:"ベンダー",                              abbr:"ベン", cat:"org",     orbit:3 },
   { id:"sh_mgmt",   label:"ステークホルダー管理",                  abbr:"SH", cat:"org",     orbit:3 },
   // orbit 3 — People サテライト
-  { id:"po",        label:"プロジェクト・オーナー",                abbr:"PO", cat:"people",  orbit:3 },
-  { id:"coaching",  label:"コーチング",                            abbr:"コチ", cat:"people",  orbit:3 },
-  { id:"mentoring", label:"メンタリング",                          abbr:"メン", cat:"people",  orbit:3 },
+  { id:"po",        label:"プロジェクト・オーナー",                abbr:"PO", cat:"org",  orbit:3 },
+  { id:"coaching",  label:"コーチング",                            abbr:"コチ", cat:"org",  orbit:3 },
+  { id:"mentoring", label:"メンタリング",                          abbr:"メン", cat:"org",  orbit:3 },
   // orbit 3 — Process サテライト
   { id:"sch_mgmt",  label:"スケジュール管理",                      abbr:"スケ", cat:"proc",    orbit:3 },
   { id:"sco_mgmt",  label:"スコープ管理",                          abbr:"スコ", cat:"proc",    orbit:3 },
@@ -448,27 +447,27 @@ const ONT_NODES = [
   { id:"pred",      label:"先行関係",                              abbr:"先行", cat:"proc",    orbit:3 },
   { id:"exit_crit", label:"イグジット条件",                        abbr:"EX", cat:"proc",    orbit:3 },
   // orbit 4 — Signal サテライト
-  { id:"trigger",   label:"トリガー条件",                          abbr:"TR", cat:"signal",  orbit:4 },
-  { id:"stretch",   label:"ストレッチング",                        abbr:"ST", cat:"signal",  orbit:4 },
-  { id:"appr_flow", label:"承認フロー",                            abbr:"承F", cat:"signal",  orbit:4 },
-  { id:"info_scat", label:"情報分散",                              abbr:"情散", cat:"signal",  orbit:4 },
-  { id:"conting",   label:"コンティンジェンシー計画",              abbr:"CT", cat:"signal",  orbit:4 },
-  { id:"risk_log",  label:"リスク・ログ",                          abbr:"RL", cat:"signal",  orbit:4 },
-  { id:"issue_log", label:"課題ログ",                              abbr:"課ロ", cat:"signal",  orbit:4 },
-  { id:"progress",  label:"進捗報告",                              abbr:"進捗", cat:"signal",  orbit:4 },
-  { id:"evm",       label:"EVM（アーンド・バリュー・マネジメント）", abbr:"EV", cat:"signal",  orbit:4 },
-  { id:"variance",  label:"差異分析",                              abbr:"差異", cat:"signal",  orbit:4 },
-  { id:"workload",  label:"作業工数",                              abbr:"工数", cat:"signal",  orbit:4 },
+  { id:"trigger",   label:"トリガー条件",                          abbr:"TR", cat:"issue",  orbit:4 },
+  { id:"stretch",   label:"ストレッチング",                        abbr:"ST", cat:"issue",  orbit:4 },
+  { id:"appr_flow", label:"承認フロー",                            abbr:"承F", cat:"issue",  orbit:4 },
+  { id:"info_scat", label:"情報分散",                              abbr:"情散", cat:"issue",  orbit:4 },
+  { id:"conting",   label:"コンティンジェンシー計画",              abbr:"CT", cat:"issue",  orbit:4 },
+  { id:"risk_log",  label:"リスク・ログ",                          abbr:"RL", cat:"issue",  orbit:4 },
+  { id:"issue_log", label:"課題ログ",                              abbr:"課ロ", cat:"issue",  orbit:4 },
+  { id:"progress",  label:"進捗報告",                              abbr:"進捗", cat:"issue",  orbit:4 },
+  { id:"evm",       label:"EVM（アーンド・バリュー・マネジメント）", abbr:"EV", cat:"issue",  orbit:4 },
+  { id:"variance",  label:"差異分析",                              abbr:"差異", cat:"issue",  orbit:4 },
+  { id:"workload",  label:"作業工数",                              abbr:"工数", cat:"issue",  orbit:4 },
   // orbit 5 — Deliverable サテライト（最外縁）
-  { id:"deliverable",label:"成果物",                              abbr:"成果", cat:"deliver", orbit:5 },
-  { id:"spec",      label:"仕様書",                                abbr:"仕様", cat:"deliver", orbit:5 },
-  { id:"gantt",     label:"ガントチャート",                        abbr:"ガン", cat:"deliver", orbit:5 },
-  { id:"taskboard", label:"タスク・ボード",                        abbr:"タス", cat:"deliver", orbit:5 },
-  { id:"req_doc",   label:"要件定義書",                            abbr:"要書", cat:"deliver", orbit:5 },
-  { id:"pj_plan",   label:"プロジェクト計画書",                    abbr:"計画", cat:"deliver", orbit:5 },
-  { id:"backlog",   label:"バックログ",                            abbr:"BL", cat:"deliver", orbit:5 },
-  { id:"benchmark", label:"ベンチマーク",                          abbr:"BM", cat:"deliver", orbit:5 },
-  { id:"leadtime",  label:"リードタイム",                          abbr:"LT", cat:"deliver", orbit:5 },
+  { id:"deliverable",label:"成果物",                              abbr:"成果", cat:"artifact", orbit:5 },
+  { id:"spec",      label:"仕様書",                                abbr:"仕様", cat:"artifact", orbit:5 },
+  { id:"gantt",     label:"ガントチャート",                        abbr:"ガン", cat:"artifact", orbit:5 },
+  { id:"taskboard", label:"タスク・ボード",                        abbr:"タス", cat:"artifact", orbit:5 },
+  { id:"req_doc",   label:"要件定義書",                            abbr:"要書", cat:"artifact", orbit:5 },
+  { id:"pj_plan",   label:"プロジェクト計画書",                    abbr:"計画", cat:"artifact", orbit:5 },
+  { id:"backlog",   label:"バックログ",                            abbr:"BL", cat:"artifact", orbit:5 },
+  { id:"benchmark", label:"ベンチマーク",                          abbr:"BM", cat:"artifact", orbit:5 },
+  { id:"leadtime",  label:"リードタイム",                          abbr:"LT", cat:"artifact", orbit:5 },
 ];
 const ONT_EDGES = [
   ["pm_core","baseline"],["pm_core","req_def"],["pm_core","plan4plan"],
@@ -495,6 +494,69 @@ const ONT_EDGES = [
 const ONT_CAT_COLOR = Object.fromEntries(ONT_CATS.map(c=>[c.id,c.color]));
 const ONT_ORBIT_R = [0, 0.13, 0.26, 0.40, 0.50];
 
+// Projectのgravity.nodes/edgesを実際に描画するグラフ。
+// OntologyGraphは常時固定の84ノード意味空間を表示するもので、Projectのデータとは無関係。
+// こちらはProjectごとのノード数がそのまま反映される(新規PJなら空、体制図取込直後なら8個、など)。
+function ProjectGravityGraph({ nodes, edges }) {
+  const [selected, setSelected] = useState(null);
+  if (!nodes || nodes.length === 0) return null;
+
+  const W = 420, H = 380, cx = W / 2, cy = H / 2;
+  const maxOrbit = Math.max(1, ...nodes.map(n => n.orbit ?? 1));
+  const byOrbit = {};
+  nodes.forEach(n => { const o = n.orbit ?? 1; (byOrbit[o] = byOrbit[o] || []).push(n); });
+
+  const pos = {};
+  Object.entries(byOrbit).forEach(([orbitStr, group]) => {
+    const orbit = Number(orbitStr);
+    if (orbit === 0) { group.forEach(n => { pos[n.id] = { x: cx, y: cy }; }); return; }
+    const r = (orbit / (maxOrbit || 1)) * (Math.min(W, H) * 0.42) + 26;
+    group.forEach((n, i) => {
+      const ang = (i / group.length) * Math.PI * 2 - Math.PI / 2;
+      pos[n.id] = { x: cx + Math.cos(ang) * r, y: cy + Math.sin(ang) * r };
+    });
+  });
+
+  const maxC = Math.max(1, ...nodes.map(n => n.coupling || 1));
+  const CATEGORY_COLOR = { Concept: "#534AB7", Organization: "#185FA5", Process: "#BA7517", Issue: "#993C1D", Artifact: "#3B6D11" };
+  const colorFor = (n) => {
+    const r = (n.coupling || 0) / maxC;
+    if (r > 0.8) return "#6C5CE7"; // 結合度が突出して高いノードは強調色を優先
+    return CATEGORY_COLOR[n.category] || "#8B85E0";
+  };
+
+  // edge解決: 新形式{source,target,...} と 旧形式{s,t,w}(index参照) の両方に対応
+  const resolvedEdges = (edges || []).map(e => {
+    if (e.source && e.target) return { a: e.source, b: e.target, w: (e.strength ?? 0.5) * 5 };
+    if (typeof e.s === "number" && typeof e.t === "number" && nodes[e.s] && nodes[e.t]) {
+      return { a: nodes[e.s].id, b: nodes[e.t].id, w: e.w ?? 2 };
+    }
+    return null;
+  }).filter(e => e && pos[e.a] && pos[e.b]);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 280 }}>
+      {resolvedEdges.map((e, i) => (
+        <line key={i} x1={pos[e.a].x} y1={pos[e.a].y} x2={pos[e.b].x} y2={pos[e.b].y}
+          stroke="#AFA9EC" strokeWidth={Math.max(0.6, e.w * 0.35)} opacity={0.5} />
+      ))}
+      {nodes.map((n, i) => {
+        const p = pos[n.id]; if (!p) return null;
+        const r = 8 + ((n.coupling || 1) / maxC) * 10;
+        const isSel = selected === n.id;
+        return (
+          <g key={i} onClick={() => setSelected(isSel ? null : n.id)} style={{ cursor: "pointer" }}>
+            <circle cx={p.x} cy={p.y} r={r} fill={colorFor(n)} opacity={isSel ? 1 : 0.85} stroke="#fff" strokeWidth={1.5} />
+            <text x={p.x} y={p.y + r + 11} textAnchor="middle" fontSize={9} fill="#666" fontFamily="'DM Mono', monospace">
+              {n.id.length > 8 ? n.id.slice(0, 7) + "…" : n.id}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 function OntologyGraph() {
   const canvasRef = useRef(null);
   const [activeFilter, setActiveFilter] = useState("all");
@@ -506,8 +568,8 @@ function OntologyGraph() {
     const cx=W/2, cy=(H||W)/2;
     const base=W*0.47;
     const rScale=[0, 0.18, 0.34, 0.52, 0.70, 0.96];
-    const CAT_ANGLE={ concept:-Math.PI*0.5, org:Math.PI*0.1, proc:Math.PI*0.6, signal:Math.PI*1.1, people:-Math.PI*0.9, deliver:Math.PI*1.6 };
-    const CAT_SPAN={ concept:1.8, org:1.0, proc:1.4, signal:1.2, people:0.9, deliver:1.1 };
+    const CAT_ANGLE={ concept:-Math.PI*0.5, org:Math.PI*0.1, proc:Math.PI*0.6, issue:Math.PI*1.1, artifact:Math.PI*1.6 };
+    const CAT_SPAN={ concept:1.8, org:1.7, proc:1.4, issue:1.2, artifact:1.1 };
     const byOrbitCat={};
     ONT_NODES.forEach(n=>{ const k=`${n.orbit}_${n.cat}`; if(!byOrbitCat[k]) byOrbitCat[k]=[]; byOrbitCat[k].push(n); });
     let seed=42;
@@ -903,7 +965,7 @@ function StakeholderView({ project, onChange }) {
       const parentNode=parentMap[n.id]?nodes.find(x=>x.id===parentMap[n.id]):null;
       lines.push(`${n.label.replace(/\n/g," ")},${n.name||""},${parentNode?parentNode.label.replace(/\n/g," "):""}`);
     });
-    const blob=new Blob([lines.join("\n")],{type:"text/csv"});
+    const blob=new Blob(["\uFEFF"+lines.join("\n")],{type:"text/csv;charset=utf-8"});
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a"); a.href=url; a.download="stakeholders.csv"; a.click();
     URL.revokeObjectURL(url);
@@ -2017,7 +2079,7 @@ function GravityView({ project }) {
               ))}
             </div>
 
-            <OntologyGraph />
+            <ProjectGravityGraph nodes={gravNodes} edges={edges} />
           </div>
 
           {/* 右：ランキング + ノード詳細 */}
@@ -2892,7 +2954,6 @@ export default function App() {
     const allEdgesRaw = (extracted.edges || []).filter(e => e.source && e.target && e.edge_type);
 
     const FREQ_SCORE = { daily: 100, weekly: 70, "per-phase": 50, "event-driven": 30, once: 10 };
-    const TYPE_MAP = { Concept: "concept", Organization: "org", Process: "proc", Issue: "signal", Artifact: "concept" };
 
     const computeDerived = (nodeId) => {
       const touching = allEdgesRaw.filter(e => e.source === nodeId || e.target === nodeId);
@@ -2908,8 +2969,7 @@ export default function App() {
 
     const newNodes = newNodesRaw.slice(0, 12).map(n => ({
       id: n.id,
-      category: n.category || "Concept",
-      type: TYPE_MAP[n.category] || "concept",
+      category: n.category || "Concept", // Concept|Organization|Process|Issue|Artifact の5分類のみ。typeフィールドは廃止(categoryに統一)。
       orbit: 3,
       source: "imported", // 手作業のデモデータと区別するためのタグ
       ...computeDerived(n.id),
