@@ -552,65 +552,130 @@ const ONT_ORBIT_R = [0, 0.13, 0.26, 0.40, 0.50];
 // Projectのgravity.nodes/edgesを実際に描画するグラフ。
 // OntologyGraphは常時固定の84ノード意味空間を表示するもので、Projectのデータとは無関係。
 // こちらはProjectごとのノード数がそのまま反映される(新規PJなら空、体制図取込直後なら8個、など)。
-function ProjectGravityGraph({ nodes, edges }) {
-  const [selected, setSelected] = useState(null);
+function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode }) {
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [hoveredId, setHoveredId] = useState(null);
+  const [tooltip, setTooltip] = useState(null);
+  const wrapRef = useRef(null);
+
   if (!nodes || nodes.length === 0) return null;
 
-  const W = 420, H = 380, cx = W / 2, cy = H / 2;
+  const W = 420, H = 400, cx = W / 2, cy = H / 2 - 10;
+  const base = W * 0.42;
   const maxOrbit = Math.max(1, ...nodes.map(n => n.orbit ?? 1));
-  const byOrbit = {};
-  nodes.forEach(n => { const o = n.orbit ?? 1; (byOrbit[o] = byOrbit[o] || []).push(n); });
+  const rScale = (orbit) => (orbit / maxOrbit) * base * 0.9 + 22;
+
+  // orbit×category でグループ化し、OntologyGraphと同じ角度配置(ONT_CAT_ANGLE/ONT_CAT_SPAN)で並べる。
+  // これによりSample側のOntologyGraphと「同じカテゴリは同じ方角に来る」という視覚的な一貫性を保つ。
+  const byOrbitCat = {};
+  nodes.forEach(n => { const k = `${n.orbit ?? 1}_${CATEGORY_TO_ID[n.category] || "concept"}`; (byOrbitCat[k] = byOrbitCat[k] || []).push(n); });
 
   const pos = {};
-  Object.entries(byOrbit).forEach(([orbitStr, group]) => {
-    const orbit = Number(orbitStr);
-    if (orbit === 0) { group.forEach(n => { pos[n.id] = { x: cx, y: cy }; }); return; }
-    const r = (orbit / (maxOrbit || 1)) * (Math.min(W, H) * 0.42) + 26;
-    group.forEach((n, i) => {
-      const ang = (i / group.length) * Math.PI * 2 - Math.PI / 2;
-      pos[n.id] = { x: cx + Math.cos(ang) * r, y: cy + Math.sin(ang) * r };
-    });
+  nodes.forEach(n => {
+    const orbit = n.orbit ?? 1;
+    if (orbit === 0) { pos[n.id] = { x: cx, y: cy }; return; }
+    const catId = CATEGORY_TO_ID[n.category] || "concept";
+    const group = byOrbitCat[`${orbit}_${catId}`] || [n];
+    const idx = group.findIndex(g => g.id === n.id);
+    const total = group.length;
+    const centerAng = ONT_CAT_ANGLE[catId] || 0;
+    const span = ONT_CAT_SPAN[catId] || 1.2;
+    const ang = total === 1 ? centerAng : centerAng - span / 2 + (idx / (total - 1)) * span;
+    const r = rScale(orbit);
+    pos[n.id] = { x: cx + Math.cos(ang) * r, y: cy + Math.sin(ang) * r };
   });
 
   const maxC = Math.max(1, ...nodes.map(n => n.coupling || 1));
   const CATEGORY_COLOR = { Concept: "#534AB7", Organization: "#185FA5", Process: "#BA7517", Issue: "#993C1D", Artifact: "#3B6D11" };
-  const colorFor = (n) => {
-    const r = (n.coupling || 0) / maxC;
-    if (r > 0.8) return "#6C5CE7"; // 結合度が突出して高いノードは強調色を優先
-    return CATEGORY_COLOR[n.category] || "#8B85E0";
-  };
+  const colorFor = (n) => CATEGORY_COLOR[n.category] || "#8B85E0";
+  const nodeR = (n) => (n.orbit === 0 ? 18 : 9 + ((n.coupling || 1) / maxC) * 5);
 
-  // edge解決: 新形式{source,target,...} と 旧形式{s,t,w}(index参照) の両方に対応
   const resolvedEdges = (edges || []).map(e => {
-    if (e.source && e.target) return { a: e.source, b: e.target, w: (e.strength ?? 0.5) * 5 };
-    if (typeof e.s === "number" && typeof e.t === "number" && nodes[e.s] && nodes[e.t]) {
-      return { a: nodes[e.s].id, b: nodes[e.t].id, w: e.w ?? 2 };
-    }
+    if (e.source && e.target) return { a: e.source, b: e.target, w: (e.strength ?? 0.5) * 4 };
+    if (typeof e.s === "number" && typeof e.t === "number" && nodes[e.s] && nodes[e.t]) return { a: nodes[e.s].id, b: nodes[e.t].id, w: e.w ?? 2 };
     return null;
   }).filter(e => e && pos[e.a] && pos[e.b]);
 
+  const orbitRings = Array.from({ length: maxOrbit }, (_, i) => rScale(i + 1));
+  const abbr = (n) => (n.id || "").replace(/\s/g, "").slice(0, 2);
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 280 }}>
-      {resolvedEdges.map((e, i) => (
-        <line key={i} x1={pos[e.a].x} y1={pos[e.a].y} x2={pos[e.b].x} y2={pos[e.b].y}
-          stroke="#AFA9EC" strokeWidth={Math.max(0.6, e.w * 0.35)} opacity={0.5} />
-      ))}
-      {nodes.map((n, i) => {
-        const p = pos[n.id]; if (!p) return null;
-        const r = 8 + ((n.coupling || 1) / maxC) * 10;
-        const isSel = selected === n.id;
-        return (
-          <g key={i} onClick={() => setSelected(isSel ? null : n.id)} style={{ cursor: "pointer" }}>
-            <circle cx={p.x} cy={p.y} r={r} fill={colorFor(n)} opacity={isSel ? 1 : 0.85} stroke="#fff" strokeWidth={1.5} />
-            <text x={p.x} y={p.y + r + 11} textAnchor="middle" fontSize={9} fill="#666" fontFamily="'DM Mono', monospace">
-              {n.id.length > 8 ? n.id.slice(0, 7) + "…" : n.id}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
+    <div ref={wrapRef} style={{ position: "relative" }}>
+      {/* カテゴリフィルタ(Sampleと同じONT_CATSを使用) */}
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+        {[{ id: "all", label: "すべて", color: "#888780" }, ...ONT_CATS].map(c => (
+          <button key={c.id} onClick={() => setActiveFilter(c.id)}
+            style={{
+              fontSize: 9, fontWeight: 700, padding: "3px 9px", borderRadius: 99, cursor: "pointer",
+              border: `1px solid ${activeFilter === c.id ? c.color : "#E2E2E2"}`,
+              background: activeFilter === c.id ? c.color : "transparent",
+              color: activeFilter === c.id ? "#fff" : c.color,
+            }}>
+            {c.label}
+          </button>
+        ))}
+      </div>
+
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 280, display: "block" }}
+        onMouseLeave={() => { setHoveredId(null); setTooltip(null); }}>
+        {orbitRings.map((r, i) => (
+          <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke="rgba(0,0,0,0.10)" strokeWidth={0.8} strokeDasharray="5,4" />
+        ))}
+        {resolvedEdges.map((e, i) => {
+          const na = nodes.find(n => n.id === e.a), nb = nodes.find(n => n.id === e.b);
+          const relevant = activeFilter === "all" || CATEGORY_TO_ID[na?.category] === activeFilter || CATEGORY_TO_ID[nb?.category] === activeFilter;
+          if (!relevant) return null;
+          return (
+            <line key={i} x1={pos[e.a].x} y1={pos[e.a].y} x2={pos[e.b].x} y2={pos[e.b].y}
+              stroke={colorFor(nb) + "55"} strokeWidth={Math.max(0.6, e.w * 0.35)} />
+          );
+        })}
+        {nodes.map((n, i) => {
+          const p = pos[n.id]; if (!p) return null;
+          const catId = CATEGORY_TO_ID[n.category] || "concept";
+          const show = activeFilter === "all" || catId === activeFilter;
+          if (!show) return null;
+          const isHov = hoveredId === n.id;
+          const isSel = selectedNode?.id === n.id;
+          const color = colorFor(n);
+          const r = nodeR(n) + (isHov || isSel ? 2 : 0);
+          return (
+            <g key={i} style={{ cursor: "pointer" }}
+              onClick={() => onSelectNode?.(isSel ? null : n)}
+              onMouseEnter={(e) => {
+                setHoveredId(n.id);
+                const rect = wrapRef.current?.getBoundingClientRect();
+                if (rect) setTooltip({ label: n.id, cat: n.category, coupling: n.coupling, x: e.clientX - rect.left + 10, y: e.clientY - rect.top - 10 });
+              }}
+              onMouseMove={(e) => {
+                const rect = wrapRef.current?.getBoundingClientRect();
+                if (rect) setTooltip(t => t && { ...t, x: e.clientX - rect.left + 10, y: e.clientY - rect.top - 10 });
+              }}
+            >
+              <circle cx={p.x} cy={p.y} r={r} fill={color + "22"} stroke={color} strokeWidth={isSel ? 2.4 : 1.4} />
+              <text x={p.x} y={p.y} textAnchor="middle" dominantBaseline="central" fontSize={n.orbit === 0 ? 11 : 9} fontWeight={n.orbit === 0 ? 700 : 600} fill={color}>
+                {abbr(n)}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+
+      {tooltip && (
+        <div style={{ position: "absolute", left: tooltip.x, top: tooltip.y, background: "#1A1A1A", color: "#fff", fontSize: 10, padding: "4px 8px", borderRadius: 5, pointerEvents: "none", whiteSpace: "nowrap", zIndex: 10 }}>
+          {tooltip.label}（{tooltip.cat}）coupling:{tooltip.coupling?.toFixed?.(1) ?? tooltip.coupling}
+        </div>
+      )}
+    </div>
   );
 }
+
+
+
+const ONT_CAT_ANGLE={ concept:-Math.PI*0.5, org:Math.PI*0.1, proc:Math.PI*0.6, issue:Math.PI*1.1, artifact:Math.PI*1.6 };
+const ONT_CAT_SPAN={ concept:1.8, org:1.7, proc:1.4, issue:1.2, artifact:1.1 };
+// category("Concept"等の表記)→ONT_CATSのid("concept"等)への変換。ProjectGravityGraph用。
+const CATEGORY_TO_ID = { Concept:"concept", Organization:"org", Process:"proc", Issue:"issue", Artifact:"artifact" };
 
 function OntologyGraph() {
   const canvasRef = useRef(null);
@@ -623,8 +688,8 @@ function OntologyGraph() {
     const cx=W/2, cy=(H||W)/2;
     const base=W*0.47;
     const rScale=[0, 0.18, 0.34, 0.52, 0.70, 0.96];
-    const CAT_ANGLE={ concept:-Math.PI*0.5, org:Math.PI*0.1, proc:Math.PI*0.6, issue:Math.PI*1.1, artifact:Math.PI*1.6 };
-    const CAT_SPAN={ concept:1.8, org:1.7, proc:1.4, issue:1.2, artifact:1.1 };
+    const CAT_ANGLE=ONT_CAT_ANGLE;
+    const CAT_SPAN=ONT_CAT_SPAN;
     const byOrbitCat={};
     ONT_NODES.forEach(n=>{ const k=`${n.orbit}_${n.cat}`; if(!byOrbitCat[k]) byOrbitCat[k]=[]; byOrbitCat[k].push(n); });
     let seed=42;
@@ -2113,7 +2178,7 @@ function GravityView({ project }) {
               ))}
             </div>
 
-            <ProjectGravityGraph nodes={gravNodes} edges={edges} />
+            {project?.isSample ? <OntologyGraph /> : <ProjectGravityGraph nodes={gravNodes} edges={edges} selectedNode={selectedNode} onSelectNode={setSelectedNode} />}
           </div>
 
           {/* 右：ランキング + ノード詳細 */}
