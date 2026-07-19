@@ -95,7 +95,11 @@ function createEmptyProject(overrides = {}) {
     stakeholderNames: {},
     stakeholderChart: null, // null = 未編集(StakeholderView側の固定テンプレートを使用)。編集/CSV取込後は{nodes,edges}が入る。
     gravity: {
-      nodes: [],
+      // Sample側のOntologyGraphが常に中心核「プロジェクトマネジメント」を持つのと同様、
+      // 実プロジェクトのGravityグラフも必ずこのノードを起点として持つ。
+      nodes: [
+        { id: "プロジェクトマネジメント", category: "Concept", orbit: 0, coupling: 1.0, depStr: 1.0, changeProb: 30, commFreq: 30, source: "core" },
+      ],
       edges: [],
       drift: { labels: [], plan: [], actual: [] },
     },
@@ -597,7 +601,7 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode }) {
   }).filter(e => e && pos[e.a] && pos[e.b]);
 
   const orbitRings = Array.from({ length: maxOrbit }, (_, i) => rScale(i + 1));
-  const abbr = (n) => (n.id || "").replace(/\s/g, "").slice(0, 2);
+  const abbr = (n) => (n.orbit === 0 ? "PM" : (n.id || "").replace(/\s/g, "").slice(0, 2));
 
   return (
     <div ref={wrapRef} style={{ position: "relative" }}>
@@ -2096,8 +2100,8 @@ function GravityView({ project }) {
     return () => { if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; } };
   }, [activeTab, project]);
 
-  // データ未入力の場合は空状態を表示
-  if (!gravNodes || gravNodes.length === 0) {
+  // データ未入力の場合は空状態を表示(コアノード「プロジェクトマネジメント」1個のみの場合も未入力扱い)
+  if (!gravNodes || gravNodes.length <= 1) {
     return (
       <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10 }}>
         <div style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.bgCard, borderRadius: "10px 10px 0 0" }}>
@@ -2395,6 +2399,7 @@ function InputBox({ field, value, onChange, axis }) {
 function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
   const [form, setForm] = useState({});
   const [fileStatus, setFileStatus] = useState(null);
+  const [extractedGravity, setExtractedGravity] = useState(null); // ファイル取込で抽出されたnodes/edges候補
   const [creating, setCreating] = useState(false);
   const setField = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
   const canProceed = form.name && form.due && form.scope && form.owner;
@@ -2414,6 +2419,22 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
       const raw = data.content?.[0]?.text || "{}";
       const parsed = JSON.parse(raw.replace(/```json|```/g, "").trim());
       setForm(prev => ({ ...prev, ...parsed }));
+
+      // Ghost CSV取込と同じNode/Edge抽出をここでも行い、体制図と同様Semantic Spaceに反映する。
+      // 精度は求めず、読み取れる範囲でベストエフォート。失敗しても項目抽出自体は成立させる。
+      try {
+        const exRes = await fetch("/api/claude", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1500,
+            system: buildGravityExtractionPrompt(["プロジェクトマネジメント"]),
+            messages: [{ role: "user", content: `ファイル名: ${file.name}\n内容:\n${snippet}` }] }),
+        });
+        const exData = await exRes.json();
+        const exRaw = exData.content?.[0]?.text || "{}";
+        const extracted = JSON.parse(exRaw.replace(/```json|```/g, "").trim());
+        if (extracted.nodes?.length || extracted.edges?.length) setExtractedGravity(extracted);
+      } catch { /* 抽出失敗はサイレントに無視、項目抽出の成功を優先 */ }
+
       setFileStatus("done");
     } catch { setFileStatus("error"); }
   };
@@ -2437,15 +2458,18 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
         ...(form.approver ? [{ name: form.approver, role: "承認者", status: "active" }] : []),
         ...stakeList.slice(0, 3).map(s => ({ name: s, role: "ステークホルダー", status: "active" })),
       ],
-      gravity: {
-        nodes: [],
-        edges: [],
-        drift: { labels:["W1","W2","W3","W4","W5","W6","W7","W8"], plan:[100,87,74,61,48,35,22,9], actual:[100,100,100,100,100,100,100,100] },
-      },
+      gravity: mergeExtractedGravity(
+        {
+          nodes: [{ id: "プロジェクトマネジメント", category: "Concept", orbit: 0, coupling: 1.0, depStr: 1.0, changeProb: 30, commFreq: 30, source: "core" }],
+          edges: [],
+          drift: { labels:["W1","W2","W3","W4","W5","W6","W7","W8"], plan:[100,87,74,61,48,35,22,9], actual:[100,100,100,100,100,100,100,100] },
+        },
+        extractedGravity
+      ),
     });
     setCreating(false);
     onCreated(newProject);
-    setForm({}); setFileStatus(null);
+    setForm({}); setFileStatus(null); setExtractedGravity(null);
   };
 
   if (!visible) return null;
@@ -2709,23 +2733,7 @@ tasks: [{"id":"t1","name":"タスク名","assignee":"担当者名（不明なら
         const sampleText = rows.slice(0, 20).map(r => Object.entries(r).map(([k,v])=>`${k}:${v}`).join(" ")).join("\n");
         const exRes = await fetch("/api/claude", { method:"POST", headers:{"Content-Type":"application/json"},
           body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1500,
-            system:`あなたはプロジェクトドキュメント(CSV/議事録/WBS等)からMetisのナレッジグラフ用のノードとエッジを抽出するAIです。
-必ずJSONのみを返してください（前置き・説明・マークダウン記号は一切禁止）。
-
-■ ノード分類(category)は次の5種類のいずれか: Concept(概念・抽象概念) / Organization(人物・役職・チーム・ベンダー) / Process(手順・作業・成果物生成プロセス) / Issue(問題・リスク・懸念事項) / Artifact(成果物・文書・システム)
-■ エッジ種別(edge_type)は次の5種類のいずれか:
-  Structural(所属する/管理する/所有する/報告する)
-  Dependency(依存する/参照する/必要とする/制約される)
-  Temporal(先行する/後続する/トリガーする/完了条件となる)
-  Governance(承認する/決定する/委任する/エスカレーションする)
-  Knowledge(学習する/引き継ぐ/利用する/派生する/共有する)
-
-既存ノード(重複させず、可能な限りこれらを再利用してsourceやtargetに使う): ${existingIds.join(", ") || "なし"}
-
-返すJSON形式(このキーのみ):
-{"nodes":[{"id":"ノード名(短い名詞、既存ノードと表記揺れさせない)","category":"Concept|Organization|Process|Issue|Artifact"}],
- "edges":[{"source":"ノード名","target":"ノード名","edge_type":"Structural|Dependency|Temporal|Governance|Knowledge","direction":"→|↔","strength":0.0から1.0の数値,"frequency":"daily|weekly|per-phase|event-driven|once","label":"動詞句","note":"根拠の要約(20字以内)"}]}
-精度は多少低くても構いません。読み取れる範囲でベストエフォートに構造化してください。ノードは最大12個、エッジは最大18個までに絞ってください。読み取れる関係が無ければ空配列を返してください。`,
+            system: buildGravityExtractionPrompt(existingIds),
             messages:[{ role:"user", content:`ファイル名: ${filename}\nヘッダー: ${headerStr}\n内容:\n${sampleText}` }] }) });
         const exData = await exRes.json();
         const exRaw = exData.content?.[0]?.text || "{}";
@@ -3029,44 +3037,71 @@ export default function App() {
   // coupling/depStr/changeProb/commFreqを前提にしているため、ここで一度だけ
   // strength/frequency/edge_typeから互換値を計算してノードに直接持たせる
   // (GravityView側のコードは変更不要)。
+// Ghost CSV取込・新規作成モーダルのファイル取込、両方から使う共通関数。
+// 抽出されたnodes/edges(候補)を既存のgravityにマージし、表示互換のcoupling等を計算する。
+function mergeExtractedGravity(existingGravity, extracted) {
+  const existingNodes = existingGravity?.nodes || [];
+  const existingIds = new Set(existingNodes.map(n => n.id));
+  const newNodesRaw = (extracted?.nodes || []).filter(n => n.id && !existingIds.has(n.id));
+  const allEdgesRaw = (extracted?.edges || []).filter(e => e.source && e.target && e.edge_type);
+
+  const FREQ_SCORE = { daily: 100, weekly: 70, "per-phase": 50, "event-driven": 30, once: 10 };
+
+  const computeDerived = (nodeId) => {
+    const touching = allEdgesRaw.filter(e => e.source === nodeId || e.target === nodeId);
+    const strengths = touching.map(e => typeof e.strength === "number" ? e.strength : 0.5);
+    const coupling = strengths.length ? +(strengths.reduce((a, b) => a + b, 0) / strengths.length * 5).toFixed(1) : 1.0;
+    const depStrengths = touching.filter(e => e.edge_type === "Dependency").map(e => typeof e.strength === "number" ? e.strength : 0.5);
+    const depStr = depStrengths.length ? +(depStrengths.reduce((a, b) => a + b, 0) / depStrengths.length * 5).toFixed(1) : coupling;
+    const commFreq = touching.length ? Math.round(touching.reduce((a, e) => a + (FREQ_SCORE[e.frequency] || 30), 0) / touching.length) : 30;
+    const volatile = touching.filter(e => e.edge_type === "Temporal" || e.edge_type === "Governance").length;
+    const changeProb = touching.length ? Math.min(90, Math.max(20, Math.round((volatile / touching.length) * 90))) : 50;
+    return { coupling, depStr, changeProb, commFreq };
+  };
+
+  const newNodes = newNodesRaw.slice(0, 12).map(n => ({
+    id: n.id,
+    category: n.category || "Concept",
+    orbit: 3,
+    source: "imported",
+    ...computeDerived(n.id),
+  }));
+
+  const existingEdgeKeys = new Set((existingGravity?.edges || []).filter(e => e.source && e.target).map(e => `${e.source}|${e.target}|${e.edge_type}`));
+  const newEdges = allEdgesRaw.filter(e => !existingEdgeKeys.has(`${e.source}|${e.target}|${e.edge_type}`)).slice(0, 18);
+
+  return {
+    nodes: [...existingNodes, ...newNodes],
+    edges: [...(existingGravity?.edges || []), ...newEdges],
+    drift: existingGravity?.drift || { labels: [], plan: [], actual: [] },
+  };
+}
+
+// Claude Extraction用の共通システムプロンプト(Excel Edge Ontology準拠、5分類)。
+// Ghost CSV取込・新規作成モーダルのファイル取込、両方で同一の抽出仕様を使う。
+function buildGravityExtractionPrompt(existingIds) {
+  return `あなたはプロジェクトドキュメント(CSV/議事録/WBS/要件定義書等)からMetisのナレッジグラフ用のノードとエッジを抽出するAIです。
+必ずJSONのみを返してください（前置き・説明・マークダウン記号は一切禁止）。
+
+■ ノード分類(category)は次の5種類のいずれか: Concept(概念・抽象概念) / Organization(人物・役職・チーム・ベンダー) / Process(手順・作業・成果物生成プロセス) / Issue(問題・リスク・懸念事項) / Artifact(成果物・文書・システム)
+■ エッジ種別(edge_type)は次の5種類のいずれか:
+  Structural(所属する/管理する/所有する/報告する)
+  Dependency(依存する/参照する/必要とする/制約される)
+  Temporal(先行する/後続する/トリガーする/完了条件となる)
+  Governance(承認する/決定する/委任する/エスカレーションする)
+  Knowledge(学習する/引き継ぐ/利用する/派生する/共有する)
+
+既存ノード(重複させず、可能な限りこれらを再利用してsourceやtargetに使う。特に"プロジェクトマネジメント"は全プロジェクト共通の中心ノードなので、関連する内容があれば積極的にエッジで繋げること): ${existingIds.join(", ") || "なし"}
+
+返すJSON形式(このキーのみ):
+{"nodes":[{"id":"ノード名(短い名詞、既存ノードと表記揺れさせない)","category":"Concept|Organization|Process|Issue|Artifact"}],
+ "edges":[{"source":"ノード名","target":"ノード名","edge_type":"Structural|Dependency|Temporal|Governance|Knowledge","direction":"→|↔","strength":0.0から1.0の数値,"frequency":"daily|weekly|per-phase|event-driven|once","label":"動詞句","note":"根拠の要約(20字以内)"}]}
+精度は多少低くても構いません。読み取れる範囲でベストエフォートに構造化してください。ノードは最大12個、エッジは最大18個までに絞ってください。読み取れる関係が無ければ空配列を返してください。`;
+}
+
   const handleGravityExtract = (extracted) => {
     if (!selected) return;
-    const existingNodes = selected.gravity?.nodes || [];
-    const existingIds = new Set(existingNodes.map(n => n.id));
-    const newNodesRaw = (extracted.nodes || []).filter(n => n.id && !existingIds.has(n.id));
-    const allEdgesRaw = (extracted.edges || []).filter(e => e.source && e.target && e.edge_type);
-
-    const FREQ_SCORE = { daily: 100, weekly: 70, "per-phase": 50, "event-driven": 30, once: 10 };
-
-    const computeDerived = (nodeId) => {
-      const touching = allEdgesRaw.filter(e => e.source === nodeId || e.target === nodeId);
-      const strengths = touching.map(e => typeof e.strength === "number" ? e.strength : 0.5);
-      const coupling = strengths.length ? +(strengths.reduce((a, b) => a + b, 0) / strengths.length * 5).toFixed(1) : 1.0;
-      const depStrengths = touching.filter(e => e.edge_type === "Dependency").map(e => typeof e.strength === "number" ? e.strength : 0.5);
-      const depStr = depStrengths.length ? +(depStrengths.reduce((a, b) => a + b, 0) / depStrengths.length * 5).toFixed(1) : coupling;
-      const commFreq = touching.length ? Math.round(touching.reduce((a, e) => a + (FREQ_SCORE[e.frequency] || 30), 0) / touching.length) : 30;
-      const volatile = touching.filter(e => e.edge_type === "Temporal" || e.edge_type === "Governance").length;
-      const changeProb = touching.length ? Math.min(90, Math.max(20, Math.round((volatile / touching.length) * 90))) : 50;
-      return { coupling, depStr, changeProb, commFreq };
-    };
-
-    const newNodes = newNodesRaw.slice(0, 12).map(n => ({
-      id: n.id,
-      category: n.category || "Concept", // Concept|Organization|Process|Issue|Artifact の5分類のみ。typeフィールドは廃止(categoryに統一)。
-      orbit: 3,
-      source: "imported", // 手作業のデモデータと区別するためのタグ
-      ...computeDerived(n.id),
-    }));
-
-    const existingEdgeKeys = new Set((selected.gravity?.edges || []).filter(e => e.source && e.target).map(e => `${e.source}|${e.target}|${e.edge_type}`));
-    const newEdges = allEdgesRaw.filter(e => !existingEdgeKeys.has(`${e.source}|${e.target}|${e.edge_type}`)).slice(0, 18);
-
-    const chart = {
-      nodes: [...existingNodes, ...newNodes],
-      edges: [...(selected.gravity?.edges || []), ...newEdges],
-      drift: selected.gravity?.drift || { labels: [], plan: [], actual: [] },
-    };
-
+    const chart = mergeExtractedGravity(selected.gravity, extracted);
     setProjects(prev => prev.map(pr => pr.id === selected.id ? { ...pr, gravity: chart } : pr));
     setSelected(prevSel => (prevSel && prevSel.id === selected.id) ? { ...prevSel, gravity: chart } : prevSel);
   };
