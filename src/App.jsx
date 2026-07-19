@@ -24,6 +24,61 @@ const to10 = (v) => (v / 10).toFixed(1);
 // EventTimeline/GhostSearch等)が前提とする全フィールドを「空状態」で列挙する。
 // Demo PRJ(isSample:true)も新規作成PRJも、必ずこの関数の返り値をベースに
 // フィールドを上書きする形で組み立てること。個別にプロパティを手書きしない。
+// role/name/parent形式の行から体制図(nodes/edges)を組み立てる。
+// 各行を左から順に並べるだけだと非対称な体制で左に偏るため、
+// 親は自分の子ノードたちの中央(列の平均値)に配置する木構造レイアウトを行う。
+function layoutOrgTree(rows) {
+  const nodeMap = {};
+  rows.forEach((r, i) => {
+    nodeMap[r.role] = { id: "csv" + i, label: (r.role || "").replace(/\s+/g, "\n"), name: r.name || "", row: 0, col: 0, scope: "", note: "" };
+  });
+
+  const childrenOf = {};
+  rows.forEach(r => {
+    if (r.parent && nodeMap[r.parent]) (childrenOf[r.parent] = childrenOf[r.parent] || []).push(r.role);
+  });
+  const roots = rows.filter(r => !r.parent || !nodeMap[r.parent]).map(r => r.role);
+
+  // 行(階層の深さ)をBFSで決定
+  const queue = roots.map(role => ({ role, row: 0 }));
+  const visitedRow = new Set();
+  while (queue.length) {
+    const { role, row } = queue.shift();
+    if (visitedRow.has(role) || !nodeMap[role]) continue;
+    visitedRow.add(role);
+    nodeMap[role].row = row;
+    (childrenOf[role] || []).forEach(childRole => queue.push({ role: childRole, row: row + 1 }));
+  }
+
+  // 列(横位置)をpost-orderで決定: 葉ノードは左から順に、親ノードは子ノードの列の平均値(=中央)に配置
+  let leafCounter = 0;
+  const colOf = {};
+  const visiting = new Set();
+  function assignCol(role) {
+    if (colOf[role] !== undefined || !nodeMap[role]) return colOf[role] ?? 0;
+    if (visiting.has(role)) return 0; // 循環参照ガード
+    visiting.add(role);
+    const kids = (childrenOf[role] || []).filter(k => nodeMap[k]);
+    const col = kids.length === 0
+      ? leafCounter++
+      : kids.map(assignCol).reduce((a, b) => a + b, 0) / kids.length;
+    colOf[role] = col;
+    nodeMap[role].col = col;
+    return col;
+  }
+  roots.forEach(assignCol);
+  rows.forEach(r => { if (colOf[r.role] === undefined) assignCol(r.role); }); // 孤立ノードの保険
+
+  const cols = Object.values(nodeMap).map(n => n.col);
+  const minCol = cols.length ? Math.min(...cols) : 0;
+  Object.values(nodeMap).forEach(n => { n.col = n.col - minCol; }); // 左端を0に正規化
+
+  const edges = [];
+  rows.forEach(r => { if (r.parent && nodeMap[r.parent] && nodeMap[r.role]) edges.push([nodeMap[r.parent].id, nodeMap[r.role].id]); });
+
+  return { nodes: Object.values(nodeMap), edges };
+}
+
 function createEmptyProject(overrides = {}) {
   return {
     id: null, code: "", name: "", owner: "",
@@ -926,28 +981,7 @@ function StakeholderView({ project, onChange }) {
       const ri=header.indexOf("role"), ni=header.indexOf("name"), pi=header.indexOf("parent");
       if(ri<0||pi<0){ alert("CSVに role, parent 列が必要です"); return; }
       const rows = lines.slice(1).map(l=>{ const c=l.split(","); return { role:c[ri]?.trim()||"", name:c[ni]?.trim()||"", parent:c[pi]?.trim()||"" }; });
-      // 木構造から row/col を計算
-      const nodeMap={};
-      const newNodes=[], newEdges=[];
-      const colCount={};
-      rows.forEach((r,i)=>{ nodeMap[r.role]={id:"csv"+i, label:r.role.replace(/\\s+/g,"\n"), name:r.name, row:0, col:0, scope:"", note:""}; });
-      // BFSで層を決定
-      const roots = rows.filter(r=>!r.parent||!nodeMap[r.parent]);
-      const queue=[...roots.map(r=>({role:r.role,row:0}))];
-      const visited={};
-      while(queue.length){
-        const {role,row}=queue.shift();
-        if(visited[role]) continue;
-        visited[role]=true;
-        if(!nodeMap[role]) continue;
-        colCount[row]=(colCount[row]||0);
-        nodeMap[role].row=row;
-        nodeMap[role].col=colCount[row];
-        colCount[row]++;
-        rows.filter(r=>r.parent===role).forEach(child=>queue.push({role:child.role,row:row+1}));
-      }
-      Object.values(nodeMap).forEach(n=>newNodes.push(n));
-      rows.forEach(r=>{ if(r.parent&&nodeMap[r.parent]&&nodeMap[r.role]) newEdges.push([nodeMap[r.parent].id, nodeMap[r.role].id]); });
+      const { nodes: newNodes, edges: newEdges } = layoutOrgTree(rows);
       setNodes(newNodes);
       setEdges(newEdges);
       setSelectedId(null);
@@ -2907,27 +2941,7 @@ export default function App() {
     const rows = ghostApplyTarget.rows || [];
     if (rows.length === 0 || !("role" in (rows[0] || {}))) { setGhostApplyTarget(null); return; }
 
-    const nodeMap = {};
-    rows.forEach((r, i) => {
-      nodeMap[r.role] = { id: "csv" + i, label: (r.role || "").replace(/\s+/g, "\n"), name: r.name || "", row: 0, col: 0, scope: "", note: "" };
-    });
-    const colCount = {};
-    const visited = {};
-    const roots = rows.filter(r => !r.parent || !nodeMap[r.parent]);
-    const queue = roots.map(r => ({ role: r.role, row: 0 }));
-    while (queue.length) {
-      const { role, row } = queue.shift();
-      if (visited[role] || !nodeMap[role]) continue;
-      visited[role] = true;
-      colCount[row] = colCount[row] || 0;
-      nodeMap[role].row = row;
-      nodeMap[role].col = colCount[row];
-      colCount[row]++;
-      rows.filter(r => r.parent === role).forEach(child => queue.push({ role: child.role, row: row + 1 }));
-    }
-    const newEdges = [];
-    rows.forEach(r => { if (r.parent && nodeMap[r.parent] && nodeMap[r.role]) newEdges.push([nodeMap[r.parent].id, nodeMap[r.role].id]); });
-    const chart = { nodes: Object.values(nodeMap), edges: newEdges };
+    const chart = layoutOrgTree(rows);
 
     setProjects(prev => prev.map(pr => pr.id === selected.id ? { ...pr, stakeholderChart: chart } : pr));
     setSelected(prevSel => (prevSel && prevSel.id === selected.id) ? { ...prevSel, stakeholderChart: chart } : prevSel);
