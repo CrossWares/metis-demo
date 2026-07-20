@@ -2379,19 +2379,17 @@ const DYNAMIC_FIELDS = [
 ];
 
 function InputBox({ field, value, onChange, axis }) {
-  const color = axis === "S" ? C.thing : C.human;
   const [focused, setFocused] = useState(false);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <span style={{ fontSize: 9, fontWeight: 700, color, fontFamily: "'DM Mono', monospace" }}>{axis}</span>
         <span style={{ fontSize: 11, fontWeight: 600, color: C.text }}>
           {field.label}{field.required && <span style={{ color: C.critical, marginLeft: 3 }}>*</span>}
         </span>
       </div>
       <textarea value={value} onChange={e => onChange(field.key, e.target.value)} placeholder={field.placeholder} rows={2}
         onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-        style={{ border: `1.5px solid ${focused ? color : C.border}`, borderRadius: 8, padding: "8px 10px", fontSize: 12, color: C.text, background: focused ? (axis === "S" ? "#EEEDFB" : "#EAF8F3") : C.bgCard, outline: "none", resize: "none", fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1.6, transition: "border-color 0.15s, background 0.15s" }} />
+        style={{ border: `1.5px solid ${focused ? C.textMid : C.border}`, borderRadius: 8, padding: "8px 10px", fontSize: 12, color: C.text, background: C.bgCard, outline: "none", resize: "none", fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1.6, transition: "border-color 0.15s" }} />
     </div>
   );
 }
@@ -2477,7 +2475,9 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
       setForm({}); setFileStatus(null); setExtractedGravity(null);
     } catch (e) {
       // 何が起きてもボタンが「作成中…」のまま固まらないようにする。
-      setCreateError("プロジェクトの作成に失敗しました。入力内容を確認してもう一度お試しください。");
+      // どこで失敗したかユーザ自身が分かるよう、実際のエラー内容も表示する。
+      setCreateError(`プロジェクトの作成に失敗しました: ${e?.message || "不明なエラー"}`);
+      console.error("プロジェクト作成エラー:", e);
     } finally {
       setCreating(false);
     }
@@ -2516,18 +2516,16 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
         <div style={{ flex: 1, overflow: "auto", padding: "14px 20px 0" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, paddingBottom: 8, borderBottom: `2px solid ${C.thing}` }}>
-                <div style={{ width: 3, height: 14, background: C.thing, borderRadius: 2 }} />
-                <span style={{ fontSize: 10, fontWeight: 700, color: C.thing, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>STATIC — 計画管理領域</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>STATIC — 計画管理領域</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {STATIC_FIELDS.map(f => <InputBox key={f.key} field={f} value={form[f.key] || ""} onChange={setField} axis="S" />)}
               </div>
             </div>
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, paddingBottom: 8, borderBottom: `2px solid ${C.human}` }}>
-                <div style={{ width: 3, height: 14, background: C.human, borderRadius: 2 }} />
-                <span style={{ fontSize: 10, fontWeight: 700, color: C.human, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>DYNAMIC — 組織管理領域</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>DYNAMIC — 組織管理領域</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {DYNAMIC_FIELDS.map(f => <InputBox key={f.key} field={f} value={form[f.key] || ""} onChange={setField} axis="D" />)}
