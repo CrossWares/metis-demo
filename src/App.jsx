@@ -2401,6 +2401,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
   const [fileStatus, setFileStatus] = useState(null);
   const [extractedGravity, setExtractedGravity] = useState(null); // ファイル取込で抽出されたnodes/edges候補
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState(null);
   const setField = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
   const canProceed = form.name && form.due && form.scope && form.owner;
 
@@ -2441,35 +2442,45 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
 
   const handleCreate = async () => {
     setCreating(true);
-    await new Promise(r => setTimeout(r, 500));
-    const teamCount = parseInt((form.team || "").match(/\d+/)?.[0] || "5");
-    const stakeList = (form.stakeholders || "").split(/[、,，]/).map(s => s.trim()).filter(Boolean);
-    const daysLeft = Math.max(10, Math.floor((new Date(form.due) - new Date()) / 86400000));
-    // Project State Contract(createEmptyProject)をベースに、フォーム入力分だけ上書きする。
-    // 体制図(stakeholderNames)はPMも含め全ロールをブランクのままにする
-    // (=StakeholderViewのhasNameロジックにより自動でグレーアウト表示される)。
-    const newProject = createEmptyProject({
-      id: Date.now(), code: nextCode, name: form.name, owner: form.owner,
-      due: form.due, daysLeft, team: teamCount || 5,
-      alerts: [{ level: "info", axis: "S", text: "プロジェクト登録完了 — データ入力待ち" }],
-      events: [{ date: new Date().toLocaleDateString("ja-JP", { month: "2-digit", day: "2-digit" }), type: "normal", text: "プロジェクト登録完了" }],
-      stakeholders: [
-        { name: form.owner, role: "PM", status: "active" },
-        ...(form.approver ? [{ name: form.approver, role: "承認者", status: "active" }] : []),
-        ...stakeList.slice(0, 3).map(s => ({ name: s, role: "ステークホルダー", status: "active" })),
-      ],
-      gravity: mergeExtractedGravity(
-        {
-          nodes: [{ id: "プロジェクトマネジメント", category: "Concept", orbit: 0, coupling: 1.0, depStr: 1.0, changeProb: 30, commFreq: 30, source: "core" }],
-          edges: [],
-          drift: { labels:["W1","W2","W3","W4","W5","W6","W7","W8"], plan:[100,87,74,61,48,35,22,9], actual:[100,100,100,100,100,100,100,100] },
-        },
-        extractedGravity
-      ),
-    });
-    setCreating(false);
-    onCreated(newProject);
-    setForm({}); setFileStatus(null); setExtractedGravity(null);
+    setCreateError(null);
+    try {
+      await new Promise(r => setTimeout(r, 500));
+      const teamCount = parseInt((form.team || "").match(/\d+/)?.[0] || "5");
+      const stakeList = (form.stakeholders || "").split(/[、,，]/).map(s => s.trim()).filter(Boolean);
+      // 完了期日が日付として解釈できない入力(例: "A")の場合、NaNのまま先へ進めてしまうと
+      // 後続の描画処理が不安定になるため、ここで妥当な既定値(30日後)にフォールバックする。
+      const parsedDue = new Date(form.due);
+      const daysLeft = isNaN(parsedDue.getTime()) ? 30 : Math.max(10, Math.floor((parsedDue - new Date()) / 86400000));
+      // Project State Contract(createEmptyProject)をベースに、フォーム入力分だけ上書きする。
+      // 体制図(stakeholderNames)はPMも含め全ロールをブランクのままにする
+      // (=StakeholderViewのhasNameロジックにより自動でグレーアウト表示される)。
+      const newProject = createEmptyProject({
+        id: Date.now(), code: nextCode, name: form.name, owner: form.owner,
+        due: form.due, daysLeft, team: teamCount || 5,
+        alerts: [{ level: "info", axis: "S", text: "プロジェクト登録完了 — データ入力待ち" }],
+        events: [{ date: new Date().toLocaleDateString("ja-JP", { month: "2-digit", day: "2-digit" }), type: "normal", text: "プロジェクト登録完了" }],
+        stakeholders: [
+          { name: form.owner, role: "PM", status: "active" },
+          ...(form.approver ? [{ name: form.approver, role: "承認者", status: "active" }] : []),
+          ...stakeList.slice(0, 3).map(s => ({ name: s, role: "ステークホルダー", status: "active" })),
+        ],
+        gravity: mergeExtractedGravity(
+          {
+            nodes: [{ id: "プロジェクトマネジメント", category: "Concept", orbit: 0, coupling: 1.0, depStr: 1.0, changeProb: 30, commFreq: 30, source: "core" }],
+            edges: [],
+            drift: { labels:["W1","W2","W3","W4","W5","W6","W7","W8"], plan:[100,87,74,61,48,35,22,9], actual:[100,100,100,100,100,100,100,100] },
+          },
+          extractedGravity
+        ),
+      });
+      onCreated(newProject);
+      setForm({}); setFileStatus(null); setExtractedGravity(null);
+    } catch (e) {
+      // 何が起きてもボタンが「作成中…」のまま固まらないようにする。
+      setCreateError("プロジェクトの作成に失敗しました。入力内容を確認してもう一度お試しください。");
+    } finally {
+      setCreating(false);
+    }
   };
 
   if (!visible) return null;
@@ -2526,7 +2537,13 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
           <div style={{ height: 20 }} />
         </div>
         {/* Footer */}
-        <div style={{ padding: "12px 20px", borderTop: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", background: C.bg }}>
+        <div style={{ padding: "12px 20px", borderTop: `1px solid ${C.border}`, display: "flex", flexDirection: "column", gap: 8, background: C.bg }}>
+          {createError && (
+            <div style={{ fontSize: 11, color: C.critical, background: "#FEF2F2", border: `1px solid ${C.critical}33`, borderRadius: 6, padding: "6px 10px" }}>
+              {createError}
+            </div>
+          )}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ fontSize: 10, color: C.textWeak }}><span style={{ color: C.critical }}>*</span> は必須項目</div>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={onClose} style={{ fontSize: 12, color: C.textMid, background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 18px", cursor: "pointer" }}>キャンセル</button>
@@ -2534,6 +2551,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
               {creating ? "作成中…" : "プロジェクトを登録"}
               {!creating && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M7 3l3 3-3 3" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
             </button>
+          </div>
           </div>
         </div>
       </div>
