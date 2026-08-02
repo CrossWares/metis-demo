@@ -79,6 +79,74 @@ function layoutOrgTree(rows) {
   return { nodes: Object.values(nodeMap), edges };
 }
 
+// Ghost CSV取込・新規作成モーダルのファイル取込、両方から使う共通関数。
+// 抽出されたnodes/edges(候補)を既存のgravityにマージし、表示互換のcoupling等を計算する。
+// ★モジュールのトップレベルに置くこと。App()の内側に置くと、別コンポーネント(CreateProjectModal等)の
+//   スコープから見えなくなり「is not defined」エラーになる(実際に起きた不具合)。
+function mergeExtractedGravity(existingGravity, extracted) {
+  // AIの抽出結果は形が揺れうる(配列でない、null要素を含む等)ため、
+  // ここで壊れた形を吸収し、以降の処理では正しい配列であることを保証する。
+  const existingNodes = Array.isArray(existingGravity?.nodes) ? existingGravity.nodes : [];
+  const existingIds = new Set(existingNodes.filter(n => n && n.id).map(n => n.id));
+  const rawNodes = Array.isArray(extracted?.nodes) ? extracted.nodes : [];
+  const rawEdges = Array.isArray(extracted?.edges) ? extracted.edges : [];
+  const newNodesRaw = rawNodes.filter(n => n && typeof n === "object" && n.id && !existingIds.has(n.id));
+  const allEdgesRaw = rawEdges.filter(e => e && typeof e === "object" && e.source && e.target && e.edge_type);
+
+  const FREQ_SCORE = { daily: 100, weekly: 70, "per-phase": 50, "event-driven": 30, once: 10 };
+
+  const computeDerived = (nodeId) => {
+    const touching = allEdgesRaw.filter(e => e.source === nodeId || e.target === nodeId);
+    const strengths = touching.map(e => typeof e.strength === "number" ? e.strength : 0.5);
+    const coupling = strengths.length ? +(strengths.reduce((a, b) => a + b, 0) / strengths.length * 5).toFixed(1) : 1.0;
+    const depStrengths = touching.filter(e => e.edge_type === "Dependency").map(e => typeof e.strength === "number" ? e.strength : 0.5);
+    const depStr = depStrengths.length ? +(depStrengths.reduce((a, b) => a + b, 0) / depStrengths.length * 5).toFixed(1) : coupling;
+    const commFreq = touching.length ? Math.round(touching.reduce((a, e) => a + (FREQ_SCORE[e.frequency] || 30), 0) / touching.length) : 30;
+    const volatile = touching.filter(e => e.edge_type === "Temporal" || e.edge_type === "Governance").length;
+    const changeProb = touching.length ? Math.min(90, Math.max(20, Math.round((volatile / touching.length) * 90))) : 50;
+    return { coupling, depStr, changeProb, commFreq };
+  };
+
+  const newNodes = newNodesRaw.slice(0, 12).map(n => ({
+    id: n.id,
+    category: n.category || "Concept",
+    orbit: 3,
+    source: "imported",
+    ...computeDerived(n.id),
+  }));
+
+  const existingEdgeKeys = new Set((existingGravity?.edges || []).filter(e => e.source && e.target).map(e => `${e.source}|${e.target}|${e.edge_type}`));
+  const newEdges = allEdgesRaw.filter(e => !existingEdgeKeys.has(`${e.source}|${e.target}|${e.edge_type}`)).slice(0, 18);
+
+  return {
+    nodes: [...existingNodes, ...newNodes],
+    edges: [...(existingGravity?.edges || []), ...newEdges],
+    drift: existingGravity?.drift || { labels: [], plan: [], actual: [] },
+  };
+}
+
+// Claude Extraction用の共通システムプロンプト(Excel Edge Ontology準拠、5分類)。
+// Ghost CSV取込・新規作成モーダルのファイル取込、両方で同一の抽出仕様を使う。
+function buildGravityExtractionPrompt(existingIds) {
+  return `あなたはプロジェクトドキュメント(CSV/議事録/WBS/要件定義書等)からMetisのナレッジグラフ用のノードとエッジを抽出するAIです。
+必ずJSONのみを返してください（前置き・説明・マークダウン記号は一切禁止）。
+
+■ ノード分類(category)は次の5種類のいずれか: Concept(概念・抽象概念) / Organization(人物・役職・チーム・ベンダー) / Process(手順・作業・成果物生成プロセス) / Issue(問題・リスク・懸念事項) / Artifact(成果物・文書・システム)
+■ エッジ種別(edge_type)は次の5種類のいずれか:
+  Structural(所属する/管理する/所有する/報告する)
+  Dependency(依存する/参照する/必要とする/制約される)
+  Temporal(先行する/後続する/トリガーする/完了条件となる)
+  Governance(承認する/決定する/委任する/エスカレーションする)
+  Knowledge(学習する/引き継ぐ/利用する/派生する/共有する)
+
+既存ノード(重複させず、可能な限りこれらを再利用してsourceやtargetに使う。特に"プロジェクトマネジメント"は全プロジェクト共通の中心ノードなので、関連する内容があれば積極的にエッジで繋げること): ${existingIds.join(", ") || "なし"}
+
+返すJSON形式(このキーのみ):
+{"nodes":[{"id":"ノード名(短い名詞、既存ノードと表記揺れさせない)","category":"Concept|Organization|Process|Issue|Artifact"}],
+ "edges":[{"source":"ノード名","target":"ノード名","edge_type":"Structural|Dependency|Temporal|Governance|Knowledge","direction":"→|↔","strength":0.0から1.0の数値,"frequency":"daily|weekly|per-phase|event-driven|once","label":"動詞句","note":"根拠の要約(20字以内)"}]}
+精度は多少低くても構いません。読み取れる範囲でベストエフォートに構造化してください。ノードは最大12個、エッジは最大18個までに絞ってください。読み取れる関係が無ければ空配列を返してください。`;
+}
+
 function createEmptyProject(overrides = {}) {
   return {
     id: null, code: "", name: "", owner: "",
@@ -2378,7 +2446,7 @@ const DYNAMIC_FIELDS = [
   { key: "risks",        label: "主要リスク・懸念",  placeholder: "例：ベンダー依存、要件変更リスク" },
 ];
 
-function InputBox({ field, value, onChange, axis }) {
+function InputBox({ field, value, onChange, axis, invalid }) {
   const [focused, setFocused] = useState(false);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
@@ -2386,10 +2454,11 @@ function InputBox({ field, value, onChange, axis }) {
         <span style={{ fontSize: 11, fontWeight: 600, color: C.text }}>
           {field.label}{field.required && <span style={{ color: C.critical, marginLeft: 3 }}>*</span>}
         </span>
+        {invalid && <span style={{ fontSize: 9.5, color: C.critical, fontWeight: 600 }}>必須項目です</span>}
       </div>
       <textarea value={value} onChange={e => onChange(field.key, e.target.value)} placeholder={field.placeholder} rows={2}
         onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-        style={{ border: `1.5px solid ${focused ? C.textMid : C.border}`, borderRadius: 8, padding: "8px 10px", fontSize: 12, color: C.text, background: C.bgCard, outline: "none", resize: "none", fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1.6, transition: "border-color 0.15s" }} />
+        style={{ border: `1.5px solid ${invalid ? C.critical : (focused ? C.textMid : C.border)}`, borderRadius: 8, padding: "8px 10px", fontSize: 12, color: C.text, background: invalid ? "#FEF2F2" : C.bgCard, outline: "none", resize: "none", fontFamily: "'Noto Sans JP', sans-serif", lineHeight: 1.6, transition: "border-color 0.15s" }} />
     </div>
   );
 }
@@ -2400,8 +2469,19 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
   const [extractedGravity, setExtractedGravity] = useState(null); // ファイル取込で抽出されたnodes/edges候補
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState(null);
-  const setField = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
-  const canProceed = form.name && form.due && form.scope && form.owner;
+  const [invalidFields, setInvalidFields] = useState([]); // 未入力の必須項目キー(送信を試みた後にのみ表示)
+  const setField = (key, val) => {
+    setForm(prev => ({ ...prev, [key]: val }));
+    if (val?.trim?.()) setInvalidFields(prev => prev.filter(k => k !== key));
+  };
+  const REQUIRED_FIELDS = [
+    { key: "name", label: "プロジェクト名" },
+    { key: "due", label: "完了期日" },
+    { key: "scope", label: "スコープ・目的" },
+    { key: "owner", label: "PM / PMO" },
+  ];
+  const missingFields = REQUIRED_FIELDS.filter(f => !form[f.key]?.trim?.());
+  const canProceed = missingFields.length === 0;
 
   const handleFile = async (file) => {
     setFileStatus("loading");
@@ -2439,8 +2519,14 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
   };
 
   const handleCreate = async () => {
-    setCreating(true);
     setCreateError(null);
+    if (missingFields.length > 0) {
+      setInvalidFields(missingFields.map(f => f.key));
+      setCreateError(`次の項目が未入力です: ${missingFields.map(f => f.label).join("、")}`);
+      return;
+    }
+    setInvalidFields([]);
+    setCreating(true);
     try {
       await new Promise(r => setTimeout(r, 500));
       const teamCount = parseInt((form.team || "").match(/\d+/)?.[0] || "5");
@@ -2472,7 +2558,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
         ),
       });
       onCreated(newProject);
-      setForm({}); setFileStatus(null); setExtractedGravity(null);
+      setForm({}); setFileStatus(null); setExtractedGravity(null); setInvalidFields([]);
     } catch (e) {
       // 何が起きてもボタンが「作成中…」のまま固まらないようにする。
       // どこで失敗したかユーザ自身が分かるよう、実際のエラー内容も表示する。
@@ -2520,7 +2606,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
                 <span style={{ fontSize: 10, fontWeight: 700, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>STATIC — 計画管理領域</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {STATIC_FIELDS.map(f => <InputBox key={f.key} field={f} value={form[f.key] || ""} onChange={setField} axis="S" />)}
+                {STATIC_FIELDS.map(f => <InputBox key={f.key} field={f} value={form[f.key] || ""} onChange={setField} axis="S" invalid={invalidFields.includes(f.key)} />)}
               </div>
             </div>
             <div>
@@ -2528,7 +2614,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
                 <span style={{ fontSize: 10, fontWeight: 700, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>DYNAMIC — 組織管理領域</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {DYNAMIC_FIELDS.map(f => <InputBox key={f.key} field={f} value={form[f.key] || ""} onChange={setField} axis="D" />)}
+                {DYNAMIC_FIELDS.map(f => <InputBox key={f.key} field={f} value={form[f.key] || ""} onChange={setField} axis="D" invalid={invalidFields.includes(f.key)} />)}
               </div>
             </div>
           </div>
@@ -2545,7 +2631,7 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
           <div style={{ fontSize: 10, color: C.textWeak }}><span style={{ color: C.critical }}>*</span> は必須項目</div>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={onClose} style={{ fontSize: 12, color: C.textMid, background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 18px", cursor: "pointer" }}>キャンセル</button>
-            <button onClick={handleCreate} disabled={!canProceed || creating} style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: canProceed && !creating ? C.human : C.textWeak, border: "none", borderRadius: 8, padding: "8px 24px", cursor: canProceed && !creating ? "pointer" : "default", display: "flex", alignItems: "center", gap: 8 }}>
+            <button onClick={handleCreate} disabled={creating} style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: creating ? C.textWeak : C.human, border: "none", borderRadius: 8, padding: "8px 24px", cursor: creating ? "default" : "pointer", display: "flex", alignItems: "center", gap: 8 }}>
               {creating ? "作成中…" : "プロジェクトを登録"}
               {!creating && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M7 3l3 3-3 3" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
             </button>
@@ -3053,68 +3139,6 @@ export default function App() {
   // coupling/depStr/changeProb/commFreqを前提にしているため、ここで一度だけ
   // strength/frequency/edge_typeから互換値を計算してノードに直接持たせる
   // (GravityView側のコードは変更不要)。
-// Ghost CSV取込・新規作成モーダルのファイル取込、両方から使う共通関数。
-// 抽出されたnodes/edges(候補)を既存のgravityにマージし、表示互換のcoupling等を計算する。
-function mergeExtractedGravity(existingGravity, extracted) {
-  const existingNodes = existingGravity?.nodes || [];
-  const existingIds = new Set(existingNodes.map(n => n.id));
-  const newNodesRaw = (extracted?.nodes || []).filter(n => n.id && !existingIds.has(n.id));
-  const allEdgesRaw = (extracted?.edges || []).filter(e => e.source && e.target && e.edge_type);
-
-  const FREQ_SCORE = { daily: 100, weekly: 70, "per-phase": 50, "event-driven": 30, once: 10 };
-
-  const computeDerived = (nodeId) => {
-    const touching = allEdgesRaw.filter(e => e.source === nodeId || e.target === nodeId);
-    const strengths = touching.map(e => typeof e.strength === "number" ? e.strength : 0.5);
-    const coupling = strengths.length ? +(strengths.reduce((a, b) => a + b, 0) / strengths.length * 5).toFixed(1) : 1.0;
-    const depStrengths = touching.filter(e => e.edge_type === "Dependency").map(e => typeof e.strength === "number" ? e.strength : 0.5);
-    const depStr = depStrengths.length ? +(depStrengths.reduce((a, b) => a + b, 0) / depStrengths.length * 5).toFixed(1) : coupling;
-    const commFreq = touching.length ? Math.round(touching.reduce((a, e) => a + (FREQ_SCORE[e.frequency] || 30), 0) / touching.length) : 30;
-    const volatile = touching.filter(e => e.edge_type === "Temporal" || e.edge_type === "Governance").length;
-    const changeProb = touching.length ? Math.min(90, Math.max(20, Math.round((volatile / touching.length) * 90))) : 50;
-    return { coupling, depStr, changeProb, commFreq };
-  };
-
-  const newNodes = newNodesRaw.slice(0, 12).map(n => ({
-    id: n.id,
-    category: n.category || "Concept",
-    orbit: 3,
-    source: "imported",
-    ...computeDerived(n.id),
-  }));
-
-  const existingEdgeKeys = new Set((existingGravity?.edges || []).filter(e => e.source && e.target).map(e => `${e.source}|${e.target}|${e.edge_type}`));
-  const newEdges = allEdgesRaw.filter(e => !existingEdgeKeys.has(`${e.source}|${e.target}|${e.edge_type}`)).slice(0, 18);
-
-  return {
-    nodes: [...existingNodes, ...newNodes],
-    edges: [...(existingGravity?.edges || []), ...newEdges],
-    drift: existingGravity?.drift || { labels: [], plan: [], actual: [] },
-  };
-}
-
-// Claude Extraction用の共通システムプロンプト(Excel Edge Ontology準拠、5分類)。
-// Ghost CSV取込・新規作成モーダルのファイル取込、両方で同一の抽出仕様を使う。
-function buildGravityExtractionPrompt(existingIds) {
-  return `あなたはプロジェクトドキュメント(CSV/議事録/WBS/要件定義書等)からMetisのナレッジグラフ用のノードとエッジを抽出するAIです。
-必ずJSONのみを返してください（前置き・説明・マークダウン記号は一切禁止）。
-
-■ ノード分類(category)は次の5種類のいずれか: Concept(概念・抽象概念) / Organization(人物・役職・チーム・ベンダー) / Process(手順・作業・成果物生成プロセス) / Issue(問題・リスク・懸念事項) / Artifact(成果物・文書・システム)
-■ エッジ種別(edge_type)は次の5種類のいずれか:
-  Structural(所属する/管理する/所有する/報告する)
-  Dependency(依存する/参照する/必要とする/制約される)
-  Temporal(先行する/後続する/トリガーする/完了条件となる)
-  Governance(承認する/決定する/委任する/エスカレーションする)
-  Knowledge(学習する/引き継ぐ/利用する/派生する/共有する)
-
-既存ノード(重複させず、可能な限りこれらを再利用してsourceやtargetに使う。特に"プロジェクトマネジメント"は全プロジェクト共通の中心ノードなので、関連する内容があれば積極的にエッジで繋げること): ${existingIds.join(", ") || "なし"}
-
-返すJSON形式(このキーのみ):
-{"nodes":[{"id":"ノード名(短い名詞、既存ノードと表記揺れさせない)","category":"Concept|Organization|Process|Issue|Artifact"}],
- "edges":[{"source":"ノード名","target":"ノード名","edge_type":"Structural|Dependency|Temporal|Governance|Knowledge","direction":"→|↔","strength":0.0から1.0の数値,"frequency":"daily|weekly|per-phase|event-driven|once","label":"動詞句","note":"根拠の要約(20字以内)"}]}
-精度は多少低くても構いません。読み取れる範囲でベストエフォートに構造化してください。ノードは最大12個、エッジは最大18個までに絞ってください。読み取れる関係が無ければ空配列を返してください。`;
-}
-
   const handleGravityExtract = (extracted) => {
     if (!selected) return;
     const chart = mergeExtractedGravity(selected.gravity, extracted);
