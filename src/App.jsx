@@ -621,6 +621,22 @@ const ONT_EDGES = [
 const ONT_CAT_COLOR = Object.fromEntries(ONT_CATS.map(c=>[c.id,c.color]));
 const ONT_ORBIT_R = [0, 0.13, 0.26, 0.40, 0.50];
 
+// ONT_NODES/ONT_EDGES(固定84ノードの参考オントロジー)を、ProjectGravityGraphが扱える形へ変換する。
+// coupling(結合度)の実データが無いため、そのノードに繋がるエッジ数を簡易的な代理指標として使う。
+const ONT_CAT_ID_TO_CATEGORY = { concept: "Concept", org: "Organization", proc: "Process", issue: "Issue", artifact: "Artifact" };
+const ONT_GRAVITY_NODES = ONT_NODES.map(n => {
+  const edgeCount = ONT_EDGES.filter(([a, b]) => a === n.id || b === n.id).length;
+  return {
+    id: n.id,
+    label: (n.label || "").replace(/\n/g, ""),
+    abbr: n.abbr || (n.label || "").replace(/\n/g, "").slice(0, 2),
+    category: ONT_CAT_ID_TO_CATEGORY[n.cat] || "Concept",
+    orbit: n.orbit,
+    coupling: n.core ? 5.0 : Math.min(5.5, 1 + edgeCount * 0.4),
+  };
+});
+const ONT_GRAVITY_EDGES = ONT_EDGES.map(([source, target]) => ({ source, target, strength: 0.6 }));
+
 // Projectのgravity.nodes/edgesを実際に描画するグラフ。
 // OntologyGraphは常時固定の84ノード意味空間を表示するもので、Projectのデータとは無関係。
 // こちらはProjectごとのノード数がそのまま反映される(新規PJなら空、体制図取込直後なら8個、など)。
@@ -640,7 +656,7 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
 
   // ノードの表示半径(結合度で決まる、シミュレーション有無に関わらず配置計算はこの生の値を使う)
   const maxC0 = Math.max(1, ...nodes.map(n => n.coupling || 1));
-  const packRadius = (n) => (n.orbit === 0 ? 19 : 10 + ((n.coupling || 1) / maxC0) * 6);
+  const packRadius = (n) => (n.orbit === 0 ? 19 : 7 + ((n.coupling || 1) / maxC0) * 3);
 
   // 5分類(Concept/Organization/Process/Issue/Artifact)を「Static / Dynamic」の2領域へ暫定的にマッピングする。
   // 形式知/暗黙知の軸は、プロジェクトやチームの前提によって解釈が変わりうるため、今回は採用しない。
@@ -658,17 +674,17 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
     const result = {};
     sorted.forEach(n => {
       const zone = zoneOf(n);
-      const angleMin = zone === "static" ? -Math.PI / 2 : Math.PI / 2;
-      const angleMax = zone === "static" ? Math.PI / 2 : Math.PI * 1.5;
+      const angleMin = zone === "static" ? Math.PI / 2 : -Math.PI / 2;
+      const angleMax = zone === "static" ? Math.PI * 1.5 : Math.PI / 2;
       const r = packRadius(n);
-      let angle = angleMin, dist = 16, x = cx, y = cy, iter = 0;
-      while (iter < 4000) {
+      let angle = angleMin, dist = 12, x = cx, y = cy, iter = 0;
+      while (iter < 8000) {
         x = cx + Math.cos(angle) * dist;
         y = cy + Math.sin(angle) * dist;
-        const collides = placed.some(p => Math.hypot(x - p.x, y - p.y) < (r + p.r + 5));
+        const collides = placed.some(p => Math.hypot(x - p.x, y - p.y) < (r + p.r + 3));
         if (!collides) break; // 重複回避を最優先するため、点線の円の外にはみ出しても構わない
-        angle += 0.32;
-        if (angle > angleMax) { angle = angleMin; dist += Math.max(4, r * 0.5); }
+        angle += 0.12;
+        if (angle > angleMax) { angle = angleMin; dist += Math.max(1.2, r * 0.2); }
         iter++;
       }
       placed.push({ x, y, r });
@@ -725,7 +741,7 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
   const CATEGORY_COLOR = { Concept: "#534AB7", Organization: "#185FA5", Process: "#BA7517", Issue: "#993C1D", Artifact: "#3B6D11" };
   const colorFor = (n) => CATEGORY_COLOR[n.category] || "#8B85E0";
   const displayCoupling = (n) => isSimulating ? (simCoupling[n.id] ?? n.coupling ?? 1) : (n.coupling || 1);
-  const nodeR = (n) => (n.orbit === 0 ? 18 : 9 + (displayCoupling(n) / (isSimulating ? 5 : maxC)) * 5);
+  const nodeR = (n) => (n.orbit === 0 ? 19 : 7 + (displayCoupling(n) / (isSimulating ? 5 : maxC)) * 3);
 
   const resolvedEdges = (edges || []).map(e => {
     if (e.source && e.target) return { a: e.source, b: e.target, w: (e.strength ?? 0.5) * 4 };
@@ -733,7 +749,7 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
     return null;
   }).filter(e => e && pos[e.a] && pos[e.b]);
 
-  const abbr = (n) => (n.orbit === 0 ? "PM" : (n.id || "").replace(/\s/g, "").slice(0, 2));
+  const abbr = (n) => (n.orbit === 0 ? "PM" : (n.abbr || (n.id || "").replace(/\s/g, "").slice(0, 2)));
 
   return (
     <div ref={wrapRef} style={{ position: "relative" }}>
@@ -774,8 +790,8 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
           <circle key={i} cx={cx} cy={cy} r={maxRadius * f} fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth={0.8} strokeDasharray="5,4" />
         ))}
         <line x1={cx} y1={cy - maxRadius} x2={cx} y2={cy + maxRadius} stroke="rgba(0,0,0,0.14)" strokeWidth={0.8} />
-        <text x={cx - maxRadius * 1.02} y={cy + 3} textAnchor="middle" fontSize={10} fontWeight={700} fill="#A3A3A3">Dynamic</text>
-        <text x={cx + maxRadius * 1.02} y={cy + 3} textAnchor="middle" fontSize={10} fontWeight={700} fill="#A3A3A3">Static</text>
+        <text x={cx - maxRadius * 1.02} y={cy + 3} textAnchor="middle" fontSize={10} fontWeight={700} fill="#A3A3A3">Static</text>
+        <text x={cx + maxRadius * 1.02} y={cy + 3} textAnchor="middle" fontSize={10} fontWeight={700} fill="#A3A3A3">Dynamic</text>
         {resolvedEdges.map((e, i) => {
           const na = nodes.find(n => n.id === e.a), nb = nodes.find(n => n.id === e.b);
           const relevant = activeFilter === "all" || CATEGORY_TO_ID[na?.category] === activeFilter || CATEGORY_TO_ID[nb?.category] === activeFilter;
@@ -803,7 +819,7 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
                 if (draggingId) return;
                 setHoveredId(n.id);
                 const rect = wrapRef.current?.getBoundingClientRect();
-                if (rect) setTooltip({ label: n.id, cat: n.category, coupling: displayCoupling(n), x: e.clientX - rect.left + 10, y: e.clientY - rect.top - 10 });
+                if (rect) setTooltip({ label: n.label || n.id, cat: n.category, coupling: displayCoupling(n), x: e.clientX - rect.left + 10, y: e.clientY - rect.top - 10 });
               }}
             >
               <circle cx={p.x} cy={p.y} r={r} fill={color + (isDragging ? "44" : "22")} stroke={color} strokeWidth={isSel || isDragging ? 2.4 : 1.4} />
@@ -2220,8 +2236,11 @@ function GravityView({ project }) {
   const [simCoupling, setSimCoupling] = useState(null); // ドラッグシミュレーション中の仮結合度 { nodeId: value }
   const canvasRef = useRef(null);
   const chartRef  = useRef(null);
-  const { nodes, edges, drift } = project?.gravity || { nodes: [], edges: [], drift: { labels:[], plan:[], actual:[] } };
-  const gravNodes = nodes || [];
+  const { nodes, edges: projectEdges, drift } = project?.gravity || { nodes: [], edges: [], drift: { labels:[], plan:[], actual:[] } };
+  // Sample PRJ: 固定84ノードの参考オントロジー(ONT_GRAVITY_NODES)を使う。
+  // 新規作成・実プロジェクト: project.gravity.nodesをそのまま使う(未定義=空。新規作成直後は空状態を表示する、以前からの仕様)。
+  const gravNodes = project?.isSample ? ONT_GRAVITY_NODES : (nodes || []);
+  const edges = project?.isSample ? ONT_GRAVITY_EDGES : (projectEdges || []);
 
   // Drift chartをCanvas2Dで描画
   // NOTE: このHookは必ず早期returnより前に置くこと。
@@ -2362,7 +2381,7 @@ function GravityView({ project }) {
                 return (
                   <div key={i} onClick={() => setSelectedNode(isSelected ? null : n)}
                     style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", padding: "3px 6px", borderRadius: 5, background: isSelected ? C.bg : "transparent", transition: "background 0.1s" }}>
-                    <span style={{ fontSize: 10, color: C.textWeak, width: 80, textAlign: "right", flexShrink: 0 }}>{n.id}</span>
+                    <span style={{ fontSize: 10, color: C.textWeak, width: 80, textAlign: "right", flexShrink: 0 }}>{n.label || n.id}</span>
                     <div style={{ flex: 1, height: 5, background: C.border, borderRadius: 99, overflow: "hidden" }}>
                       <div style={{ height: "100%", width: `${pct}%`, background: simCoupling ? "#D97706" : nc.fill, borderRadius: 99 }} />
                     </div>
