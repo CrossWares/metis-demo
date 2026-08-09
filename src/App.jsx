@@ -657,7 +657,8 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
   // 半径 = orbit(中心核からの距離)。以前のOntologyGraphと同じ考え方で、同心円上の距離に意味を持たせる。
   const maxOrbit = Math.max(1, ...nodes.map(n => n.orbit ?? 1));
   const rFromOrbit = (orbit) => (orbit / maxOrbit) * maxRadius * 0.88 + 22;
-  const packRadius = (n) => (n.orbit === 0 ? 19 : 9); // ノードの円自体の大きさ(表示上のサイズ)
+  const maxC0 = Math.max(1, ...nodes.map(n => n.coupling || 1));
+  const packRadius = (n) => (n.orbit === 0 ? 19 : 10 + ((n.coupling || 1) / maxC0) * 6); // ノードの円自体の大きさ(表示上のサイズ、以前の大きさ)
 
   // 5分類(Concept/Organization/Process/Issue/Artifact)を「Static / Dynamic」の2領域へ暫定的にマッピングする。
   // 形式知/暗黙知の軸は、プロジェクトやチームの前提によって解釈が変わりうるため、今回は採用しない。
@@ -756,7 +757,7 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
   const CATEGORY_COLOR = { Concept: "#534AB7", Organization: "#185FA5", Process: "#BA7517", Issue: "#993C1D", Artifact: "#3B6D11" };
   const colorFor = (n) => CATEGORY_COLOR[n.category] || "#8B85E0";
   const displayCoupling = (n) => isSimulating ? (simCoupling[n.id] ?? n.coupling ?? 1) : (n.coupling || 1);
-  const nodeR = (n) => (n.orbit === 0 ? 19 : 7 + (displayCoupling(n) / (isSimulating ? 5 : maxC)) * 3);
+  const nodeR = (n) => (n.orbit === 0 ? 18 : 9 + (displayCoupling(n) / (isSimulating ? 5 : maxC)) * 5);
 
   const resolvedEdges = (edges || []).map(e => {
     if (e.source && e.target) return { a: e.source, b: e.target, w: (e.strength ?? 0.5) * 4 };
@@ -796,7 +797,7 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
         )}
       </div>
 
-      <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 280, display: "block", cursor: draggingId ? "grabbing" : "default" }}
+      <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block", cursor: draggingId ? "grabbing" : "default" }}
         onMouseMove={handlePointerMove}
         onMouseUp={() => setDraggingId(null)}
         onMouseLeave={() => { setDraggingId(null); setHoveredId(null); setTooltip(null); }}>
