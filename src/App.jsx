@@ -624,43 +624,94 @@ const ONT_ORBIT_R = [0, 0.13, 0.26, 0.40, 0.50];
 // Projectのgravity.nodes/edgesを実際に描画するグラフ。
 // OntologyGraphは常時固定の84ノード意味空間を表示するもので、Projectのデータとは無関係。
 // こちらはProjectごとのノード数がそのまま反映される(新規PJなら空、体制図取込直後なら8個、など)。
-function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode }) {
+function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimulate }) {
   const [activeFilter, setActiveFilter] = useState("all");
   const [hoveredId, setHoveredId] = useState(null);
   const [tooltip, setTooltip] = useState(null);
+  const [dragPos, setDragPos] = useState({}); // { nodeId: {x,y} } ドラッグで動かした位置の上書き
+  const [draggingId, setDraggingId] = useState(null);
   const wrapRef = useRef(null);
+  const svgRef = useRef(null);
 
   if (!nodes || nodes.length === 0) return null;
 
   const W = 420, H = 400, cx = W / 2, cy = H / 2 - 10;
-  const base = W * 0.42;
-  const maxOrbit = Math.max(1, ...nodes.map(n => n.orbit ?? 1));
-  const rScale = (orbit) => (orbit / maxOrbit) * base * 0.9 + 22;
+  const maxRadius = W * 0.42;
+  const maxC0 = Math.max(1, ...nodes.map(n => n.coupling || 1));
+  // 結合度が高いほど中心に近づける(半径を反転)。orbitは中心核(プロジェクトマネジメント)の判定にのみ使う。
+  const rFromCoupling = (n) => maxRadius * 0.92 - ((n.coupling || 1) / maxC0) * (maxRadius * 0.72) - 18;
 
-  // orbit×category でグループ化し、OntologyGraphと同じ角度配置(ONT_CAT_ANGLE/ONT_CAT_SPAN)で並べる。
-  // これによりSample側のOntologyGraphと「同じカテゴリは同じ方角に来る」という視覚的な一貫性を保つ。
-  const byOrbitCat = {};
-  nodes.forEach(n => { const k = `${n.orbit ?? 1}_${CATEGORY_TO_ID[n.category] || "concept"}`; (byOrbitCat[k] = byOrbitCat[k] || []).push(n); });
+  // 5分類(Concept/Organization/Process/Issue/Artifact)を「Static / Dynamic」の2領域へ暫定的にマッピングする。
+  // 形式知/暗黙知の軸は、プロジェクトやチームの前提によって解釈が変わりうるため、今回は採用しない。
+  // 右半円=Static　左半円=Dynamic（ヘルススコアのStatic/Dynamic軸と対応させている）
+  const CAT_BASE_ANGLE = {
+    concept:  -0.35,          // Static（右）
+    artifact:  0.35,          // Static（右）
+    proc:      Math.PI - 0.55, // Dynamic（左）
+    org:       Math.PI,        // Dynamic（左）
+    issue:     Math.PI + 0.55, // Dynamic（左）
+  };
+  const CAT_SPAN = 0.42; // 同カテゴリ内での広がり
 
-  const pos = {};
+  const byCat = {};
+  nodes.forEach(n => { const k = CATEGORY_TO_ID[n.category] || "concept"; (byCat[k] = byCat[k] || []).push(n); });
+
+  const basePos = {};
   nodes.forEach(n => {
-    const orbit = n.orbit ?? 1;
-    if (orbit === 0) { pos[n.id] = { x: cx, y: cy }; return; }
+    if (n.orbit === 0) { basePos[n.id] = { x: cx, y: cy }; return; } // 中心核(プロジェクトマネジメント)
     const catId = CATEGORY_TO_ID[n.category] || "concept";
-    const group = byOrbitCat[`${orbit}_${catId}`] || [n];
+    const group = byCat[catId] || [n];
     const idx = group.findIndex(g => g.id === n.id);
     const total = group.length;
-    const centerAng = ONT_CAT_ANGLE[catId] || 0;
-    const span = ONT_CAT_SPAN[catId] || 1.2;
-    const ang = total === 1 ? centerAng : centerAng - span / 2 + (idx / (total - 1)) * span;
-    const r = rScale(orbit);
-    pos[n.id] = { x: cx + Math.cos(ang) * r, y: cy + Math.sin(ang) * r };
+    const centerAng = CAT_BASE_ANGLE[catId] || 0;
+    const ang = total === 1 ? centerAng : centerAng - CAT_SPAN / 2 + (idx / (total - 1)) * CAT_SPAN;
+    const r = rFromCoupling(n);
+    basePos[n.id] = { x: cx + Math.cos(ang) * r, y: cy + Math.sin(ang) * r };
   });
+  // ドラッグで動かしたノードは上書き位置を使う。それ以外は自動配置のまま。
+  const pos = {};
+  nodes.forEach(n => { pos[n.id] = dragPos[n.id] || basePos[n.id]; });
+
+  const isSimulating = Object.keys(dragPos).length > 0;
+
+  // シミュレーション中の「仮の結合度」: ノード間の距離が近いほど関連が強いとみなす簡易計算。
+  // 実データのcoupling(strengthベース)とは別物で、あくまで配置による体感用。
+  const simCoupling = {};
+  if (isSimulating) {
+    nodes.forEach(n => {
+      let score = 0;
+      nodes.forEach(m => {
+        if (m.id === n.id) return;
+        const d = Math.hypot(pos[n.id].x - pos[m.id].x, pos[n.id].y - pos[m.id].y) || 1;
+        score += 60 / d;
+      });
+      simCoupling[n.id] = score;
+    });
+    const maxS = Math.max(...Object.values(simCoupling), 0.001);
+    Object.keys(simCoupling).forEach(k => { simCoupling[k] = +(simCoupling[k] / maxS * 5).toFixed(1); });
+  }
+
+  useEffect(() => {
+    onSimulate?.(isSimulating ? simCoupling : null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(dragPos)]);
+
+  const toSvgCoords = (e) => {
+    const rect = svgRef.current?.getBoundingClientRect();
+    if (!rect) return { x: 0, y: 0 };
+    return { x: (e.clientX - rect.left) * (W / rect.width), y: (e.clientY - rect.top) * (H / rect.height) };
+  };
+  const handlePointerMove = (e) => {
+    if (draggingId) { setDragPos(prev => ({ ...prev, [draggingId]: toSvgCoords(e) })); return; }
+    setTooltip(t => t && { ...t, x: e.clientX - (wrapRef.current?.getBoundingClientRect().left || 0) + 10, y: e.clientY - (wrapRef.current?.getBoundingClientRect().top || 0) - 10 });
+  };
+  const handleReset = () => setDragPos({});
 
   const maxC = Math.max(1, ...nodes.map(n => n.coupling || 1));
   const CATEGORY_COLOR = { Concept: "#534AB7", Organization: "#185FA5", Process: "#BA7517", Issue: "#993C1D", Artifact: "#3B6D11" };
   const colorFor = (n) => CATEGORY_COLOR[n.category] || "#8B85E0";
-  const nodeR = (n) => (n.orbit === 0 ? 18 : 9 + ((n.coupling || 1) / maxC) * 5);
+  const displayCoupling = (n) => isSimulating ? (simCoupling[n.id] ?? n.coupling ?? 1) : (n.coupling || 1);
+  const nodeR = (n) => (n.orbit === 0 ? 18 : 9 + (displayCoupling(n) / (isSimulating ? 5 : maxC)) * 5);
 
   const resolvedEdges = (edges || []).map(e => {
     if (e.source && e.target) return { a: e.source, b: e.target, w: (e.strength ?? 0.5) * 4 };
@@ -668,13 +719,13 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode }) {
     return null;
   }).filter(e => e && pos[e.a] && pos[e.b]);
 
-  const orbitRings = Array.from({ length: maxOrbit }, (_, i) => rScale(i + 1));
+  const orbitRings = [0.2, 0.4, 0.6, 0.8].map(f => maxRadius * 0.92 * f);
   const abbr = (n) => (n.orbit === 0 ? "PM" : (n.id || "").replace(/\s/g, "").slice(0, 2));
 
   return (
     <div ref={wrapRef} style={{ position: "relative" }}>
-      {/* カテゴリフィルタ(Sampleと同じONT_CATSを使用) */}
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+      {/* カテゴリフィルタ(Sampleと同じONT_CATSを使用) + シミュレーション操作 */}
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10, alignItems: "center" }}>
         {[{ id: "all", label: "すべて", color: "#888780" }, ...ONT_CATS].map(c => (
           <button key={c.id} onClick={() => setActiveFilter(c.id)}
             style={{
@@ -686,13 +737,30 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode }) {
             {c.label}
           </button>
         ))}
+        <div style={{ flex: 1 }} />
+        {isSimulating && (
+          <span style={{ fontSize: 9, fontWeight: 700, color: "#D97706", background: "#FFFBEB", border: "1px solid #F3D9A8", borderRadius: 99, padding: "3px 9px" }}>
+            ● シミュレーション中（仮の配置）
+          </span>
+        )}
+        <button onClick={handleReset} disabled={!isSimulating}
+          style={{ fontSize: 9, fontWeight: 700, padding: "3px 10px", borderRadius: 99, cursor: isSimulating ? "pointer" : "default",
+            border: "1px solid #E2E2E2", background: "transparent", color: isSimulating ? "#333" : "#C4C4C4" }}>
+          ↺ 元に戻す
+        </button>
       </div>
 
-      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 280, display: "block" }}
-        onMouseLeave={() => { setHoveredId(null); setTooltip(null); }}>
+      <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 280, display: "block", cursor: draggingId ? "grabbing" : "default" }}
+        onMouseMove={handlePointerMove}
+        onMouseUp={() => setDraggingId(null)}
+        onMouseLeave={() => { setDraggingId(null); setHoveredId(null); setTooltip(null); }}>
         {orbitRings.map((r, i) => (
           <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke="rgba(0,0,0,0.10)" strokeWidth={0.8} strokeDasharray="5,4" />
         ))}
+        {/* Static(右) / Dynamic(左) の2領域を分ける区切り線とラベル */}
+        <line x1={cx} y1={cy - maxRadius * 0.94} x2={cx} y2={cy + maxRadius * 0.94} stroke="rgba(0,0,0,0.14)" strokeWidth={0.8} />
+        <text x={cx - maxRadius * 1.0} y={cy + 3} textAnchor="middle" fontSize={9} fontWeight={700} fill="#A3A3A3">Dynamic</text>
+        <text x={cx + maxRadius * 1.0} y={cy + 3} textAnchor="middle" fontSize={9} fontWeight={700} fill="#A3A3A3">Static</text>
         {resolvedEdges.map((e, i) => {
           const na = nodes.find(n => n.id === e.a), nb = nodes.find(n => n.id === e.b);
           const relevant = activeFilter === "all" || CATEGORY_TO_ID[na?.category] === activeFilter || CATEGORY_TO_ID[nb?.category] === activeFilter;
@@ -709,23 +777,22 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode }) {
           if (!show) return null;
           const isHov = hoveredId === n.id;
           const isSel = selectedNode?.id === n.id;
+          const isDragging = draggingId === n.id;
           const color = colorFor(n);
-          const r = nodeR(n) + (isHov || isSel ? 2 : 0);
+          const r = nodeR(n) + (isHov || isSel || isDragging ? 2 : 0);
           return (
-            <g key={i} style={{ cursor: "pointer" }}
-              onClick={() => onSelectNode?.(isSel ? null : n)}
+            <g key={i} style={{ cursor: isDragging ? "grabbing" : "grab" }}
+              onClick={() => { if (!isDragging) onSelectNode?.(isSel ? null : n); }}
+              onMouseDown={(e) => { e.stopPropagation(); setDraggingId(n.id); }}
               onMouseEnter={(e) => {
+                if (draggingId) return;
                 setHoveredId(n.id);
                 const rect = wrapRef.current?.getBoundingClientRect();
-                if (rect) setTooltip({ label: n.id, cat: n.category, coupling: n.coupling, x: e.clientX - rect.left + 10, y: e.clientY - rect.top - 10 });
-              }}
-              onMouseMove={(e) => {
-                const rect = wrapRef.current?.getBoundingClientRect();
-                if (rect) setTooltip(t => t && { ...t, x: e.clientX - rect.left + 10, y: e.clientY - rect.top - 10 });
+                if (rect) setTooltip({ label: n.id, cat: n.category, coupling: displayCoupling(n), x: e.clientX - rect.left + 10, y: e.clientY - rect.top - 10 });
               }}
             >
-              <circle cx={p.x} cy={p.y} r={r} fill={color + "22"} stroke={color} strokeWidth={isSel ? 2.4 : 1.4} />
-              <text x={p.x} y={p.y} textAnchor="middle" dominantBaseline="central" fontSize={n.orbit === 0 ? 11 : 9} fontWeight={n.orbit === 0 ? 700 : 600} fill={color}>
+              <circle cx={p.x} cy={p.y} r={r} fill={color + (isDragging ? "44" : "22")} stroke={color} strokeWidth={isSel || isDragging ? 2.4 : 1.4} />
+              <text x={p.x} y={p.y} textAnchor="middle" dominantBaseline="central" fontSize={n.orbit === 0 ? 11 : 9} fontWeight={n.orbit === 0 ? 700 : 600} fill={color} style={{ pointerEvents: "none", userSelect: "none" }}>
                 {abbr(n)}
               </text>
             </g>
@@ -735,12 +802,19 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode }) {
 
       {tooltip && (
         <div style={{ position: "absolute", left: tooltip.x, top: tooltip.y, background: "#1A1A1A", color: "#fff", fontSize: 10, padding: "4px 8px", borderRadius: 5, pointerEvents: "none", whiteSpace: "nowrap", zIndex: 10 }}>
-          {tooltip.label}（{tooltip.cat}）coupling:{tooltip.coupling?.toFixed?.(1) ?? tooltip.coupling}
+          {tooltip.label}（{tooltip.cat}）coupling:{tooltip.coupling?.toFixed?.(1) ?? tooltip.coupling}{isSimulating ? "（仮）" : ""}
+        </div>
+      )}
+      {isSimulating && (
+        <div style={{ fontSize: 9, color: "#8C8C8C", marginTop: 6 }}>
+          ノードを近づけるほど、その2者の関連が強いと仮定してcoupling・ランキングを試算しています。実データには反映されません。
         </div>
       )}
     </div>
   );
 }
+
+
 
 
 
@@ -2128,6 +2202,7 @@ function GanttView({ project, onTaskSelect, selectedTaskId }) {
 function GravityView({ project }) {
   const [activeTab, setActiveTab] = useState("gravity");
   const [selectedNode, setSelectedNode] = useState(null);
+  const [simCoupling, setSimCoupling] = useState(null); // ドラッグシミュレーション中の仮結合度 { nodeId: value }
   const canvasRef = useRef(null);
   const chartRef  = useRef(null);
   const { nodes, edges, drift } = project?.gravity || { nodes: [], edges: [], drift: { labels:[], plan:[], actual:[] } };
@@ -2250,27 +2325,33 @@ function GravityView({ project }) {
               ))}
             </div>
 
-            {project?.isSample ? <OntologyGraph /> : <ProjectGravityGraph nodes={gravNodes} edges={edges} selectedNode={selectedNode} onSelectNode={setSelectedNode} />}
+            {project?.isSample ? <OntologyGraph /> : <ProjectGravityGraph key={project?.id} nodes={gravNodes} edges={edges} selectedNode={selectedNode} onSelectNode={setSelectedNode} onSimulate={setSimCoupling} />}
           </div>
 
           {/* 右：ランキング + ノード詳細 */}
           <div style={{ padding: "14px 16px" }}>
-            <div style={{ fontSize: 10, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em", marginBottom: 10 }}>
+            <div style={{ fontSize: 10, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em", marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
               GRAVITY RANKING
+              {simCoupling && (
+                <span style={{ fontSize: 8.5, fontWeight: 700, color: "#D97706", background: "#FFFBEB", border: "1px solid #F3D9A8", borderRadius: 99, padding: "1px 7px", fontFamily: "'Noto Sans JP', sans-serif" }}>
+                  仮の配置に基づく試算
+                </span>
+              )}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 14 }}>
-              {[...gravNodes].sort((a, b) => b.coupling - a.coupling).map((n, i) => {
+              {[...gravNodes].sort((a, b) => (simCoupling ? simCoupling[b.id] - simCoupling[a.id] : b.coupling - a.coupling)).map((n, i) => {
                 const nc = nodeColor(n);
-                const pct = Math.round((n.coupling / maxC) * 100);
+                const cVal = simCoupling ? (simCoupling[n.id] ?? n.coupling) : n.coupling;
+                const pct = Math.round((cVal / (simCoupling ? 5 : maxC)) * 100);
                 const isSelected = selectedNode?.id === n.id;
                 return (
                   <div key={i} onClick={() => setSelectedNode(isSelected ? null : n)}
                     style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", padding: "3px 6px", borderRadius: 5, background: isSelected ? C.bg : "transparent", transition: "background 0.1s" }}>
                     <span style={{ fontSize: 10, color: C.textWeak, width: 80, textAlign: "right", flexShrink: 0 }}>{n.id}</span>
                     <div style={{ flex: 1, height: 5, background: C.border, borderRadius: 99, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${pct}%`, background: nc.fill, borderRadius: 99 }} />
+                      <div style={{ height: "100%", width: `${pct}%`, background: simCoupling ? "#D97706" : nc.fill, borderRadius: 99 }} />
                     </div>
-                    <span style={{ fontSize: 10, color: nc.fill, fontFamily: "'DM Mono', monospace", width: 24, textAlign: "right", fontWeight: 700 }}>{n.coupling.toFixed(1)}</span>
+                    <span style={{ fontSize: 10, color: simCoupling ? "#D97706" : nc.fill, fontFamily: "'DM Mono', monospace", width: 24, textAlign: "right", fontWeight: 700 }}>{cVal.toFixed(1)}</span>
                   </div>
                 );
               })}
