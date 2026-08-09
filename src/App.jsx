@@ -624,6 +624,39 @@ const ONT_ORBIT_R = [0, 0.13, 0.26, 0.40, 0.50];
 // ONT_NODES/ONT_EDGES(固定84ノードの参考オントロジー)を、ProjectGravityGraphが扱える形へ変換する。
 // coupling(結合度)の実データが無いため、そのノードに繋がるエッジ数を簡易的な代理指標として使う。
 const ONT_CAT_ID_TO_CATEGORY = { concept: "Concept", org: "Organization", proc: "Process", issue: "Issue", artifact: "Artifact" };
+// 各ノードの Static / Dynamic 分類(カテゴリ一括ではなく、ノード単位の意味で判断したもの)。
+// 「計画・定義・構造として決まっているもの」→static、「関係性・進行中の状態・変化し続けるもの」→dynamic。
+// pm_core(中心核)はどちらにも属さず常に中心に固定されるため、ここには含めない。
+const NODE_ZONE = {
+  // Concept
+  baseline: "static", req_def: "static", plan4plan: "static", pj_design: "static",
+  gov: "static", formal: "static", waterfall: "static", prog_mgmt: "static",
+  sys_anal: "static", six_sigma: "static", pj_scope: "static",
+  knw_mgmt: "dynamic", risk_mgmt: "dynamic", chg_mgmt: "dynamic", tacit: "dynamic",
+  chng_mgmt2: "dynamic", tailoring: "dynamic", agile: "dynamic",
+  // Organization
+  raci: "static", dec_maker: "static", dec_path: "static", approval: "static",
+  pm_role: "static", steer_co: "static", coe: "static", team_char: "static", po: "static",
+  keyman: "dynamic", res_mgmt: "dynamic", vendor: "dynamic", sh_mgmt: "dynamic",
+  coaching: "dynamic", mentoring: "dynamic",
+  // Process
+  wbs: "static", crit_path: "static", phase_gate: "static", accept: "static",
+  prereq: "static", constraint: "static", scrum: "static", timebox: "static",
+  kanban: "static", pred: "static", exit_crit: "static",
+  sch_mgmt: "dynamic", sco_mgmt: "dynamic", risk_plan: "dynamic", comm_mgmt: "dynamic",
+  review: "dynamic", inspect: "dynamic", walkthru: "dynamic", retro: "dynamic",
+  coord_mtg: "dynamic", quality: "dynamic", sprint: "dynamic", iter: "dynamic",
+  // Issue
+  trigger: "static", appr_flow: "static", conting: "static",
+  scope_cr: "dynamic", req_chg: "dynamic", conflict: "dynamic", escal: "dynamic",
+  stretch: "dynamic", info_scat: "dynamic", risk_log: "dynamic", issue_log: "dynamic",
+  progress: "dynamic", evm: "dynamic", variance: "dynamic", workload: "dynamic",
+  // Artifact
+  charter: "static", roadmap: "static", milestone: "static", deliverable: "static",
+  spec: "static", gantt: "static", req_doc: "static", pj_plan: "static", benchmark: "static",
+  taskboard: "dynamic", backlog: "dynamic", leadtime: "dynamic",
+};
+
 const ONT_GRAVITY_NODES = ONT_NODES.map(n => {
   const edgeCount = ONT_EDGES.filter(([a, b]) => a === n.id || b === n.id).length;
   return {
@@ -662,23 +695,22 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
 
   // 5分類(Concept/Organization/Process/Issue/Artifact)を「Static / Dynamic」の2領域へ暫定的にマッピングする。
   // 形式知/暗黙知の軸は、プロジェクトやチームの前提によって解釈が変わりうるため、今回は採用しない。
-  const DYNAMIC_CATS = new Set(["proc", "org", "issue"]);
-  const zoneOf = (n) => DYNAMIC_CATS.has(CATEGORY_TO_ID[n.category] || "concept") ? "dynamic" : "static";
+  // Static/Dynamicはノード単位の分類(NODE_ZONE)を使う。未登録のノードはカテゴリから推測してフォールバックする。
+  const DYNAMIC_CATS_FALLBACK = new Set(["proc", "org", "issue"]);
+  const zoneOf = (n) => NODE_ZONE[n.id] || (DYNAMIC_CATS_FALLBACK.has(CATEGORY_TO_ID[n.category] || "concept") ? "dynamic" : "static");
 
-  // カテゴリごとの基準角度: Static側(右半円、-90°〜90°)にConcept/Artifact、Dynamic側(左半円、90°〜270°)にProcess/Organization/Issue。
-  const CAT_BASE_ANGLE = {
-    concept:  -0.45,           // Static（右上寄り）
-    artifact:  0.45,           // Static（右下寄り）
-    proc:      Math.PI - 0.65, // Dynamic（左上寄り）
-    org:       Math.PI,        // Dynamic（左）
-    issue:     Math.PI + 0.65, // Dynamic（左下寄り）
+  // 各半円(Static/Dynamic)の中で、カテゴリごとに少しずつ角度をずらして視覚的にまとめる。
+  // 半円そのものはzone(ノード単位のStatic/Dynamic分類)で決まり、カテゴリは半円内の副次的な並び順にすぎない。
+  const ZONE_CAT_ANGLE = {
+    static_concept: -0.7, static_org: -0.35, static_proc: 0, static_issue: 0.35, static_artifact: 0.7,
+    dynamic_concept: Math.PI - 0.7, dynamic_org: Math.PI - 0.35, dynamic_proc: Math.PI, dynamic_issue: Math.PI + 0.35, dynamic_artifact: Math.PI + 0.7,
   };
-  const CAT_SPAN = 0.62; // 同じ(orbit,カテゴリ)内での広がり
+  const CAT_SPAN = 0.3; // 同じ(zone,カテゴリ,orbit)内での広がり
 
-  // orbit×カテゴリでグループ化し、その中でインデックス順に角度をずらして重なりを抑える
+  // zone×カテゴリ×orbitでグループ化し、その中でインデックス順に角度をずらして重なりを抑える
   // (完全な重複回避は保証しないが、同心円上の距離という意味を優先する)。
-  const byOrbitCat = {};
-  nodes.forEach(n => { const k = `${n.orbit ?? 1}_${CATEGORY_TO_ID[n.category] || "concept"}`; (byOrbitCat[k] = byOrbitCat[k] || []).push(n); });
+  const byGroup = {};
+  nodes.forEach(n => { const catId = CATEGORY_TO_ID[n.category] || "concept"; const k = `${zoneOf(n)}_${catId}_${n.orbit ?? 1}`; (byGroup[k] = byGroup[k] || []).push(n); });
 
   // 各ノードの「理想位置」(orbit×カテゴリで決まる、同心円上の位置)を求めたうえで、
   // 既に置いたノードと重なる場合だけ、その理想位置の近くを局所的に探索してずらす。
@@ -690,23 +722,26 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
 
   [...nodes].filter(n => n.orbit !== 0).sort((a, b) => (a.orbit ?? 1) - (b.orbit ?? 1)).forEach(n => {
     const catId = CATEGORY_TO_ID[n.category] || "concept";
-    const group = byOrbitCat[`${n.orbit}_${catId}`] || [n];
+    const zone = zoneOf(n);
+    const group = byGroup[`${zone}_${catId}_${n.orbit ?? 1}`] || [n];
     const idx = group.findIndex(g => g.id === n.id);
     const total = group.length;
-    const centerAng = CAT_BASE_ANGLE[catId] || 0;
+    const centerAng = ZONE_CAT_ANGLE[`${zone}_${catId}`] ?? (zone === "static" ? 0 : Math.PI);
     const ang = total === 1 ? centerAng : centerAng - CAT_SPAN / 2 + (idx / (total - 1)) * CAT_SPAN;
     const r0 = rFromOrbit(n.orbit ?? 1);
-    const idealX = cx + Math.cos(ang) * r0, idealY = cy + Math.sin(ang) * r0;
     const rr = packRadius(n);
+    const clampXY = (px, py) => [Math.min(Math.max(px, rr + 2), W - rr - 2), Math.min(Math.max(py, rr + 2), H - rr - 2)];
+    let [idealX, idealY] = clampXY(cx + Math.cos(ang) * r0, cy + Math.sin(ang) * r0);
 
     const collides = (x, y) => placedCircles.some(p => Math.hypot(x - p.x, y - p.y) < (rr + p.r + 2.5));
     let x = idealX, y = idealY;
     if (collides(x, y)) {
-      // 理想位置を中心に、局所的に渦巻き状の候補を探して最初に空いている場所を採用する
+      // 理想位置を中心に、局所的に渦巻き状の候補を探して最初に空いている場所を採用する。
+      // 候補は必ず盤面内にクランプしてから判定するため、はみ出しと重複が同時に起きない。
       let found = false;
       for (let dist = 4; dist <= 260 && !found; dist += 3.2) {
         for (let a = 0; a < Math.PI * 2; a += 0.28) {
-          const cx2 = idealX + Math.cos(a) * dist, cy2 = idealY + Math.sin(a) * dist;
+          const [cx2, cy2] = clampXY(idealX + Math.cos(a) * dist, idealY + Math.sin(a) * dist);
           if (!collides(cx2, cy2)) { x = cx2; y = cy2; found = true; break; }
         }
       }
@@ -714,9 +749,13 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
     placedCircles.push({ x, y, r: rr });
     basePos[n.id] = { x, y };
   });
-  // ドラッグで動かしたノードは上書き位置を使う。それ以外は自動配置のまま。
+  // ドラッグで動かしたノードも同様に盤面内へクランプする。それ以外は自動配置のまま。
   const pos = {};
-  nodes.forEach(n => { pos[n.id] = dragPos[n.id] || basePos[n.id]; });
+  nodes.forEach(n => {
+    const rr = packRadius(n);
+    const p = dragPos[n.id] || basePos[n.id];
+    pos[n.id] = p ? { x: Math.min(Math.max(p.x, rr + 2), W - rr - 2), y: Math.min(Math.max(p.y, rr + 2), H - rr - 2) } : p;
+  });
 
   const isSimulating = Object.keys(dragPos).length > 0;
 
