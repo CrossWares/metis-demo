@@ -624,7 +624,7 @@ const ONT_ORBIT_R = [0, 0.13, 0.26, 0.40, 0.50];
 // Projectのgravity.nodes/edgesを実際に描画するグラフ。
 // OntologyGraphは常時固定の84ノード意味空間を表示するもので、Projectのデータとは無関係。
 // こちらはProjectごとのノード数がそのまま反映される(新規PJなら空、体制図取込直後なら8個、など)。
-function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimulate }) {
+function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimulate, draggable = true }) {
   const [activeFilter, setActiveFilter] = useState("all");
   const [hoveredId, setHoveredId] = useState(null);
   const [tooltip, setTooltip] = useState(null);
@@ -635,39 +635,53 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
 
   if (!nodes || nodes.length === 0) return null;
 
-  const W = 420, H = 400, cx = W / 2, cy = H / 2 - 10;
+  const W = 420, H = 400, cx = W / 2, cy = H / 2 - 6;
   const maxRadius = W * 0.42;
+
+  // ノードの表示半径(結合度で決まる、シミュレーション有無に関わらず配置計算はこの生の値を使う)
   const maxC0 = Math.max(1, ...nodes.map(n => n.coupling || 1));
-  // 結合度が高いほど中心に近づける(半径を反転)。orbitは中心核(プロジェクトマネジメント)の判定にのみ使う。
-  const rFromCoupling = (n) => maxRadius * 0.92 - ((n.coupling || 1) / maxC0) * (maxRadius * 0.72) - 18;
+  const packRadius = (n) => (n.orbit === 0 ? 19 : 10 + ((n.coupling || 1) / maxC0) * 6);
 
   // 5分類(Concept/Organization/Process/Issue/Artifact)を「Static / Dynamic」の2領域へ暫定的にマッピングする。
   // 形式知/暗黙知の軸は、プロジェクトやチームの前提によって解釈が変わりうるため、今回は採用しない。
-  // 右半円=Static　左半円=Dynamic（ヘルススコアのStatic/Dynamic軸と対応させている）
-  const CAT_BASE_ANGLE = {
-    concept:  -0.35,          // Static（右）
-    artifact:  0.35,          // Static（右）
-    proc:      Math.PI - 0.55, // Dynamic（左）
-    org:       Math.PI,        // Dynamic（左）
-    issue:     Math.PI + 0.55, // Dynamic（左）
-  };
-  const CAT_SPAN = 0.42; // 同カテゴリ内での広がり
+  const DYNAMIC_CATS = new Set(["proc", "org", "issue"]);
+  const zoneOf = (n) => DYNAMIC_CATS.has(CATEGORY_TO_ID[n.category] || "concept") ? "dynamic" : "static";
 
-  const byCat = {};
-  nodes.forEach(n => { const k = CATEGORY_TO_ID[n.category] || "concept"; (byCat[k] = byCat[k] || []).push(n); });
+  // 単一の中心(cx,cy)を共有する同心円構造の中で、角度によってStatic(右半分)/Dynamic(左半分)に分ける。
+  // 各半円の中では、中心から渦巻き状に候補位置を広げながら、既に置いたノードと重ならない
+  // 最初の位置を採用する(決定的なアルゴリズムなので毎回同じ結果になる)。
+  function packAll(satelliteNodes) {
+    const sorted = [...satelliteNodes].sort((a, b) => (b.coupling || 0) - (a.coupling || 0)); // 重要なノードほど中心寄りに
+    // 中心核(プロジェクトマネジメント)を最初から衝突判定に含めておく
+    const core = nodes.find(n => n.orbit === 0);
+    const placed = core ? [{ x: cx, y: cy, r: packRadius(core) }] : [];
+    const result = {};
+    sorted.forEach(n => {
+      const zone = zoneOf(n);
+      const angleMin = zone === "static" ? -Math.PI / 2 : Math.PI / 2;
+      const angleMax = zone === "static" ? Math.PI / 2 : Math.PI * 1.5;
+      const r = packRadius(n);
+      let angle = angleMin, dist = 16, x = cx, y = cy, iter = 0;
+      while (iter < 4000) {
+        x = cx + Math.cos(angle) * dist;
+        y = cy + Math.sin(angle) * dist;
+        const collides = placed.some(p => Math.hypot(x - p.x, y - p.y) < (r + p.r + 5));
+        if (!collides) break; // 重複回避を最優先するため、点線の円の外にはみ出しても構わない
+        angle += 0.32;
+        if (angle > angleMax) { angle = angleMin; dist += Math.max(4, r * 0.5); }
+        iter++;
+      }
+      placed.push({ x, y, r });
+      result[n.id] = { x, y };
+    });
+    return result;
+  }
 
-  const basePos = {};
-  nodes.forEach(n => {
-    if (n.orbit === 0) { basePos[n.id] = { x: cx, y: cy }; return; } // 中心核(プロジェクトマネジメント)
-    const catId = CATEGORY_TO_ID[n.category] || "concept";
-    const group = byCat[catId] || [n];
-    const idx = group.findIndex(g => g.id === n.id);
-    const total = group.length;
-    const centerAng = CAT_BASE_ANGLE[catId] || 0;
-    const ang = total === 1 ? centerAng : centerAng - CAT_SPAN / 2 + (idx / (total - 1)) * CAT_SPAN;
-    const r = rFromCoupling(n);
-    basePos[n.id] = { x: cx + Math.cos(ang) * r, y: cy + Math.sin(ang) * r };
-  });
+  const coreNode = nodes.find(n => n.orbit === 0);
+  const satelliteNodes = nodes.filter(n => n.orbit !== 0);
+  // Static = 右半分(-90°〜90°)　Dynamic = 左半分(90°〜270°)。同一のplaced配列で両方を配置するため境界での衝突も検出できる。
+  const basePos = packAll(satelliteNodes);
+  if (coreNode) basePos[coreNode.id] = { x: cx, y: cy }; // 中心核(プロジェクトマネジメント)は同心円の中心
   // ドラッグで動かしたノードは上書き位置を使う。それ以外は自動配置のまま。
   const pos = {};
   nodes.forEach(n => { pos[n.id] = dragPos[n.id] || basePos[n.id]; });
@@ -719,7 +733,6 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
     return null;
   }).filter(e => e && pos[e.a] && pos[e.b]);
 
-  const orbitRings = [0.2, 0.4, 0.6, 0.8].map(f => maxRadius * 0.92 * f);
   const abbr = (n) => (n.orbit === 0 ? "PM" : (n.id || "").replace(/\s/g, "").slice(0, 2));
 
   return (
@@ -738,29 +751,31 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
           </button>
         ))}
         <div style={{ flex: 1 }} />
-        {isSimulating && (
+        {draggable && isSimulating && (
           <span style={{ fontSize: 9, fontWeight: 700, color: "#D97706", background: "#FFFBEB", border: "1px solid #F3D9A8", borderRadius: 99, padding: "3px 9px" }}>
             ● シミュレーション中（仮の配置）
           </span>
         )}
-        <button onClick={handleReset} disabled={!isSimulating}
-          style={{ fontSize: 9, fontWeight: 700, padding: "3px 10px", borderRadius: 99, cursor: isSimulating ? "pointer" : "default",
-            border: "1px solid #E2E2E2", background: "transparent", color: isSimulating ? "#333" : "#C4C4C4" }}>
-          ↺ 元に戻す
-        </button>
+        {draggable && (
+          <button onClick={handleReset} disabled={!isSimulating}
+            style={{ fontSize: 9, fontWeight: 700, padding: "3px 10px", borderRadius: 99, cursor: isSimulating ? "pointer" : "default",
+              border: "1px solid #E2E2E2", background: "transparent", color: isSimulating ? "#333" : "#C4C4C4" }}>
+            ↺ 元に戻す
+          </button>
+        )}
       </div>
 
       <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 280, display: "block", cursor: draggingId ? "grabbing" : "default" }}
         onMouseMove={handlePointerMove}
         onMouseUp={() => setDraggingId(null)}
         onMouseLeave={() => { setDraggingId(null); setHoveredId(null); setTooltip(null); }}>
-        {orbitRings.map((r, i) => (
-          <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke="rgba(0,0,0,0.10)" strokeWidth={0.8} strokeDasharray="5,4" />
+        {/* 単一の同心円。縦線で右=Static/左=Dynamicの2領域に分ける */}
+        {[0.25, 0.5, 0.75, 1].map((f, i) => (
+          <circle key={i} cx={cx} cy={cy} r={maxRadius * f} fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth={0.8} strokeDasharray="5,4" />
         ))}
-        {/* Static(右) / Dynamic(左) の2領域を分ける区切り線とラベル */}
-        <line x1={cx} y1={cy - maxRadius * 0.94} x2={cx} y2={cy + maxRadius * 0.94} stroke="rgba(0,0,0,0.14)" strokeWidth={0.8} />
-        <text x={cx - maxRadius * 1.0} y={cy + 3} textAnchor="middle" fontSize={9} fontWeight={700} fill="#A3A3A3">Dynamic</text>
-        <text x={cx + maxRadius * 1.0} y={cy + 3} textAnchor="middle" fontSize={9} fontWeight={700} fill="#A3A3A3">Static</text>
+        <line x1={cx} y1={cy - maxRadius} x2={cx} y2={cy + maxRadius} stroke="rgba(0,0,0,0.14)" strokeWidth={0.8} />
+        <text x={cx - maxRadius * 1.02} y={cy + 3} textAnchor="middle" fontSize={10} fontWeight={700} fill="#A3A3A3">Dynamic</text>
+        <text x={cx + maxRadius * 1.02} y={cy + 3} textAnchor="middle" fontSize={10} fontWeight={700} fill="#A3A3A3">Static</text>
         {resolvedEdges.map((e, i) => {
           const na = nodes.find(n => n.id === e.a), nb = nodes.find(n => n.id === e.b);
           const relevant = activeFilter === "all" || CATEGORY_TO_ID[na?.category] === activeFilter || CATEGORY_TO_ID[nb?.category] === activeFilter;
@@ -781,9 +796,9 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
           const color = colorFor(n);
           const r = nodeR(n) + (isHov || isSel || isDragging ? 2 : 0);
           return (
-            <g key={i} style={{ cursor: isDragging ? "grabbing" : "grab" }}
+            <g key={i} style={{ cursor: draggable ? (isDragging ? "grabbing" : "grab") : "pointer" }}
               onClick={() => { if (!isDragging) onSelectNode?.(isSel ? null : n); }}
-              onMouseDown={(e) => { e.stopPropagation(); setDraggingId(n.id); }}
+              onMouseDown={(e) => { if (!draggable) return; e.stopPropagation(); setDraggingId(n.id); }}
               onMouseEnter={(e) => {
                 if (draggingId) return;
                 setHoveredId(n.id);
@@ -805,7 +820,7 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
           {tooltip.label}（{tooltip.cat}）coupling:{tooltip.coupling?.toFixed?.(1) ?? tooltip.coupling}{isSimulating ? "（仮）" : ""}
         </div>
       )}
-      {isSimulating && (
+      {draggable && isSimulating && (
         <div style={{ fontSize: 9, color: "#8C8C8C", marginTop: 6 }}>
           ノードを近づけるほど、その2者の関連が強いと仮定してcoupling・ランキングを試算しています。実データには反映されません。
         </div>
@@ -2325,7 +2340,7 @@ function GravityView({ project }) {
               ))}
             </div>
 
-            {project?.isSample ? <OntologyGraph /> : <ProjectGravityGraph key={project?.id} nodes={gravNodes} edges={edges} selectedNode={selectedNode} onSelectNode={setSelectedNode} onSimulate={setSimCoupling} />}
+            <ProjectGravityGraph key={project?.id} nodes={gravNodes} edges={edges} selectedNode={selectedNode} onSelectNode={setSelectedNode} onSimulate={setSimCoupling} draggable={!project?.isSample} />
           </div>
 
           {/* 右：ランキング + ノード詳細 */}
