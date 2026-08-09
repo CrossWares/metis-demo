@@ -654,50 +654,43 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
   const W = 420, H = 400, cx = W / 2, cy = H / 2 - 6;
   const maxRadius = W * 0.42;
 
-  // ノードの表示半径(結合度で決まる、シミュレーション有無に関わらず配置計算はこの生の値を使う)
-  const maxC0 = Math.max(1, ...nodes.map(n => n.coupling || 1));
-  const packRadius = (n) => (n.orbit === 0 ? 19 : 7 + ((n.coupling || 1) / maxC0) * 3);
+  // 半径 = orbit(中心核からの距離)。以前のOntologyGraphと同じ考え方で、同心円上の距離に意味を持たせる。
+  const maxOrbit = Math.max(1, ...nodes.map(n => n.orbit ?? 1));
+  const rFromOrbit = (orbit) => (orbit / maxOrbit) * maxRadius * 0.88 + 22;
+  const packRadius = (n) => (n.orbit === 0 ? 19 : 9); // ノードの円自体の大きさ(表示上のサイズ)
 
   // 5分類(Concept/Organization/Process/Issue/Artifact)を「Static / Dynamic」の2領域へ暫定的にマッピングする。
   // 形式知/暗黙知の軸は、プロジェクトやチームの前提によって解釈が変わりうるため、今回は採用しない。
   const DYNAMIC_CATS = new Set(["proc", "org", "issue"]);
   const zoneOf = (n) => DYNAMIC_CATS.has(CATEGORY_TO_ID[n.category] || "concept") ? "dynamic" : "static";
 
-  // 単一の中心(cx,cy)を共有する同心円構造の中で、角度によってStatic(右半分)/Dynamic(左半分)に分ける。
-  // 各半円の中では、中心から渦巻き状に候補位置を広げながら、既に置いたノードと重ならない
-  // 最初の位置を採用する(決定的なアルゴリズムなので毎回同じ結果になる)。
-  function packAll(satelliteNodes) {
-    const sorted = [...satelliteNodes].sort((a, b) => (b.coupling || 0) - (a.coupling || 0)); // 重要なノードほど中心寄りに
-    // 中心核(プロジェクトマネジメント)を最初から衝突判定に含めておく
-    const core = nodes.find(n => n.orbit === 0);
-    const placed = core ? [{ x: cx, y: cy, r: packRadius(core) }] : [];
-    const result = {};
-    sorted.forEach(n => {
-      const zone = zoneOf(n);
-      const angleMin = zone === "static" ? Math.PI / 2 : -Math.PI / 2;
-      const angleMax = zone === "static" ? Math.PI * 1.5 : Math.PI / 2;
-      const r = packRadius(n);
-      let angle = angleMin, dist = 12, x = cx, y = cy, iter = 0;
-      while (iter < 8000) {
-        x = cx + Math.cos(angle) * dist;
-        y = cy + Math.sin(angle) * dist;
-        const collides = placed.some(p => Math.hypot(x - p.x, y - p.y) < (r + p.r + 3));
-        if (!collides) break; // 重複回避を最優先するため、点線の円の外にはみ出しても構わない
-        angle += 0.12;
-        if (angle > angleMax) { angle = angleMin; dist += Math.max(1.2, r * 0.2); }
-        iter++;
-      }
-      placed.push({ x, y, r });
-      result[n.id] = { x, y };
-    });
-    return result;
-  }
+  // カテゴリごとの基準角度: Static側(右半円、-90°〜90°)にConcept/Artifact、Dynamic側(左半円、90°〜270°)にProcess/Organization/Issue。
+  const CAT_BASE_ANGLE = {
+    concept:  -0.45,           // Static（右上寄り）
+    artifact:  0.45,           // Static（右下寄り）
+    proc:      Math.PI - 0.65, // Dynamic（左上寄り）
+    org:       Math.PI,        // Dynamic（左）
+    issue:     Math.PI + 0.65, // Dynamic（左下寄り）
+  };
+  const CAT_SPAN = 0.62; // 同じ(orbit,カテゴリ)内での広がり
 
-  const coreNode = nodes.find(n => n.orbit === 0);
-  const satelliteNodes = nodes.filter(n => n.orbit !== 0);
-  // Static = 右半分(-90°〜90°)　Dynamic = 左半分(90°〜270°)。同一のplaced配列で両方を配置するため境界での衝突も検出できる。
-  const basePos = packAll(satelliteNodes);
-  if (coreNode) basePos[coreNode.id] = { x: cx, y: cy }; // 中心核(プロジェクトマネジメント)は同心円の中心
+  // orbit×カテゴリでグループ化し、その中でインデックス順に角度をずらして重なりを抑える
+  // (完全な重複回避は保証しないが、同心円上の距離という意味を優先する)。
+  const byOrbitCat = {};
+  nodes.forEach(n => { const k = `${n.orbit ?? 1}_${CATEGORY_TO_ID[n.category] || "concept"}`; (byOrbitCat[k] = byOrbitCat[k] || []).push(n); });
+
+  const basePos = {};
+  nodes.forEach(n => {
+    if (n.orbit === 0) { basePos[n.id] = { x: cx, y: cy }; return; } // 中心核(プロジェクトマネジメント)
+    const catId = CATEGORY_TO_ID[n.category] || "concept";
+    const group = byOrbitCat[`${n.orbit}_${catId}`] || [n];
+    const idx = group.findIndex(g => g.id === n.id);
+    const total = group.length;
+    const centerAng = CAT_BASE_ANGLE[catId] || 0;
+    const ang = total === 1 ? centerAng : centerAng - CAT_SPAN / 2 + (idx / (total - 1)) * CAT_SPAN;
+    const r = rFromOrbit(n.orbit ?? 1);
+    basePos[n.id] = { x: cx + Math.cos(ang) * r, y: cy + Math.sin(ang) * r };
+  });
   // ドラッグで動かしたノードは上書き位置を使う。それ以外は自動配置のまま。
   const pos = {};
   nodes.forEach(n => { pos[n.id] = dragPos[n.id] || basePos[n.id]; });
