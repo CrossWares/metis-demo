@@ -810,7 +810,7 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
         <text x={cx + maxRadius * 1.02} y={cy + 3} textAnchor="middle" fontSize={10} fontWeight={700} fill="#A3A3A3">Dynamic</text>
         {resolvedEdges.map((e, i) => {
           const na = nodes.find(n => n.id === e.a), nb = nodes.find(n => n.id === e.b);
-          const relevant = activeFilter === "all" || CATEGORY_TO_ID[na?.category] === activeFilter || CATEGORY_TO_ID[nb?.category] === activeFilter;
+          const relevant = activeFilter === "all" || (CATEGORY_TO_ID[na?.category] === activeFilter && CATEGORY_TO_ID[nb?.category] === activeFilter);
           if (!relevant) return null;
           return (
             <line key={i} x1={pos[e.a].x} y1={pos[e.a].y} x2={pos[e.b].x} y2={pos[e.b].y}
