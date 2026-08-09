@@ -679,17 +679,39 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
   const byOrbitCat = {};
   nodes.forEach(n => { const k = `${n.orbit ?? 1}_${CATEGORY_TO_ID[n.category] || "concept"}`; (byOrbitCat[k] = byOrbitCat[k] || []).push(n); });
 
+  // 各ノードの「理想位置」(orbit×カテゴリで決まる、同心円上の位置)を求めたうえで、
+  // 既に置いたノードと重なる場合だけ、その理想位置の近くを局所的に探索してずらす。
+  // → 同心円上の距離という意味を保ちながら、密集するグループ(17個等)でも重複を避ける。
+  const placedCircles = [];
   const basePos = {};
-  nodes.forEach(n => {
-    if (n.orbit === 0) { basePos[n.id] = { x: cx, y: cy }; return; } // 中心核(プロジェクトマネジメント)
+  const coreN = nodes.find(n => n.orbit === 0);
+  if (coreN) { basePos[coreN.id] = { x: cx, y: cy }; placedCircles.push({ x: cx, y: cy, r: packRadius(coreN) }); }
+
+  [...nodes].filter(n => n.orbit !== 0).sort((a, b) => (a.orbit ?? 1) - (b.orbit ?? 1)).forEach(n => {
     const catId = CATEGORY_TO_ID[n.category] || "concept";
     const group = byOrbitCat[`${n.orbit}_${catId}`] || [n];
     const idx = group.findIndex(g => g.id === n.id);
     const total = group.length;
     const centerAng = CAT_BASE_ANGLE[catId] || 0;
     const ang = total === 1 ? centerAng : centerAng - CAT_SPAN / 2 + (idx / (total - 1)) * CAT_SPAN;
-    const r = rFromOrbit(n.orbit ?? 1);
-    basePos[n.id] = { x: cx + Math.cos(ang) * r, y: cy + Math.sin(ang) * r };
+    const r0 = rFromOrbit(n.orbit ?? 1);
+    const idealX = cx + Math.cos(ang) * r0, idealY = cy + Math.sin(ang) * r0;
+    const rr = packRadius(n);
+
+    const collides = (x, y) => placedCircles.some(p => Math.hypot(x - p.x, y - p.y) < (rr + p.r + 2.5));
+    let x = idealX, y = idealY;
+    if (collides(x, y)) {
+      // 理想位置を中心に、局所的に渦巻き状の候補を探して最初に空いている場所を採用する
+      let found = false;
+      for (let dist = 4; dist <= 260 && !found; dist += 3.2) {
+        for (let a = 0; a < Math.PI * 2; a += 0.28) {
+          const cx2 = idealX + Math.cos(a) * dist, cy2 = idealY + Math.sin(a) * dist;
+          if (!collides(cx2, cy2)) { x = cx2; y = cy2; found = true; break; }
+        }
+      }
+    }
+    placedCircles.push({ x, y, r: rr });
+    basePos[n.id] = { x, y };
   });
   // ドラッグで動かしたノードは上書き位置を使う。それ以外は自動配置のまま。
   const pos = {};
@@ -2366,7 +2388,7 @@ function GravityView({ project }) {
               )}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 14 }}>
-              {[...gravNodes].sort((a, b) => (simCoupling ? simCoupling[b.id] - simCoupling[a.id] : b.coupling - a.coupling)).map((n, i) => {
+              {[...gravNodes].sort((a, b) => (simCoupling ? simCoupling[b.id] - simCoupling[a.id] : b.coupling - a.coupling)).slice(0, 30).map((n, i) => {
                 const nc = nodeColor(n);
                 const cVal = simCoupling ? (simCoupling[n.id] ?? n.coupling) : n.coupling;
                 const pct = Math.round((cVal / (simCoupling ? 5 : maxC)) * 100);
