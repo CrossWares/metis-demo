@@ -3322,6 +3322,13 @@ export default function App() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
+  // DBのid列はuuid型のため、プロジェクトの数値id(Date.now()由来)を決定論的にuuid形式の文字列へ変換する
+  // 同じ数値idからは常に同じuuid文字列が生成されるため、upsert時の一意キーとして機能する
+  const numericIdToUuid = (numId) => {
+    const hex = numId.toString(16).padStart(32, "0");
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+  };
+
   // ログインが確認できたら、自分のプロジェクトをDBから読み込み、固定のDemo/Sampleと合体する
   useEffect(() => {
     if (!session) return;
@@ -3338,7 +3345,7 @@ export default function App() {
   useEffect(() => {
     if (!session || !dbLoaded) return;
     projects.filter(p => !p.isSample).forEach(async (p) => {
-      const { error } = await supabase.from("projects").upsert({ id: p.id, user_id: session.user.id, data: p, updated_at: new Date().toISOString() });
+      const { error } = await supabase.from("projects").upsert({ id: numericIdToUuid(p.id), user_id: session.user.id, data: p, updated_at: new Date().toISOString() });
       if (error) console.error("プロジェクト保存エラー:", p.id, error);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
