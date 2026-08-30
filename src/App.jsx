@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { supabase } from "./supabaseClient";
 
 const C = {
   strong:   "#534AB7",
@@ -688,10 +689,25 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
   const maxRadius = W * 0.42;
 
   // 半径 = orbit(中心核からの距離)。以前のOntologyGraphと同じ考え方で、同心円上の距離に意味を持たせる。
+  // ※接続数が多いほど中心に近づける、という仕様はまだ採用しない(HANによる重みづけが定まっていないため)。
   const maxOrbit = Math.max(1, ...nodes.map(n => n.orbit ?? 1));
   const rFromOrbit = (orbit) => (orbit / maxOrbit) * maxRadius * 0.88 + 22;
-  const maxC0 = Math.max(1, ...nodes.map(n => n.coupling || 1));
-  const packRadius = (n) => (n.orbit === 0 ? 19 : 10 + ((n.coupling || 1) / maxC0) * 6); // ノードの円自体の大きさ(表示上のサイズ、以前の大きさ)
+
+  // ノードの大きさ・線の太さは「コア/サテライト」という区分けではなく、
+  // そのノードに繋がるエッジの本数(接続数)で決まる3段階ルール。
+  // 大=PM(中心核のみ)／中=接続2本以上／小=接続0〜1本。
+  const edgeCountOf = (nodeId) => (edges || []).reduce((acc, e) => {
+    if (e.source && e.target) return acc + (e.source === nodeId || e.target === nodeId ? 1 : 0);
+    if (typeof e.s === "number" && typeof e.t === "number") {
+      const sa = nodes[e.s]?.id, sb = nodes[e.t]?.id;
+      return acc + (sa === nodeId || sb === nodeId ? 1 : 0);
+    }
+    return acc;
+  }, 0);
+  const TIER_RADIUS = { core: 19, mid: 14, small: 10 };
+  const TIER_STROKE = { core: 2.4, mid: 1.8, small: 1.2 };
+  const sizeTier = (n) => n.orbit === 0 ? "core" : (edgeCountOf(n.id) >= 2 ? "mid" : "small");
+  const packRadius = (n) => TIER_RADIUS[sizeTier(n)];
 
   // 5分類(Concept/Organization/Process/Issue/Artifact)を「Static / Dynamic」の2領域へ暫定的にマッピングする。
   // 形式知/暗黙知の軸は、プロジェクトやチームの前提によって解釈が変わりうるため、今回は採用しない。
@@ -792,11 +808,12 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
   };
   const handleReset = () => setDragPos({});
 
-  const maxC = Math.max(1, ...nodes.map(n => n.coupling || 1));
   const CATEGORY_COLOR = { Concept: "#534AB7", Organization: "#185FA5", Process: "#BA7517", Issue: "#993C1D", Artifact: "#3B6D11" };
   const colorFor = (n) => CATEGORY_COLOR[n.category] || "#8B85E0";
   const displayCoupling = (n) => isSimulating ? (simCoupling[n.id] ?? n.coupling ?? 1) : (n.coupling || 1);
-  const nodeR = (n) => (n.orbit === 0 ? 18 : 9 + (displayCoupling(n) / (isSimulating ? 5 : maxC)) * 5);
+  const nodeR = (n) => isSimulating
+    ? (n.orbit === 0 ? 18 : 9 + (displayCoupling(n) / 5) * 5) // シミュレーション中は仮結合度に応じて動的に変化(体感用)
+    : packRadius(n); // 通常時はエッジ接続数ベースの3段階ルールに統一
 
   const resolvedEdges = (edges || []).map(e => {
     if (e.source && e.target) return { a: e.source, b: e.target, w: (e.strength ?? 0.5) * 4 };
@@ -877,7 +894,7 @@ function ProjectGravityGraph({ nodes, edges, selectedNode, onSelectNode, onSimul
                 if (rect) setTooltip({ label: n.label || n.id, cat: n.category, coupling: displayCoupling(n), x: e.clientX - rect.left + 10, y: e.clientY - rect.top - 10 });
               }}
             >
-              <circle cx={p.x} cy={p.y} r={r} fill={color + (isDragging ? "44" : "22")} stroke={color} strokeWidth={isSel || isDragging ? 2.4 : 1.4} />
+              <circle cx={p.x} cy={p.y} r={r} fill={color + (isDragging ? "44" : "22")} stroke={color} strokeWidth={TIER_STROKE[sizeTier(n)] + (isSel || isDragging ? 0.6 : 0)} />
               <text x={p.x} y={p.y} textAnchor="middle" dominantBaseline="central" fontSize={n.orbit === 0 ? 11 : 9} fontWeight={n.orbit === 0 ? 700 : 600} fill={color} style={{ pointerEvents: "none", userSelect: "none" }}>
                 {abbr(n)}
               </text>
@@ -3198,6 +3215,73 @@ tasks: [{"id":"t1","name":"タスク名","assignee":"担当者名（不明なら
 }
 
 
+// ── ログイン画面 ──
+// メール+パスワードでのログイン・新規登録。Supabase Authを使用する。
+function LoginScreen() {
+  const [mode, setMode] = useState("signin"); // signin | signup
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [info, setInfo] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true); setError(null); setInfo(null);
+    try {
+      if (mode === "signin") {
+        const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+        if (err) throw err;
+      } else {
+        const { error: err } = await supabase.auth.signUp({ email, password });
+        if (err) throw err;
+        setInfo("登録しました。確認メールが届いている場合はリンクを開いてからログインしてください。");
+      }
+    } catch (err) {
+      setError(err.message || "エラーが発生しました");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: C.bg, fontFamily: "'Noto Sans JP', sans-serif" }}>
+      <div style={{ width: 380, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 12, padding: "32px 28px" }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 4 }}>Metis</div>
+        <div style={{ fontSize: 12, color: C.textWeak, marginBottom: 24 }}>{mode === "signin" ? "ログイン" : "新規登録"}</div>
+
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ fontSize: 11, fontWeight: 600, color: C.textMid, display: "block", marginBottom: 5 }}>メールアドレス</label>
+            <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
+              style={{ width: "100%", padding: "9px 10px", fontSize: 13, border: `1px solid ${C.border}`, borderRadius: 6, outline: "none" }} />
+          </div>
+          <div style={{ marginBottom: 18 }}>
+            <label style={{ fontSize: 11, fontWeight: 600, color: C.textMid, display: "block", marginBottom: 5 }}>パスワード</label>
+            <input type="password" required minLength={6} value={password} onChange={e => setPassword(e.target.value)}
+              style={{ width: "100%", padding: "9px 10px", fontSize: 13, border: `1px solid ${C.border}`, borderRadius: 6, outline: "none" }} />
+          </div>
+
+          {error && <div style={{ fontSize: 11.5, color: C.critical, background: "#FEF2F2", border: `1px solid ${C.critical}33`, borderRadius: 6, padding: "8px 10px", marginBottom: 14 }}>{error}</div>}
+          {info && <div style={{ fontSize: 11.5, color: C.human, background: "#EAF8F3", border: `1px solid ${C.human}33`, borderRadius: 6, padding: "8px 10px", marginBottom: 14 }}>{info}</div>}
+
+          <button type="submit" disabled={loading}
+            style={{ width: "100%", padding: "10px 0", fontSize: 13, fontWeight: 700, color: "#fff", background: loading ? C.textWeak : C.human, border: "none", borderRadius: 7, cursor: loading ? "default" : "pointer" }}>
+            {loading ? "処理中…" : mode === "signin" ? "ログイン" : "登録する"}
+          </button>
+        </form>
+
+        <div style={{ marginTop: 18, textAlign: "center" }}>
+          <button onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setError(null); setInfo(null); }}
+            style={{ fontSize: 11.5, color: C.textMid, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
+            {mode === "signin" ? "アカウントをお持ちでない方はこちら" : "既にアカウントをお持ちの方はこちら"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [projects, setProjects] = useState(INITIAL_PROJECTS);
   const [selected, setSelected] = useState(INITIAL_PROJECTS[0]);
@@ -3214,6 +3298,53 @@ export default function App() {
   const [sortBy, setSortBy] = useState("created_desc"); // created_desc | created_asc | score_asc | name_asc
   const [showArchived, setShowArchived] = useState(false); // 左パネル: アクティブ/アーカイブ表示切替
   const pulseTimers = useRef([]);
+
+  // ── 認証・DB同期(Supabase) ──
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true); // 初回のセッション確認中
+  const [dbLoaded, setDbLoaded] = useState(false); // ログイン後、自分のプロジェクトをDBから読み込み終えたか
+
+  // 起動時に既存セッションを確認し、以降はログイン/ログアウトを監視する
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setAuthLoading(false);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+      if (!newSession) {
+        // ログアウト時はDemo/Sampleのみの状態に戻す
+        setDbLoaded(false);
+        setProjects(INITIAL_PROJECTS);
+        setSelected(INITIAL_PROJECTS[0]);
+      }
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  // ログインが確認できたら、自分のプロジェクトをDBから読み込み、固定のDemo/Sampleと合体する
+  useEffect(() => {
+    if (!session) return;
+    (async () => {
+      const { data, error } = await supabase.from("projects").select("id, data").eq("user_id", session.user.id);
+      if (error) { console.error("プロジェクト読み込みエラー:", error); setDbLoaded(true); return; }
+      const dbProjects = (data || []).map(row => row.data).sort((a, b) => b.id - a.id); // 新しい順
+      setProjects([...dbProjects, ...INITIAL_PROJECTS]);
+      setDbLoaded(true);
+    })();
+  }, [session]);
+
+  // プロジェクトが変化するたびに、Demo/Sample以外をDBへ保存する(ログイン後・DB読込完了後のみ)
+  useEffect(() => {
+    if (!session || !dbLoaded) return;
+    projects.filter(p => !p.isSample).forEach(async (p) => {
+      const { error } = await supabase.from("projects").upsert({ id: p.id, user_id: session.user.id, data: p, updated_at: new Date().toISOString() });
+      if (error) console.error("プロジェクト保存エラー:", p.id, error);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projects, session, dbLoaded]);
+
+  const handleLogout = () => supabase.auth.signOut();
 
   useEffect(() => { const t = setInterval(() => setTime(new Date()), 1000); return () => clearInterval(t); }, []);
 
@@ -3322,6 +3453,15 @@ export default function App() {
   const avgDynamic = Math.round(Object.values(p.dynamic || {stakeholder:0,team:0,decision:0}).reduce((a,v)=>a+v,0)/3);
   const portfolioAvg = Math.round(projects.reduce((a,pr)=>a+pr.score,0)/projects.length);
 
+  // 認証状態の出し分け。ここまでに全hooksの呼び出しが完了しているため、
+  // ここで早期returnしてもHooksの呼び出し順は崩れない(GravityViewで踏んだ不具合と同じ轍を踏まない)。
+  if (authLoading) {
+    return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: C.textWeak, fontFamily: "'Noto Sans JP', sans-serif", fontSize: 13 }}>読み込み中…</div>;
+  }
+  if (!session) {
+    return <LoginScreen />;
+  }
+
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column", background: C.bg, fontFamily: "'Noto Sans JP', sans-serif", color: C.text }}>
       <style>{`
@@ -3375,6 +3515,9 @@ export default function App() {
         <div style={{ fontSize: 10, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>
           {time.toLocaleString("ja-JP", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })}
         </div>
+        <div style={{ width: 1, height: 16, background: C.border, margin: "0 12px" }} />
+        <div style={{ fontSize: 10, color: C.textWeak, marginRight: 8, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{session.user.email}</div>
+        <button onClick={handleLogout} style={{ fontSize: 10, color: C.textWeak, background: "none", border: `1px solid ${C.border}`, borderRadius: 6, padding: "4px 10px", cursor: "pointer" }}>ログアウト</button>
       </div>
 
       {/* PORTFOLIO */}
