@@ -3217,8 +3217,123 @@ tasks: [{"id":"t1","name":"タスク名","assignee":"担当者名（不明なら
 
 // ── ログイン画面 ──
 // メール+パスワードでのログイン・新規登録。Supabase Authを使用する。
-function LoginScreen() {
-  const [mode, setMode] = useState("signin"); // signin | signup
+// 未ログイン時、最初に表示するスライドショー。「体験→価値実感→登録」の導線を作る。
+// 画像は実スクリーンショット差し替え前提のプレースホルダー(CSSモックアップ)。
+function OnboardingSlideshow({ onFinish, onSkipToLogin }) {
+  const slides = [
+    {
+      title: "Metisとは？",
+      body: "プロジェクト失敗の本当の原因は、要件のズレではなく「組織の見えない構造」にあります。誰が誰に依存し、誰が実質的な決定権を持ち、情報がどう伝わっているか——Metisはそれを可視化します。",
+      mock: "graph",
+    },
+    {
+      title: "組織構造をグラフで見る",
+      body: "PM・キーマン・意思決定者・要件・成果物・プロセス・スケジュール。プロジェクトを構成する要素どうしの関係性が、ひと目でわかる形で表示されます。",
+      mock: "graph2",
+    },
+    {
+      title: "危険信号を早期にキャッチ",
+      body: "「完了」の定義が部署によって違う、特定の人にしか情報が集まっていない——そうした構造上のリスクをMetisが検知し、アラートとして知らせます。",
+      mock: "alert",
+    },
+    {
+      title: "自分のプロジェクトで試してみませんか？",
+      body: "デモではなく、実際の案件を入れて体験いただけます。テスターとして登録すると、すぐに始められます。",
+      mock: null,
+    },
+  ];
+  const [idx, setIdx] = useState(0);
+  const isLast = idx === slides.length - 1;
+  const s = slides[idx];
+
+  const renderMock = (type) => {
+    const dotStyle = (top, left, color) => ({ position: "absolute", top, left, width: 10, height: 10, borderRadius: "50%", background: color });
+    if (type === "graph" || type === "graph2") {
+      return (
+        <div style={{ position: "relative", width: "100%", height: 180, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+          <svg width="100%" height="100%" viewBox="0 0 300 180">
+            <line x1="150" y1="90" x2="70" y2="40" stroke={C.border} strokeWidth="1.5" />
+            <line x1="150" y1="90" x2="230" y2="40" stroke={C.border} strokeWidth="1.5" />
+            <line x1="150" y1="90" x2="70" y2="140" stroke={C.border} strokeWidth="1.5" />
+            <line x1="150" y1="90" x2="230" y2="140" stroke={C.border} strokeWidth="1.5" />
+            <line x1="70" y1="40" x2="70" y2="140" stroke={C.border} strokeWidth="1" strokeDasharray="3,3" />
+          </svg>
+          <div style={{ ...dotStyle(84, 143, C.human), width: 16, height: 16 }} />
+          <div style={dotStyle(32, 63, C.textWeak)} />
+          <div style={dotStyle(32, 223, C.critical)} />
+          <div style={dotStyle(134, 63, C.textWeak)} />
+          <div style={dotStyle(134, 223, C.warning || "#D97706")} />
+        </div>
+      );
+    }
+    if (type === "alert") {
+      return (
+        <div style={{ width: "100%", background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, padding: 14 }}>
+          {[{ c: C.critical, t: "意思決定の集中: 1名に依存" }, { c: C.warning || "#D97706", t: "完了定義の不一致を検出" }].map((row, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderBottom: i === 0 ? `1px solid ${C.border}` : "none" }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: row.c }} />
+              <div style={{ fontSize: 11.5, color: C.textMid, flex: 1 }}>{row.t}</div>
+              <div style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, border: `1px solid ${row.c}55`, color: row.c }}>要確認</div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: C.bg, fontFamily: "'Noto Sans JP', sans-serif" }}>
+      <div style={{ width: 420, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 12, padding: "32px 28px" }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 18 }}>Metis</div>
+
+        {s.mock && <div style={{ marginBottom: 18 }}>{renderMock(s.mock)}</div>}
+
+        <div style={{ fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 10 }}>{s.title}</div>
+        <div style={{ fontSize: 12.5, color: C.textMid, lineHeight: 1.7, marginBottom: 22 }}>{s.body}</div>
+
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <div style={{ display: "flex", gap: 5 }}>
+            {slides.map((_, i) => (
+              <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: i === idx ? C.human : C.border }} />
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            {idx > 0 && (
+              <button onClick={() => setIdx(idx - 1)}
+                style={{ fontSize: 12, padding: "7px 14px", borderRadius: 6, border: `1px solid ${C.border}`, background: "none", color: C.textMid, cursor: "pointer" }}>
+                戻る
+              </button>
+            )}
+            {!isLast && (
+              <button onClick={() => setIdx(idx + 1)}
+                style={{ fontSize: 12, fontWeight: 700, padding: "7px 16px", borderRadius: 6, border: "none", background: C.text, color: "#fff", cursor: "pointer" }}>
+                次へ
+              </button>
+            )}
+          </div>
+        </div>
+
+        {isLast && (
+          <button onClick={onFinish}
+            style={{ width: "100%", padding: "11px 0", fontSize: 13, fontWeight: 700, color: "#fff", background: C.text, border: "none", borderRadius: 7, cursor: "pointer", marginBottom: 10 }}>
+            → テスターとして登録する
+          </button>
+        )}
+
+        <div style={{ textAlign: "center" }}>
+          <button onClick={onSkipToLogin}
+            style={{ fontSize: 11, color: C.textWeak, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
+            すでにアカウントをお持ちの方はこちら
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LoginScreen({ initialMode = "signin", onBack }) {
+  const [mode, setMode] = useState(initialMode); // signin | signup
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -3277,6 +3392,14 @@ function LoginScreen() {
             {mode === "signin" ? "アカウントをお持ちでない方はこちら" : "既にアカウントをお持ちの方はこちら"}
           </button>
         </div>
+        {onBack && (
+          <div style={{ marginTop: 10, textAlign: "center" }}>
+            <button onClick={onBack}
+              style={{ fontSize: 11, color: C.textWeak, background: "none", border: "none", cursor: "pointer" }}>
+              ← Metisとは？の説明に戻る
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -3303,6 +3426,13 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true); // 初回のセッション確認中
   const [dbLoaded, setDbLoaded] = useState(false); // ログイン後、自分のプロジェクトをDBから読み込み終えたか
+
+  // ── オンボーディング(未ログイン時のスライドショー) ──
+  // 一度見た端末ではlocalStorageに記録し、次回以降はスキップしてLoginScreenへ直行する
+  const [onboardingSeen, setOnboardingSeen] = useState(() => {
+    try { return localStorage.getItem("metis_onboarding_seen") === "1"; } catch { return false; }
+  });
+  const [loginInitialMode, setLoginInitialMode] = useState("signin"); // スライドショーの「テスターとして登録する」からはsignupで開始
 
   // 起動時に既存セッションを確認し、以降はログイン/ログアウトを監視する
   useEffect(() => {
@@ -3466,7 +3596,23 @@ export default function App() {
     return <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: C.textWeak, fontFamily: "'Noto Sans JP', sans-serif", fontSize: 13 }}>読み込み中…</div>;
   }
   if (!session) {
-    return <LoginScreen />;
+    if (!onboardingSeen) {
+      return (
+        <OnboardingSlideshow
+          onFinish={() => {
+            try { localStorage.setItem("metis_onboarding_seen", "1"); } catch {}
+            setOnboardingSeen(true);
+            setLoginInitialMode("signup");
+          }}
+          onSkipToLogin={() => {
+            try { localStorage.setItem("metis_onboarding_seen", "1"); } catch {}
+            setOnboardingSeen(true);
+            setLoginInitialMode("signin");
+          }}
+        />
+      );
+    }
+    return <LoginScreen initialMode={loginInitialMode} onBack={() => setOnboardingSeen(false)} />;
   }
 
   return (
