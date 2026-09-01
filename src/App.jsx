@@ -3263,81 +3263,190 @@ function CornerMarks({ inset = 16, size = 14, color = OB.line }) {
   );
 }
 
+// ゆらゆら揺れるナレッジグラフ(装飾用アンビエントアニメーション)。
+// 実際のGravityViewで使われている配色(紫系=Concept/Artifact、緑=Organization、
+// エッジは紫のグラデーション)をそのまま踏襲する。
+// パフォーマンスのため、Reactのstateではなくrefで直接SVG要素を更新する(毎フレームの再レンダーを避ける)。
+const FG_NODE_COLOR = { core: "#534AB7", thing: "#6C5CE7", human: "#5DB99A" };
+const FG_EDGE_COLOR = ["#534AB7", "#7B74D4", "#AFA9EC", "#C8EDE3"];
+
+function FloatingGraph() {
+  const svgRef = useRef(null);
+  const rafRef = useRef(null);
+
+  // 疑似乱数(シード固定・再現可能)で90ノード程度をクラスタ状に散らし、
+  // 近傍への接続+少数の橋渡し接続でObsidianのグラフビューのような密なメッシュを作る。
+  // 色は実際のGravityViewの配色(紫=Concept/Artifact系、緑=Organization系)を踏襲。
+  const { nodes, edges } = useMemo(() => {
+    let seed = 42;
+    const rand = () => {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+
+    const N = 90;
+    const clusters = [[130, 140], [350, 120], [110, 350], [370, 350], [240, 240], [240, 90]];
+    const rawNodes = [];
+    for (let i = 0; i < N; i++) {
+      const c = clusters[Math.floor(rand() * clusters.length)];
+      const radius = 55 + rand() * 70;
+      const angle = rand() * Math.PI * 2;
+      const x = Math.max(20, Math.min(460, c[0] + Math.cos(angle) * radius * Math.sqrt(rand())));
+      const y = Math.max(20, Math.min(460, c[1] + Math.sin(angle) * radius * Math.sqrt(rand())));
+      rawNodes.push({ id: `n${i}`, x, y });
+    }
+
+    // 各ノードを近傍2〜3個と接続(KNN風)。重複エッジは除外。
+    const edgeSet = new Set();
+    const es = [];
+    const dist2 = (a, b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
+    rawNodes.forEach((n, i) => {
+      const nearest = rawNodes
+        .map((m, j) => ({ j, d: i === j ? Infinity : dist2(n, m) }))
+        .sort((a, b) => a.d - b.d)
+        .slice(0, 2 + Math.floor(rand() * 2));
+      nearest.forEach(({ j }) => {
+        const key = i < j ? `${i}-${j}` : `${j}-${i}`;
+        if (!edgeSet.has(key)) { edgeSet.add(key); es.push([i, j]); }
+      });
+    });
+    // クラスタ間の橋渡し(まばらな長距離リンク)を少数追加
+    for (let k = 0; k < 14; k++) {
+      const i = Math.floor(rand() * N), j = Math.floor(rand() * N);
+      if (i === j) continue;
+      const key = i < j ? `${i}-${j}` : `${j}-${i}`;
+      if (!edgeSet.has(key)) { edgeSet.add(key); es.push([i, j]); }
+    }
+
+    // 次数(接続本数)を集計し、多いノードほど大きく・コア色にする
+    const degree = new Array(N).fill(0);
+    es.forEach(([a, b]) => { degree[a]++; degree[b]++; });
+    const maxDeg = Math.max(...degree);
+
+    const ns = rawNodes.map((n, i) => {
+      const d = degree[i];
+      const isCore = d >= maxDeg - 1 && d >= 5;
+      const kind = isCore ? "core" : rand() < 0.22 ? "human" : "thing";
+      return {
+        ...n,
+        r: isCore ? 6.5 : 2 + Math.min(d, 6) * 0.55,
+        kind,
+        phaseX: (i * 1.7) % (Math.PI * 2),
+        phaseY: (i * 2.3 + 1) % (Math.PI * 2),
+        freqX: 0.00035 + (i % 5) * 0.00006,
+        freqY: 0.00028 + (i % 4) * 0.00007,
+        ampX: 3 + (i % 3) * 2,
+        ampY: 3 + (i % 4) * 1.8,
+      };
+    });
+    const esWithWeight = es.map(([a, b]) => {
+      const w = degree[a] + degree[b] >= maxDeg + 3 ? 0 : degree[a] + degree[b] >= 6 ? 1 : degree[a] + degree[b] >= 4 ? 2 : 3;
+      return [`n${a}`, `n${b}`, w];
+    });
+
+    return { nodes: ns, edges: esWithWeight };
+  }, []);
+
+  const circleRefs = useRef({});
+  const lineRefs = useRef([]);
+
+  useEffect(() => {
+    const prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const positions = {};
+    nodes.forEach(n => { positions[n.id] = { x: n.x, y: n.y }; });
+
+    const applyStatic = () => {
+      nodes.forEach(n => {
+        const el = circleRefs.current[n.id];
+        if (el) { el.setAttribute("cx", n.x); el.setAttribute("cy", n.y); }
+      });
+      edges.forEach(([a, b], i) => {
+        const el = lineRefs.current[i];
+        if (el) {
+          el.setAttribute("x1", positions[a].x); el.setAttribute("y1", positions[a].y);
+          el.setAttribute("x2", positions[b].x); el.setAttribute("y2", positions[b].y);
+        }
+      });
+    };
+
+    if (prefersReduced) { applyStatic(); return; }
+
+    const tick = (t) => {
+      nodes.forEach(n => {
+        const dx = Math.sin(t * n.freqX + n.phaseX) * n.ampX;
+        const dy = Math.cos(t * n.freqY + n.phaseY) * n.ampY;
+        positions[n.id] = { x: n.x + dx, y: n.y + dy };
+        const el = circleRefs.current[n.id];
+        if (el) { el.setAttribute("cx", positions[n.id].x); el.setAttribute("cy", positions[n.id].y); }
+      });
+      edges.forEach(([a, b], i) => {
+        const el = lineRefs.current[i];
+        if (el) {
+          el.setAttribute("x1", positions[a].x); el.setAttribute("y1", positions[a].y);
+          el.setAttribute("x2", positions[b].x); el.setAttribute("y2", positions[b].y);
+        }
+      });
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, [nodes, edges]);
+
+  return (
+    <svg ref={svgRef} width="100%" height="100%" viewBox="0 0 480 480" style={{ position: "absolute", inset: 0 }}>
+      <circle cx="240" cy="240" r="215" fill="none" stroke={OB.lineSoft} strokeWidth="1" strokeDasharray="2,7" />
+      {edges.map(([a, b, w], i) => (
+        <line key={i} ref={(el) => (lineRefs.current[i] = el)}
+          stroke={FG_EDGE_COLOR[w] || FG_EDGE_COLOR[3]} strokeWidth={w === 0 ? 1.4 : w === 1 ? 1 : 0.7}
+          opacity={w === 0 ? 0.65 : w === 1 ? 0.5 : w === 2 ? 0.36 : 0.24} />
+      ))}
+      {nodes.map(n => (
+        <circle key={n.id} ref={(el) => (circleRefs.current[n.id] = el)}
+          r={n.r} fill={FG_NODE_COLOR[n.kind]}
+          opacity={n.kind === "core" ? 1 : 0.85} />
+      ))}
+    </svg>
+  );
+}
+
 function OnboardingSlideshow({ onFinish, onSkipToLogin }) {
   const slides = [
     {
       title: "Metisとは？",
       body: "プロジェクト失敗の本当の原因は、要件のズレではなく「組織の見えない構造」にある。誰が誰に依存し、誰が実質的な決定権を持ち、情報がどう伝わっているか——Metisはそれを可視化する。",
-      mock: "graph",
     },
     {
       title: "組織構造をグラフで見る",
       body: "PM・キーマン・意思決定者・要件・成果物・プロセス・スケジュール。プロジェクトを構成する要素どうしの関係性が、ひと目でわかる形で表示される。",
-      mock: "graph2",
     },
     {
       title: "危険信号を早期にキャッチ",
       body: "「完了」の定義が部署によって違う、特定の人にしか情報が集まっていない——そうした構造上のリスクをMetisが検知し、知らせる。",
-      mock: "alert",
     },
     {
       title: "自分のプロジェクトで試してみませんか？",
       body: "デモではなく、実際の案件を入れて体験できる。テスターとして登録すれば、すぐに始められる。",
-      mock: "graph",
     },
   ];
   const [idx, setIdx] = useState(0);
   const isLast = idx === slides.length - 1;
   const s = slides[idx];
 
-  const renderDiagram = (type) => {
-    if (type === "alert") {
-      return (
-        <svg width="100%" height="100%" viewBox="0 0 480 480" style={{ position: "absolute", inset: 0 }}>
-          <line x1="90" y1="140" x2="390" y2="140" stroke={OB.line} strokeWidth="1" />
-          <line x1="90" y1="240" x2="390" y2="240" stroke={OB.line} strokeWidth="1" />
-          <line x1="90" y1="340" x2="390" y2="340" stroke={OB.line} strokeWidth="1" />
-          <circle cx="90" cy="140" r="4" fill={OB.accent} />
-          <circle cx="90" cy="240" r="4" fill={OB.textWeak} />
-          <circle cx="90" cy="340" r="4" fill={OB.textWeak} />
-          <text x="110" y="135" fill={OB.text} fontSize="11" fontFamily="monospace">意思決定の集中: 1名に依存</text>
-          <text x="110" y="235" fill={OB.textMid} fontSize="11" fontFamily="monospace">完了定義の不一致を検出</text>
-          <text x="110" y="335" fill={OB.textMid} fontSize="11" fontFamily="monospace">情報伝達の孤立ノードあり</text>
-        </svg>
-      );
-    }
-    // graph / graph2: 中心ノードから伸びる構造図。アクセントは1ノードのみ。
-    const nodes = type === "graph2"
-      ? [[240,240,"core",7],[130,150,"n",3.5],[350,150,"n",3.5],[110,320,"n",3.5],[370,320,"n",3.5],[240,110,"n",3.5],[240,370,"a",5]]
-      : [[240,240,"core",7],[150,140,"n",3.5],[330,140,"n",3.5],[150,340,"n",3.5],[330,340,"a",5]];
-    const edges = nodes.slice(1).map(n => [nodes[0], n]);
-    return (
-      <svg width="100%" height="100%" viewBox="0 0 480 480" style={{ position: "absolute", inset: 0 }}>
-        {edges.map(([a, b], i) => (
-          <line key={i} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke={OB.line} strokeWidth="1" />
-        ))}
-        {/* 補助的な外周の点線(測定グリッド感) */}
-        <circle cx="240" cy="240" r="170" fill="none" stroke={OB.lineSoft} strokeWidth="1" strokeDasharray="2,6" />
-        {nodes.map(([x, y, kind, r], i) => (
-          <circle key={i} cx={x} cy={y} r={r} fill={kind === "a" ? OB.accent : kind === "core" ? OB.text : OB.textWeak} />
-        ))}
-      </svg>
-    );
-  };
-
   const jpFont = "'Meiryo UI','Hiragino Kaku Gothic ProN',sans-serif";
   const enFont = "'Avenir Next','Helvetica Neue',sans-serif";
 
   return (
     <div style={{ height: "100vh", width: "100vw", display: "flex", background: OB.bg, fontFamily: jpFont, overflow: "hidden" }}>
-      {/* 左: 診断グラフの図解 */}
+      {/* 左: ゆらゆら揺れるナレッジグラフ(常時アニメーション、スライド切替の影響を受けない) */}
       <div style={{ position: "relative", flex: "0 0 58%", background: OB.panel, borderRight: `1px solid ${OB.line}` }}>
-        <CornerMarks />
-        <div style={{ position: "absolute", top: 28, left: 32, fontFamily: enFont, fontSize: 13, fontWeight: 600, letterSpacing: 1.5, color: OB.text }}>
+        <FloatingGraph />
+        <div style={{ position: "absolute", top: 28, left: 32, fontFamily: enFont, fontSize: 13, fontWeight: 600, letterSpacing: 1.5, color: OB.text, pointerEvents: "none" }}>
           METIS
         </div>
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
-          {renderDiagram(s.mock)}
+        <div style={{ pointerEvents: "none" }}>
+          <CornerMarks />
         </div>
       </div>
 
@@ -3393,7 +3502,6 @@ function OnboardingSlideshow({ onFinish, onSkipToLogin }) {
     </div>
   );
 }
-
 
 function LoginScreen({ initialMode = "signin", onBack }) {
   const [mode, setMode] = useState(initialMode); // signin | signup
