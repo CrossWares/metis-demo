@@ -3219,111 +3219,173 @@ tasks: [{"id":"t1","name":"タスク名","assignee":"担当者名（不明なら
 // メール+パスワードでのログイン・新規登録。Supabase Authを使用する。
 // 未ログイン時、最初に表示するスライドショー。「体験→価値実感→登録」の導線を作る。
 // 画像は実スクリーンショット差し替え前提のプレースホルダー(CSSモックアップ)。
+// 未ログイン時、最初に表示するスライドショー。「体験→価値実感→登録」の導線を作る。
+// トーンは本体UI(ライトテーマ)とあえて分離し、入口だけPalantir/Anduril的な
+// ダーク×ヘアライン×単色アクセントの「測定機器」的な世界観にする。
+// 画像は実スクリーンショット差し替え前提のプレースホルダー(SVGモックアップ)。
+const OB = {
+  bg:      "#0A0A0A",
+  panel:   "#0F0F0F",
+  line:    "#262626",
+  lineSoft:"#1A1A1A",
+  text:    "#FFFFFF",
+  textMid: "#8C8C8C",
+  textWeak:"#5C5C5C",
+  accent:  "#0EA5E9", // Cerulean Blue。意味を持つ1点にのみ使う
+};
+
+// 四隅のL字フレームマーカー(測定器・照準器のような枠)
+function CornerMarks({ inset = 16, size = 14, color = OB.line }) {
+  const s = size, st = 1;
+  const corner = (top, left, rot) => (
+    <div style={{ position: "absolute", top, left, width: s, height: s, transform: `rotate(${rot}deg)` }}>
+      <div style={{ position: "absolute", top: 0, left: 0, width: s, height: st, background: color }} />
+      <div style={{ position: "absolute", top: 0, left: 0, width: st, height: s, background: color }} />
+    </div>
+  );
+  return (
+    <>
+      {corner(inset, inset, 0)}
+      {corner(inset, undefined, 90)}
+      <div style={{ position: "absolute", top: inset, right: inset, width: s, height: s }}>
+        <div style={{ position: "absolute", top: 0, right: 0, width: s, height: st, background: color }} />
+        <div style={{ position: "absolute", top: 0, right: 0, width: st, height: s, background: color }} />
+      </div>
+      <div style={{ position: "absolute", bottom: inset, left: inset, width: s, height: s }}>
+        <div style={{ position: "absolute", bottom: 0, left: 0, width: s, height: st, background: color }} />
+        <div style={{ position: "absolute", bottom: 0, left: 0, width: st, height: s, background: color }} />
+      </div>
+      <div style={{ position: "absolute", bottom: inset, right: inset, width: s, height: s }}>
+        <div style={{ position: "absolute", bottom: 0, right: 0, width: s, height: st, background: color }} />
+        <div style={{ position: "absolute", bottom: 0, right: 0, width: st, height: s, background: color }} />
+      </div>
+    </>
+  );
+}
+
 function OnboardingSlideshow({ onFinish, onSkipToLogin }) {
   const slides = [
     {
       title: "Metisとは？",
-      body: "プロジェクト失敗の本当の原因は、要件のズレではなく「組織の見えない構造」にあります。誰が誰に依存し、誰が実質的な決定権を持ち、情報がどう伝わっているか——Metisはそれを可視化します。",
+      body: "プロジェクト失敗の本当の原因は、要件のズレではなく「組織の見えない構造」にある。誰が誰に依存し、誰が実質的な決定権を持ち、情報がどう伝わっているか——Metisはそれを可視化する。",
       mock: "graph",
     },
     {
       title: "組織構造をグラフで見る",
-      body: "PM・キーマン・意思決定者・要件・成果物・プロセス・スケジュール。プロジェクトを構成する要素どうしの関係性が、ひと目でわかる形で表示されます。",
+      body: "PM・キーマン・意思決定者・要件・成果物・プロセス・スケジュール。プロジェクトを構成する要素どうしの関係性が、ひと目でわかる形で表示される。",
       mock: "graph2",
     },
     {
       title: "危険信号を早期にキャッチ",
-      body: "「完了」の定義が部署によって違う、特定の人にしか情報が集まっていない——そうした構造上のリスクをMetisが検知し、アラートとして知らせます。",
+      body: "「完了」の定義が部署によって違う、特定の人にしか情報が集まっていない——そうした構造上のリスクをMetisが検知し、知らせる。",
       mock: "alert",
     },
     {
       title: "自分のプロジェクトで試してみませんか？",
-      body: "デモではなく、実際の案件を入れて体験いただけます。テスターとして登録すると、すぐに始められます。",
-      mock: null,
+      body: "デモではなく、実際の案件を入れて体験できる。テスターとして登録すれば、すぐに始められる。",
+      mock: "graph",
     },
   ];
   const [idx, setIdx] = useState(0);
   const isLast = idx === slides.length - 1;
   const s = slides[idx];
 
-  const renderMock = (type) => {
-    const dotStyle = (top, left, color) => ({ position: "absolute", top, left, width: 10, height: 10, borderRadius: "50%", background: color });
-    if (type === "graph" || type === "graph2") {
-      return (
-        <div style={{ position: "relative", width: "100%", height: 180, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10 }}>
-          <svg width="100%" height="100%" viewBox="0 0 300 180">
-            <line x1="150" y1="90" x2="70" y2="40" stroke={C.border} strokeWidth="1.5" />
-            <line x1="150" y1="90" x2="230" y2="40" stroke={C.border} strokeWidth="1.5" />
-            <line x1="150" y1="90" x2="70" y2="140" stroke={C.border} strokeWidth="1.5" />
-            <line x1="150" y1="90" x2="230" y2="140" stroke={C.border} strokeWidth="1.5" />
-            <line x1="70" y1="40" x2="70" y2="140" stroke={C.border} strokeWidth="1" strokeDasharray="3,3" />
-          </svg>
-          <div style={{ ...dotStyle(84, 143, C.human), width: 16, height: 16 }} />
-          <div style={dotStyle(32, 63, C.textWeak)} />
-          <div style={dotStyle(32, 223, C.critical)} />
-          <div style={dotStyle(134, 63, C.textWeak)} />
-          <div style={dotStyle(134, 223, C.warning || "#D97706")} />
-        </div>
-      );
-    }
+  const renderDiagram = (type) => {
     if (type === "alert") {
       return (
-        <div style={{ width: "100%", background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, padding: 14 }}>
-          {[{ c: C.critical, t: "意思決定の集中: 1名に依存" }, { c: C.warning || "#D97706", t: "完了定義の不一致を検出" }].map((row, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderBottom: i === 0 ? `1px solid ${C.border}` : "none" }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: row.c }} />
-              <div style={{ fontSize: 11.5, color: C.textMid, flex: 1 }}>{row.t}</div>
-              <div style={{ fontSize: 9, padding: "2px 8px", borderRadius: 20, border: `1px solid ${row.c}55`, color: row.c }}>要確認</div>
-            </div>
-          ))}
-        </div>
+        <svg width="100%" height="100%" viewBox="0 0 480 480" style={{ position: "absolute", inset: 0 }}>
+          <line x1="90" y1="140" x2="390" y2="140" stroke={OB.line} strokeWidth="1" />
+          <line x1="90" y1="240" x2="390" y2="240" stroke={OB.line} strokeWidth="1" />
+          <line x1="90" y1="340" x2="390" y2="340" stroke={OB.line} strokeWidth="1" />
+          <circle cx="90" cy="140" r="4" fill={OB.accent} />
+          <circle cx="90" cy="240" r="4" fill={OB.textWeak} />
+          <circle cx="90" cy="340" r="4" fill={OB.textWeak} />
+          <text x="110" y="135" fill={OB.text} fontSize="11" fontFamily="monospace">意思決定の集中: 1名に依存</text>
+          <text x="110" y="235" fill={OB.textMid} fontSize="11" fontFamily="monospace">完了定義の不一致を検出</text>
+          <text x="110" y="335" fill={OB.textMid} fontSize="11" fontFamily="monospace">情報伝達の孤立ノードあり</text>
+        </svg>
       );
     }
-    return null;
+    // graph / graph2: 中心ノードから伸びる構造図。アクセントは1ノードのみ。
+    const nodes = type === "graph2"
+      ? [[240,240,"core",7],[130,150,"n",3.5],[350,150,"n",3.5],[110,320,"n",3.5],[370,320,"n",3.5],[240,110,"n",3.5],[240,370,"a",5]]
+      : [[240,240,"core",7],[150,140,"n",3.5],[330,140,"n",3.5],[150,340,"n",3.5],[330,340,"a",5]];
+    const edges = nodes.slice(1).map(n => [nodes[0], n]);
+    return (
+      <svg width="100%" height="100%" viewBox="0 0 480 480" style={{ position: "absolute", inset: 0 }}>
+        {edges.map(([a, b], i) => (
+          <line key={i} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke={OB.line} strokeWidth="1" />
+        ))}
+        {/* 補助的な外周の点線(測定グリッド感) */}
+        <circle cx="240" cy="240" r="170" fill="none" stroke={OB.lineSoft} strokeWidth="1" strokeDasharray="2,6" />
+        {nodes.map(([x, y, kind, r], i) => (
+          <circle key={i} cx={x} cy={y} r={r} fill={kind === "a" ? OB.accent : kind === "core" ? OB.text : OB.textWeak} />
+        ))}
+      </svg>
+    );
   };
 
+  const jpFont = "'Meiryo UI','Hiragino Kaku Gothic ProN',sans-serif";
+  const enFont = "'Avenir Next','Helvetica Neue',sans-serif";
+
   return (
-    <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: C.bg, fontFamily: "'Noto Sans JP', sans-serif" }}>
-      <div style={{ width: 420, background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 12, padding: "32px 28px" }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 18 }}>Metis</div>
+    <div style={{ height: "100vh", width: "100vw", display: "flex", background: OB.bg, fontFamily: jpFont, overflow: "hidden" }}>
+      {/* 左: 診断グラフの図解 */}
+      <div style={{ position: "relative", flex: "0 0 58%", background: OB.panel, borderRight: `1px solid ${OB.line}` }}>
+        <CornerMarks />
+        <div style={{ position: "absolute", top: 28, left: 32, fontFamily: enFont, fontSize: 13, fontWeight: 600, letterSpacing: 1.5, color: OB.text }}>
+          METIS
+        </div>
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
+          {renderDiagram(s.mock)}
+        </div>
+      </div>
 
-        {s.mock && <div style={{ marginBottom: 18 }}>{renderMock(s.mock)}</div>}
+      {/* 右: テキスト・ナビゲーション */}
+      <div style={{ flex: "1 1 42%", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "48px 64px" }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", fontFamily: enFont, fontSize: 11, letterSpacing: 1, color: OB.textWeak }}>
+          {String(idx + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
+        </div>
 
-        <div style={{ fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 10 }}>{s.title}</div>
-        <div style={{ fontSize: 12.5, color: C.textMid, lineHeight: 1.7, marginBottom: 22 }}>{s.body}</div>
+        <div>
+          <div style={{ fontFamily: enFont, fontSize: 30, fontWeight: 700, color: OB.text, lineHeight: 1.25, marginBottom: 20, maxWidth: 380 }}>
+            {s.title}
+          </div>
+          <div style={{ fontSize: 13.5, color: OB.textMid, lineHeight: 1.9, maxWidth: 380 }}>
+            {s.body}
+          </div>
+        </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-          <div style={{ display: "flex", gap: 5 }}>
+        <div>
+          <div style={{ display: "flex", gap: 6, marginBottom: 24 }}>
             {slides.map((_, i) => (
-              <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: i === idx ? C.human : C.border }} />
+              <div key={i} style={{ width: i === idx ? 20 : 6, height: 2, background: i === idx ? OB.accent : OB.line, transition: "width 0.2s" }} />
             ))}
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+
+          <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
             {idx > 0 && (
               <button onClick={() => setIdx(idx - 1)}
-                style={{ fontSize: 12, padding: "7px 14px", borderRadius: 6, border: `1px solid ${C.border}`, background: "none", color: C.textMid, cursor: "pointer" }}>
+                style={{ fontFamily: enFont, fontSize: 12, padding: "10px 20px", border: `1px solid ${OB.line}`, background: "none", color: OB.textMid, cursor: "pointer" }}>
                 戻る
               </button>
             )}
             {!isLast && (
               <button onClick={() => setIdx(idx + 1)}
-                style={{ fontSize: 12, fontWeight: 700, padding: "7px 16px", borderRadius: 6, border: "none", background: C.text, color: "#fff", cursor: "pointer" }}>
+                style={{ fontFamily: enFont, fontSize: 12, fontWeight: 600, padding: "10px 24px", border: `1px solid ${OB.text}`, background: "none", color: OB.text, cursor: "pointer", flex: 1 }}>
                 次へ
               </button>
             )}
+            {isLast && (
+              <button onClick={onFinish}
+                style={{ fontFamily: enFont, fontSize: 12.5, fontWeight: 700, padding: "12px 24px", border: "none", background: OB.accent, color: "#fff", cursor: "pointer", flex: 1 }}>
+                → テスターとして登録する
+              </button>
+            )}
           </div>
-        </div>
 
-        {isLast && (
-          <button onClick={onFinish}
-            style={{ width: "100%", padding: "11px 0", fontSize: 13, fontWeight: 700, color: "#fff", background: C.text, border: "none", borderRadius: 7, cursor: "pointer", marginBottom: 10 }}>
-            → テスターとして登録する
-          </button>
-        )}
-
-        <div style={{ textAlign: "center" }}>
           <button onClick={onSkipToLogin}
-            style={{ fontSize: 11, color: C.textWeak, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
+            style={{ fontFamily: enFont, fontSize: 11, color: OB.textWeak, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}>
             すでにアカウントをお持ちの方はこちら
           </button>
         </div>
@@ -3331,6 +3393,7 @@ function OnboardingSlideshow({ onFinish, onSkipToLogin }) {
     </div>
   );
 }
+
 
 function LoginScreen({ initialMode = "signin", onBack }) {
   const [mode, setMode] = useState(initialMode); // signin | signup
