@@ -3267,8 +3267,8 @@ function CornerMarks({ inset = 16, size = 14, color = OB.line }) {
 // 実際のGravityViewで使われている配色(紫系=Concept/Artifact、緑=Organization、
 // エッジは紫のグラデーション)をそのまま踏襲する。
 // パフォーマンスのため、Reactのstateではなくrefで直接SVG要素を更新する(毎フレームの再レンダーを避ける)。
-const FG_NODE_COLOR = { core: "#534AB7", thing: "#6C5CE7", human: "#5DB99A" };
-const FG_EDGE_COLOR = ["#534AB7", "#7B74D4", "#AFA9EC", "#C8EDE3"];
+const FG_NODE_COLOR = { purple: "#534AB7", green: "#5DB99A", blue: "#185FA5" };
+const FG_EDGE_GRAY = "#3A3A3A";
 
 function FloatingGraph() {
   const svgRef = useRef(null);
@@ -3327,11 +3327,12 @@ function FloatingGraph() {
 
     const ns = rawNodes.map((n, i) => {
       const d = degree[i];
-      const isCore = d >= maxDeg - 1 && d >= 5;
-      const kind = isCore ? "core" : rand() < 0.22 ? "human" : "thing";
+      const isHub = d >= maxDeg - 1 && d >= 5;
+      const roll = rand();
+      const kind = roll < 0.4 ? "purple" : roll < 0.72 ? "green" : "blue";
       return {
         ...n,
-        r: isCore ? 6.5 : 2 + Math.min(d, 6) * 0.55,
+        r: isHub ? 6.5 : 2 + Math.min(d, 6) * 0.55,
         kind,
         phaseX: (i * 1.7) % (Math.PI * 2),
         phaseY: (i * 2.3 + 1) % (Math.PI * 2),
@@ -3399,13 +3400,13 @@ function FloatingGraph() {
       <circle cx="240" cy="240" r="215" fill="none" stroke={OB.lineSoft} strokeWidth="1" strokeDasharray="2,7" />
       {edges.map(([a, b, w], i) => (
         <line key={i} ref={(el) => (lineRefs.current[i] = el)}
-          stroke={FG_EDGE_COLOR[w] || FG_EDGE_COLOR[3]} strokeWidth={w === 0 ? 1.4 : w === 1 ? 1 : 0.7}
-          opacity={w === 0 ? 0.65 : w === 1 ? 0.5 : w === 2 ? 0.36 : 0.24} />
+          stroke={FG_EDGE_GRAY} strokeWidth={w === 0 ? 1.3 : w === 1 ? 1 : 0.7}
+          opacity={w === 0 ? 0.55 : w === 1 ? 0.42 : w === 2 ? 0.32 : 0.22} />
       ))}
       {nodes.map(n => (
         <circle key={n.id} ref={(el) => (circleRefs.current[n.id] = el)}
           r={n.r} fill={FG_NODE_COLOR[n.kind]}
-          opacity={n.kind === "core" ? 1 : 0.85} />
+          opacity={n.r >= 6 ? 1 : 0.85} />
       ))}
     </svg>
   );
