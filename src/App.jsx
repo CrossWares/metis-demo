@@ -3298,7 +3298,7 @@ function FloatingGraph() {
       rawNodes.push({ id: `n${i}`, x, y });
     }
 
-    // 各ノードを近傍2〜3個と接続(KNN風)。重複エッジは除外。
+    // 各ノードを近傍4〜6個と接続(KNN風、密度を高めに)。重複エッジは除外。
     const edgeSet = new Set();
     const es = [];
     const dist2 = (a, b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
@@ -3306,7 +3306,7 @@ function FloatingGraph() {
       const nearest = rawNodes
         .map((m, j) => ({ j, d: i === j ? Infinity : dist2(n, m) }))
         .sort((a, b) => a.d - b.d)
-        .slice(0, 2 + Math.floor(rand() * 2));
+        .slice(0, 4 + Math.floor(rand() * 3));
       nearest.forEach(({ j }) => {
         const key = i < j ? `${i}-${j}` : `${j}-${i}`;
         if (!edgeSet.has(key)) { edgeSet.add(key); es.push([i, j]); }
@@ -3453,9 +3453,7 @@ function OnboardingSlideshow({ onFinish, onSkipToLogin }) {
 
       {/* 右: テキスト・ナビゲーション */}
       <div style={{ flex: "1 1 42%", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "48px 64px" }}>
-        <div style={{ display: "flex", justifyContent: "flex-end", fontFamily: enFont, fontSize: 11, letterSpacing: 1, color: OB.textWeak }}>
-          {String(idx + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
-        </div>
+        <div style={{ height: 11 }} />
 
         <div>
           <div style={{ fontFamily: enFont, fontSize: 30, fontWeight: 700, color: OB.text, lineHeight: 1.25, marginBottom: 20, maxWidth: 380 }}>
