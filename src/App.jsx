@@ -3416,19 +3416,19 @@ function OnboardingSlideshow({ onFinish, onSkipToLogin }) {
   const slides = [
     {
       title: "Metisとは？",
-      body: "プロジェクト失敗の本当の原因は、要件のズレではなく「組織の見えない構造」にある。誰が誰に依存し、誰が実質的な決定権を持ち、情報がどう伝わっているか——Metisはそれを可視化する。",
+      body: "プロジェクト運営における最大の壁は、見えない関係性の構造にある。何が何に依存し、誰が実質的な決定権を持ち、情報がどこで滞っているのか。Metisは、その構造をAIの力で見える形にする。",
     },
     {
-      title: "組織構造をグラフで見る",
-      body: "PM・キーマン・意思決定者・要件・成果物・プロセス・スケジュール。プロジェクトを構成する要素どうしの関係性が、ひと目でわかる形で表示される。",
+      title: "組織構造をグラフ化する",
+      body: "PM、キーマン、意思決定者、要件、成果物、プロセス、スケジュール。プロジェクトを形づくる要素同士のつながりを、ひと目で全体像がつかめる一枚のグラフに描き出す。",
     },
     {
-      title: "危険信号を早期にキャッチ",
-      body: "「完了」の定義が部署によって違う、特定の人にしか情報が集まっていない——そうした構造上のリスクをMetisが検知し、知らせる。",
+      title: "変化の兆しに、いち早く気づく",
+      body: "同じ言葉でも、立場によって意味が違う。特定の人に情報が集まり、そこで止まってしまう。そうした構造の特性やリスクの兆しを、Metisが静かに検知し知らせる。",
     },
     {
-      title: "自分のプロジェクトで試してみませんか？",
-      body: "デモではなく、実際の案件を入れて体験できる。テスターとして登録すれば、すぐに始められる。",
+      title: "まずは、ご自身のプロジェクトで",
+      body: "実際のプロジェクトをデータにして、その場で体験していただけます。テスターとして登録すれば、すぐに始められます。",
     },
   ];
   const [idx, setIdx] = useState(0);
@@ -3443,8 +3443,8 @@ function OnboardingSlideshow({ onFinish, onSkipToLogin }) {
       {/* 左: ゆらゆら揺れるナレッジグラフ(常時アニメーション、スライド切替の影響を受けない) */}
       <div style={{ position: "relative", flex: "0 0 58%", background: OB.panel, borderRight: `1px solid ${OB.line}` }}>
         <FloatingGraph />
-        <div style={{ position: "absolute", top: 28, left: 32, fontFamily: enFont, fontSize: 13, fontWeight: 600, letterSpacing: 1.5, color: OB.text, pointerEvents: "none" }}>
-          METIS
+        <div style={{ position: "absolute", top: 28, left: 32, fontFamily: enFont, fontSize: 17, fontWeight: 600, letterSpacing: 1.5, color: OB.text, pointerEvents: "none" }}>
+          Metis
         </div>
         <div style={{ pointerEvents: "none" }}>
           <CornerMarks />
