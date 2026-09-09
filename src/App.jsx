@@ -3443,8 +3443,14 @@ function OnboardingSlideshow({ onFinish, onSkipToLogin }) {
       {/* 左: ゆらゆら揺れるナレッジグラフ(常時アニメーション、スライド切替の影響を受けない) */}
       <div style={{ position: "relative", flex: "0 0 58%", background: OB.panel, borderRight: `1px solid ${OB.line}` }}>
         <FloatingGraph />
-        <div style={{ position: "absolute", top: 28, left: 32, fontFamily: enFont, fontSize: 17, fontWeight: 600, letterSpacing: 1.5, color: OB.text, pointerEvents: "none" }}>
-          Metis
+        <div style={{ position: "absolute", top: 26, left: 32, pointerEvents: "none" }}>
+          <svg width="88" height="37" viewBox="0 0 420 200" style={{ display: "block" }}>
+            <g transform="translate(80,100)" stroke={OB.text} strokeWidth="7.65" fill="none" strokeLinejoin="miter">
+              <polygon points="-44.1,0 0,-44.1 44.1,0 0,44.1" />
+              <polygon points="0,0 44.1,-44.1 88.2,0 44.1,44.1" />
+            </g>
+            <text x="200" y="122" fontFamily="Inter,sans-serif" fontWeight="700" fontSize="72" letterSpacing="1" fill={OB.text}>Metis</text>
+          </svg>
         </div>
         <div style={{ pointerEvents: "none" }}>
           <CornerMarks />
