@@ -108,11 +108,15 @@ function mergeExtractedGravity(existingGravity, extracted) {
     return { coupling, depStr, changeProb, commFreq };
   };
 
+  const ORBIT_BY_IMPORTANCE = { high: 1, medium: 2, low: 3 };
+
   const newNodes = newNodesRaw.slice(0, 12).map(n => ({
     id: n.id,
     category: n.category || "Concept",
-    orbit: 3,
-    source: "imported",
+    importance: n.importance || "medium",
+    orbit: ORBIT_BY_IMPORTANCE[n.importance] || 3,
+    source: n.createdBy ? "chat" : "imported",
+    createdBy: n.createdBy || null, // 記録した人(チャット由来の場合のみ。ファイル取込ではnull)
     ...computeDerived(n.id),
   }));
 
@@ -126,12 +130,49 @@ function mergeExtractedGravity(existingGravity, extracted) {
   };
 }
 
+// チャット発言から「記憶すべき指示かどうか」を判定し、該当すれば同じ5×5オントロジー
+// (buildGravityExtractionPromptと共通の分類)でノード・エッジとして構造化するプロンプト。
+// ファイル取込とは異なり、判定(intent)を経由してから構造化する点が異なる。
+// これはSemantic Spaceへの入力経路の一つとして、今後ここに他の入力手段(Word取込等)も
+// 同じ判定→構造化の型で追加していくことを想定している。
+function buildChatMemoryPrompt(existingIds, projectContext) {
+  return `あなたはMetisのAIアシスタント「Ghost」の一部として、ユーザーのチャット発言が
+プロジェクトの記憶として保存すべき指示かどうかを判定するAIです。必ずJSONのみを返してください
+（前置き・説明・マークダウン記号は一切禁止）。
+
+■ intentは次の3種類のいずれか:
+  "remember" = 「記憶しておいて」「覚えておいて」「メモして」等の明示的な保存指示、
+               または決定事項・期限・懸念点など、プロジェクトにとって記録する価値がある内容
+  "status"   = 「ステータスに反映して」「進捗を更新して」等、進捗率やスコアなど
+               プロジェクトの状態値そのものの更新を求めるもの(この経路はまだ準備中)
+  "none"     = 通常の質問・雑談など、保存の必要がないもの
+
+■ 対象プロジェクトの状況(重要度判定の参考にすること):
+${projectContext}
+
+intentが"remember"の場合のみ、以下のルールでnodes/edgesを構造化すること:
+■ ノード分類(category): Concept(概念)/Organization(人物・チーム)/Process(作業・手順)/Issue(問題・懸念)/Artifact(成果物・文書)
+■ エッジ種別(edge_type): Structural/Dependency/Temporal/Governance/Knowledge
+■ 重要度(importance): high(意思決定・期限・重大リスク)/medium(通常の作業・関係者)/low(補足的な言及)
+既存ノード(重複させず再利用): ${existingIds.join(", ") || "なし"}
+
+返すJSON形式(このキーのみ):
+{"intent":"remember|status|none",
+ "nodes":[{"id":"ノード名(短い名詞)","category":"Concept|Organization|Process|Issue|Artifact","importance":"high|medium|low"}],
+ "edges":[{"source":"ノード名","target":"ノード名","edge_type":"Structural|Dependency|Temporal|Governance|Knowledge","direction":"→|↔","strength":0.0-1.0の数値,"frequency":"daily|weekly|per-phase|event-driven|once","label":"動詞句","note":"根拠(20字以内)"}]}
+intentが"remember"以外の場合、nodes/edgesは空配列でよい。ノードは最大5個、エッジは最大6個まで。`;
+}
+
 // Claude Extraction用の共通システムプロンプト(Excel Edge Ontology準拠、5分類)。
-// Ghost CSV取込・新規作成モーダルのファイル取込、両方で同一の抽出仕様を使う。
-function buildGravityExtractionPrompt(existingIds) {
+// Ghost CSV/txt取込・新規作成モーダルのファイル取込、両方で同一の抽出仕様を使う。
+// projectContext: 対象プロジェクトの状況を要約した文字列(任意。新規作成時など
+// プロジェクトがまだ存在しない場合は省略してよい)。これを渡すことで、AIが
+// 「このプロジェクトにとって何が重要か」を踏まえた抽出・重要度判定ができる。
+function buildGravityExtractionPrompt(existingIds, projectContext = "") {
   return `あなたはプロジェクトドキュメント(CSV/議事録/WBS/要件定義書等)からMetisのナレッジグラフ用のノードとエッジを抽出するAIです。
 必ずJSONのみを返してください（前置き・説明・マークダウン記号は一切禁止）。
 
+${projectContext ? `■ 対象プロジェクトの状況(この文脈を踏まえて、何がこのプロジェクトにとって重要かを判断すること):\n${projectContext}\n` : ""}
 ■ ノード分類(category)は次の5種類のいずれか: Concept(概念・抽象概念) / Organization(人物・役職・チーム・ベンダー) / Process(手順・作業・成果物生成プロセス) / Issue(問題・リスク・懸念事項) / Artifact(成果物・文書・システム)
 ■ エッジ種別(edge_type)は次の5種類のいずれか:
   Structural(所属する/管理する/所有する/報告する)
@@ -140,10 +181,13 @@ function buildGravityExtractionPrompt(existingIds) {
   Governance(承認する/決定する/委任する/エスカレーションする)
   Knowledge(学習する/引き継ぐ/利用する/派生する/共有する)
 
+■ 重要度(importance)は次の3段階のいずれか: high(意思決定・期限・重大リスク・キーパーソンなど、プロジェクトの成否に直結する) / medium(通常の作業・一般的な関係者) / low(補足的・一度きりの言及)
+  単に文中に出てきた語をすべて拾うのではなく、上記の対象プロジェクトの状況も踏まえて「重要と判断できるか」を選別基準にすること。
+
 既存ノード(重複させず、可能な限りこれらを再利用してsourceやtargetに使う。特に"プロジェクトマネジメント"は全プロジェクト共通の中心ノードなので、関連する内容があれば積極的にエッジで繋げること): ${existingIds.join(", ") || "なし"}
 
 返すJSON形式(このキーのみ):
-{"nodes":[{"id":"ノード名(短い名詞、既存ノードと表記揺れさせない)","category":"Concept|Organization|Process|Issue|Artifact"}],
+{"nodes":[{"id":"ノード名(短い名詞、既存ノードと表記揺れさせない)","category":"Concept|Organization|Process|Issue|Artifact","importance":"high|medium|low"}],
  "edges":[{"source":"ノード名","target":"ノード名","edge_type":"Structural|Dependency|Temporal|Governance|Knowledge","direction":"→|↔","strength":0.0から1.0の数値,"frequency":"daily|weekly|per-phase|event-driven|once","label":"動詞句","note":"根拠の要約(20字以内)"}]}
 精度は多少低くても構いません。読み取れる範囲でベストエフォートに構造化してください。ノードは最大12個、エッジは最大18個までに絞ってください。読み取れる関係が無ければ空配列を返してください。`;
 }
@@ -2302,10 +2346,13 @@ function GanttView({ project, onTaskSelect, selectedTaskId }) {
 }
 
 // ── Gravity View（SVG直接描画）──
-function GravityView({ project }) {
+function GravityView({ project, onUpdateGravity }) {
   const [activeTab, setActiveTab] = useState("gravity");
   const [selectedNode, setSelectedNode] = useState(null);
   const [simCoupling, setSimCoupling] = useState(null); // ドラッグシミュレーション中の仮結合度 { nodeId: value }
+  const [addPopup, setAddPopup] = useState(null); // null | "node" | "edge"
+  const [newNodeForm, setNewNodeForm] = useState({ id: "", category: "Concept" });
+  const [newEdgeForm, setNewEdgeForm] = useState({ source: "", target: "", edge_type: "Dependency" });
   const canvasRef = useRef(null);
   const chartRef  = useRef(null);
   const { nodes, edges: projectEdges, drift } = project?.gravity || { nodes: [], edges: [], drift: { labels:[], plan:[], actual:[] } };
@@ -2388,6 +2435,35 @@ function GravityView({ project }) {
   const avgCoupling = (gravNodes.reduce((a, n) => a + n.coupling, 0) / gravNodes.length).toFixed(1);
   const highGravity = gravNodes.filter(n => n.coupling / maxC > 0.7).length;
 
+  // ユーザーが手動でノードを追加する。数値パラメータは低めの初期値を与え、
+  // 実際の重要度は既存のシミュレーション/ドラッグ操作で後から調整してもらう前提。
+  const handleAddNode = () => {
+    const id = newNodeForm.id.trim();
+    if (!id || gravNodes.some(n => n.id === id)) return;
+    const newNode = { id, category: newNodeForm.category, orbit: 2, coupling: 1.0, depStr: 1.0, changeProb: 20, commFreq: 20 };
+    onUpdateGravity?.({ ...project.gravity, nodes: [...(project.gravity?.nodes || []), newNode] });
+    setNewNodeForm({ id: "", category: "Concept" });
+    setAddPopup(null);
+  };
+
+  // ユーザーが手動でエッジを追加する。
+  const handleAddEdge = () => {
+    const { source, target, edge_type } = newEdgeForm;
+    if (!source || !target || source === target) return;
+    const newEdge = { source, target, edge_type, direction: "→", strength: 0.6, frequency: "per-phase", label: "", note: "手動追加" };
+    onUpdateGravity?.({ ...project.gravity, edges: [...(project.gravity?.edges || []), newEdge] });
+    setNewEdgeForm({ source: "", target: "", edge_type: "Dependency" });
+    setAddPopup(null);
+  };
+
+  // ノードを削除する。紐づくエッジ(source/targetいずれかに含む)も連動して削除する。
+  const handleDeleteNode = (nodeId) => {
+    const nextNodes = (project.gravity?.nodes || []).filter(n => n.id !== nodeId);
+    const nextEdges = (project.gravity?.edges || []).filter(e => e.source !== nodeId && e.target !== nodeId);
+    onUpdateGravity?.({ ...project.gravity, nodes: nextNodes, edges: nextEdges });
+    setSelectedNode(null);
+  };
+
   return (
     <div style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 5px rgba(0,0,0,0.04)" }}>
 
@@ -2398,6 +2474,12 @@ function GravityView({ project }) {
           <span style={{ fontSize: 11, fontWeight: 700, color: C.textWeak, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>GRAVITY VIEW</span>
           <span style={{ fontSize: 10, color: C.textWeak, marginLeft: 4 }}>依存構造とリスクの重力分布</span>
         </div>
+        {!project?.isSample && (
+          <button onClick={() => setAddPopup("menu")} title="ノード/エッジを追加"
+            style={{ width: 22, height: 22, borderRadius: 6, border: `1px solid ${C.border}`, background: "transparent", color: C.textMid, fontSize: 14, lineHeight: 1, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", marginRight: 10, flexShrink: 0 }}>
+            ＋
+          </button>
+        )}
         {/* Tabs */}
         <div style={{ display: "flex", gap: 0, border: `1px solid ${C.border}`, borderRadius: 6, overflow: "hidden" }}>
           {["gravity", "drift"].map(tab => (
@@ -2497,6 +2579,12 @@ function GravityView({ project }) {
                       );
                     })}
                   </div>
+                  {!project?.isSample && selectedNode.id !== "プロジェクトマネジメント" && (
+                    <button onClick={() => handleDeleteNode(selectedNode.id)}
+                      style={{ marginTop: 10, width: "100%", padding: "6px 0", fontSize: 10.5, fontWeight: 600, color: C.critical, background: "transparent", border: `1px solid ${C.critical}55`, borderRadius: 6, cursor: "pointer" }}>
+                      このノードを削除
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div style={{ fontSize: 11, color: C.textWeak, padding: "10px 0" }}>
@@ -2826,6 +2914,79 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
           </div>
         </div>
       </div>
+
+      {addPopup && (
+        <>
+          <div onClick={() => setAddPopup(null)} style={{ position: "fixed", inset: 0, background: "rgba(26,24,51,0.22)", zIndex: 200, backdropFilter: "blur(2px)" }} />
+          <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 340, background: C.bgCard, border: `1.5px solid ${C.border}`, borderRadius: 14, boxShadow: "0 24px 64px rgba(0,0,0,0.14)", zIndex: 201, padding: 18 }}>
+
+            {addPopup === "menu" && (
+              <>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: C.text, marginBottom: 14 }}>Semantic Spaceに追加</div>
+                <button onClick={() => setAddPopup("node")}
+                  style={{ width: "100%", textAlign: "left", padding: "10px 12px", marginBottom: 8, border: `1px solid ${C.border}`, borderRadius: 8, background: C.bg, cursor: "pointer" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: C.text }}>＋ ノードを追加</div>
+                  <div style={{ fontSize: 10, color: C.textWeak, marginTop: 2 }}>新しい概念・人物・成果物などを1つ追加</div>
+                </button>
+                <button onClick={() => setAddPopup("edge")}
+                  style={{ width: "100%", textAlign: "left", padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 8, background: C.bg, cursor: "pointer" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: C.text }}>＋ エッジを追加</div>
+                  <div style={{ fontSize: 10, color: C.textWeak, marginTop: 2 }}>既存ノード同士の関係性を1本追加</div>
+                </button>
+              </>
+            )}
+
+            {addPopup === "node" && (
+              <>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: C.text, marginBottom: 14 }}>ノードを追加</div>
+                <label style={{ fontSize: 10, color: C.textWeak, display: "block", marginBottom: 4 }}>ノード名</label>
+                <input value={newNodeForm.id} onChange={e => setNewNodeForm(f => ({ ...f, id: e.target.value }))}
+                  placeholder="例：リカバリープラン" autoFocus
+                  style={{ width: "100%", padding: "7px 10px", fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, marginBottom: 12, fontFamily: "'Noto Sans JP', sans-serif" }} />
+                <label style={{ fontSize: 10, color: C.textWeak, display: "block", marginBottom: 4 }}>分類</label>
+                <select value={newNodeForm.category} onChange={e => setNewNodeForm(f => ({ ...f, category: e.target.value }))}
+                  style={{ width: "100%", padding: "7px 10px", fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, marginBottom: 16, fontFamily: "'Noto Sans JP', sans-serif" }}>
+                  {["Concept", "Organization", "Process", "Issue", "Artifact"].map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={() => setAddPopup("menu")} style={{ flex: 1, padding: "8px 0", fontSize: 11.5, border: `1px solid ${C.border}`, borderRadius: 6, background: "transparent", color: C.textMid, cursor: "pointer" }}>戻る</button>
+                  <button onClick={handleAddNode} disabled={!newNodeForm.id.trim()}
+                    style={{ flex: 1, padding: "8px 0", fontSize: 11.5, fontWeight: 700, border: "none", borderRadius: 6, background: newNodeForm.id.trim() ? C.human : C.border, color: "#fff", cursor: newNodeForm.id.trim() ? "pointer" : "default" }}>追加</button>
+                </div>
+              </>
+            )}
+
+            {addPopup === "edge" && (
+              <>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: C.text, marginBottom: 14 }}>エッジを追加</div>
+                <label style={{ fontSize: 10, color: C.textWeak, display: "block", marginBottom: 4 }}>接続元</label>
+                <select value={newEdgeForm.source} onChange={e => setNewEdgeForm(f => ({ ...f, source: e.target.value }))}
+                  style={{ width: "100%", padding: "7px 10px", fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, marginBottom: 10 }}>
+                  <option value="">選択してください</option>
+                  {gravNodes.map(n => <option key={n.id} value={n.id}>{n.id}</option>)}
+                </select>
+                <label style={{ fontSize: 10, color: C.textWeak, display: "block", marginBottom: 4 }}>接続先</label>
+                <select value={newEdgeForm.target} onChange={e => setNewEdgeForm(f => ({ ...f, target: e.target.value }))}
+                  style={{ width: "100%", padding: "7px 10px", fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, marginBottom: 10 }}>
+                  <option value="">選択してください</option>
+                  {gravNodes.map(n => <option key={n.id} value={n.id}>{n.id}</option>)}
+                </select>
+                <label style={{ fontSize: 10, color: C.textWeak, display: "block", marginBottom: 4 }}>関係の種類</label>
+                <select value={newEdgeForm.edge_type} onChange={e => setNewEdgeForm(f => ({ ...f, edge_type: e.target.value }))}
+                  style={{ width: "100%", padding: "7px 10px", fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, marginBottom: 16 }}>
+                  {["Structural", "Dependency", "Temporal", "Governance", "Knowledge"].map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={() => setAddPopup("menu")} style={{ flex: 1, padding: "8px 0", fontSize: 11.5, border: `1px solid ${C.border}`, borderRadius: 6, background: "transparent", color: C.textMid, cursor: "pointer" }}>戻る</button>
+                  <button onClick={handleAddEdge} disabled={!newEdgeForm.source || !newEdgeForm.target || newEdgeForm.source === newEdgeForm.target}
+                    style={{ flex: 1, padding: "8px 0", fontSize: 11.5, fontWeight: 700, border: "none", borderRadius: 6, background: (newEdgeForm.source && newEdgeForm.target && newEdgeForm.source !== newEdgeForm.target) ? C.human : C.border, color: "#fff", cursor: "pointer" }}>追加</button>
+                </div>
+              </>
+            )}
+
+          </div>
+        </>
+      )}
     </>
   );
 }
@@ -2928,11 +3089,12 @@ function GhostPulse({ pulse, onDismiss, onExpand }) {
   );
 }
 
-function GhostSearch({ project, visible, onClose, onApplyData, onApplyGravity, initialQuery }) {
+function GhostSearch({ project, visible, onClose, onApplyData, onApplyGravity, initialQuery, session }) {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
+  const [pendingGravity, setPendingGravity] = useState(null); // ファイルから抽出したnodes/edges候補(確認待ち)
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef(null);
   const bottomRef = useRef(null);
@@ -2979,6 +3141,40 @@ Gravity上位ノード: ${(p.gravity?.nodes||[]).slice(0,3).map(n=>`${n.id}(coup
     return { header, rows: lines.slice(1).map(l=>{ const c=l.split(","); return Object.fromEntries(header.map((h,i)=>[[h],c[i]?.trim()||""])); }) };
   };
 
+  // ── Node/Edge抽出(Excel Edge Ontology準拠) ──
+  // CSVの種別判定(schedule/stakeholders/unknown)とは独立して、
+  // ファイル内容(表形式のサンプルテキスト、または議事録等の生の文章)から
+  // 意味的なノード・エッジを抽出する。対象プロジェクトの状況(buildContext)を
+  // 併せて渡すことで、AIが「このプロジェクトにとって重要か」を判断できるようにする。
+  // 精度は求めず、読み取れる範囲でベストエフォートに構造化する。
+  // 結果は即座には反映せず、ユーザーの確認(action風メッセージ)を挟んでから反映する。
+  const runGravityExtraction = async (contentText, filename) => {
+    if (!onApplyGravity) return;
+    try {
+      const existingIds = (project.gravity?.nodes || []).map(n => n.id);
+      const projectContext = buildContext(project);
+      const exRes = await fetch("/api/claude", { method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1500,
+          system: buildGravityExtractionPrompt(existingIds, projectContext),
+          messages:[{ role:"user", content:`ファイル名: ${filename}\n内容:\n${contentText.slice(0, 6000)}` }] }) });
+      const exData = await exRes.json();
+      const exRaw = exData.content?.[0]?.text || "{}";
+      const exClean = exRaw.replace(/```json|```/g,"").trim();
+      const extracted = JSON.parse(exClean);
+      const nodeCount = extracted.nodes?.length || 0;
+      const edgeCount = extracted.edges?.length || 0;
+      if (nodeCount || edgeCount) {
+        setPendingGravity({ extracted, filename });
+        setMessages(prev=>[...prev, { role:"gravity_action", nodeCount, edgeCount,
+          highCount: (extracted.nodes||[]).filter(n=>n.importance==="high").length }]);
+      } else {
+        setMessages(prev=>[...prev, { role:"assistant", text:"このファイルから、Semantic Spaceに追加できそうな新しい要素は見つかりませんでした。" }]);
+      }
+    } catch (e) {
+      // 抽出失敗はサイレントに無視(CSV種別判定自体は成功している場合、ここで会話を止めない)
+    }
+  };
+
   const detectAndProcess = async (csvText, filename) => {
     const { header, rows } = parseCSV(csvText);
     const headerStr = header.join(",");
@@ -3012,38 +3208,37 @@ tasks: [{"id":"t1","name":"タスク名","assignee":"担当者名（不明なら
       setMessages(prev=>[...prev, { role:"assistant", text:"ファイルの解析中にエラーが発生しました。" }]);
     }
 
-    // ── Node/Edge抽出(Excel Edge Ontology準拠) ──
-    // CSVの種別判定(schedule/stakeholders/unknown)とは独立して、
-    // ファイル内容から意味的なノード・エッジを抽出しGravityへ反映する。
-    // 精度は求めず、読み取れる範囲でベストエフォートに構造化する。
-    if (onApplyGravity) {
-      try {
-        const existingIds = (project.gravity?.nodes || []).map(n => n.id);
-        const sampleText = rows.slice(0, 20).map(r => Object.entries(r).map(([k,v])=>`${k}:${v}`).join(" ")).join("\n");
-        const exRes = await fetch("/api/claude", { method:"POST", headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1500,
-            system: buildGravityExtractionPrompt(existingIds),
-            messages:[{ role:"user", content:`ファイル名: ${filename}\nヘッダー: ${headerStr}\n内容:\n${sampleText}` }] }) });
-        const exData = await exRes.json();
-        const exRaw = exData.content?.[0]?.text || "{}";
-        const exClean = exRaw.replace(/```json|```/g,"").trim();
-        const extracted = JSON.parse(exClean);
-        if ((extracted.nodes?.length || extracted.edges?.length)) {
-          onApplyGravity(extracted);
-          setMessages(prev=>[...prev, { role:"assistant", text:`セマンティックスペースに ${extracted.nodes?.length||0} 個のノードと ${extracted.edges?.length||0} 本のエッジ(候補)を反映しました。精度は保証されないため、Gravity Viewで内容をご確認ください。` }]);
-        }
-      } catch (e) {
-        // 抽出失敗はサイレントに無視(CSV種別判定自体は成功しているため、ここで会話を止めない)
-      }
-    }
+    const sampleText = rows.slice(0, 20).map(r => Object.entries(r).map(([k,v])=>`${k}:${v}`).join(" ")).join("\n");
+    await runGravityExtraction(`ヘッダー: ${headerStr}\n${sampleText}`, filename);
 
     setLoading(false);
+  };
+
+  // .txt(議事録等、表形式でない生の文章)専用の処理。CSVとして無理に行分割せず、
+  // 文章全体をそのままノード/エッジ抽出に渡す。schedule/stakeholders判定は
+  // 表形式データが前提のロジックのため、txtでは行わない。
+  const detectAndProcessText = async (text, filename) => {
+    setMessages(prev=>[...prev, { role:"file", text:`📎 ${filename}` }]);
+    setLoading(true);
+    await runGravityExtraction(text, filename);
+    setMessages(prev=>[...prev, { role:"assistant", text:"ファイルを読み込みました。抽出結果は下のカードから反映できます。" }]);
+    setLoading(false);
+  };
+
+  const handleApplyGravity = () => {
+    if (!pendingGravity) return;
+    onApplyGravity(pendingGravity.extracted);
+    setMessages(prev=>[...prev, { role:"assistant", text:`セマンティックスペースに ${pendingGravity.extracted.nodes?.length||0} 個のノードと ${pendingGravity.extracted.edges?.length||0} 本のエッジを反映しました。精度は保証されないため、Gravity Viewで内容をご確認ください。` }]);
+    setPendingGravity(null);
   };
 
   const handleFile = (file) => {
     if(!file) return;
     const reader = new FileReader();
-    reader.onload = e => detectAndProcess(e.target.result, file.name);
+    reader.onload = e => {
+      if (file.name.toLowerCase().endsWith(".txt")) detectAndProcessText(e.target.result, file.name);
+      else detectAndProcess(e.target.result, file.name);
+    };
     reader.readAsText(file, "UTF-8");
   };
 
@@ -3051,13 +3246,54 @@ tasks: [{"id":"t1","name":"タスク名","assignee":"担当者名（不明なら
     e.preventDefault(); setIsDragOver(false);
     const file = e.dataTransfer.files[0];
     if(file && (file.name.endsWith(".csv") || file.name.endsWith(".txt"))) handleFile(file);
-    else setMessages(prev=>[...prev, { role:"assistant", text:"CSVファイルをドロップしてください。" }]);
+    else setMessages(prev=>[...prev, { role:"assistant", text:"CSVまたはtxtファイルをドロップしてください。" }]);
   };
 
   const handleApply = (type, rows) => {
     onApplyData(type, rows, pendingAction?.tasks || null);
     setMessages(prev=>[...prev, { role:"assistant", text: type==="schedule" ? "スケジュールビューに反映しました。ダッシュボードでご確認ください。" : "Stakeholdersタブに体制図を反映しました。" }]);
     setPendingAction(null);
+  };
+
+  // 「記憶して」等の明示的なキーワードが含まれる発言だけを記憶判定の対象にする。
+  // 通常の質問・雑談にまで毎回APIコールを追加すると、レイテンシとコストが無駄に
+  // 乗ってしまうため、ここで安価なキーワードマッチにより事前に絞り込む。
+  const MEMORY_TRIGGER_RE = /記憶し|覚えてお|覚えとい|メモし|記録し|忘れないで|反映して|反映し(て|とい)|semantic\s*space|セマンティックスペース/i;
+
+  // ユーザーのチャット発言を、記憶すべき指示かどうか判定し、該当すれば
+  // ファイル取込と同じ確認カード(gravity_action)を使ってGravity Viewへの反映候補を提示する。
+  // ノードには「誰が記憶したか」(ログイン中のメールアドレス)を付与する。
+  const checkChatMemory = async (userText) => {
+    if (!onApplyGravity) return;
+    try {
+      const existingIds = (project.gravity?.nodes || []).map(n => n.id);
+      const projectContext = buildContext(project);
+      const res = await fetch("/api/claude", { method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000,
+          system: buildChatMemoryPrompt(existingIds, projectContext),
+          messages:[{ role:"user", content: userText }] }) });
+      const data = await res.json();
+      const raw = data.content?.[0]?.text || "{}";
+      const clean = raw.replace(/```json|```/g,"").trim();
+      const result = JSON.parse(clean);
+
+      if (result.intent === "status") {
+        setMessages(prev=>[...prev, { role:"assistant", text:"ステータスへの直接反映はまだ準備中です。この内容はノードとして記憶できます。もう一度「記憶しておいて」とお伝えください。" }]);
+        return;
+      }
+      if (result.intent !== "remember") return;
+
+      const savedBy = session?.user?.email || null;
+      const nodes = (result.nodes || []).map(n => ({ ...n, createdBy: savedBy }));
+      const edges = result.edges || [];
+      if (!nodes.length && !edges.length) return;
+
+      setPendingGravity({ extracted: { nodes, edges }, filename: "チャットからの記憶" });
+      setMessages(prev=>[...prev, { role:"gravity_action", nodeCount: nodes.length, edgeCount: edges.length,
+        highCount: nodes.filter(n=>n.importance==="high").length, savedBy }]);
+    } catch (e) {
+      // 記憶判定の失敗はサイレントに無視(通常の応答自体は成功しているため会話を止めない)
+    }
   };
 
   const handleSend = async () => {
@@ -3102,6 +3338,8 @@ tasks: [{"id":"t1","name":"タスク名","assignee":"担当者名（不明なら
       setMessages(prev => prev.map(m => m.id === streamId ? { ...m, streaming:false } : m));
       if (!fullText) {
         setMessages(prev => prev.map(m => m.id === streamId ? { ...m, text:"エラーが発生しました。", streaming:false } : m));
+      } else {
+        if (MEMORY_TRIGGER_RE.test(q)) await checkChatMemory(q);
       }
     } catch {
       setMessages(prev => prev.map(m => m.id === streamId ? { ...m, text:"エラーが発生しました。", streaming:false } : m));
@@ -3163,6 +3401,33 @@ tasks: [{"id":"t1","name":"タスク名","assignee":"担当者名（不明なら
                   style={{ padding:"5px 10px", background:"none", color:C.textWeak, border:`1px solid ${C.border}`, borderRadius:6, fontSize:11, cursor:"pointer" }}>
                   キャンセル
                 </button>
+              </div>
+            );
+            if(m.role==="gravity_action") return (
+              <div key={i} style={{ background:C.bgCard, border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 12px" }}>
+                <div style={{ fontSize:11, color:C.text, marginBottom: (m.highCount || m.savedBy) ? 4 : 8 }}>
+                  Semantic Spaceに {m.nodeCount}個のノードと{m.edgeCount}本のエッジ(候補)を追加できます
+                </div>
+                {m.highCount > 0 && (
+                  <div style={{ fontSize:9.5, color:C.critical, marginBottom:4 }}>
+                    うち重要度「高」と判定されたもの: {m.highCount}個
+                  </div>
+                )}
+                {m.savedBy && (
+                  <div style={{ fontSize:9.5, color:C.textWeak, marginBottom:8 }}>
+                    記憶者: {m.savedBy}
+                  </div>
+                )}
+                <div style={{ display:"flex", gap:10 }}>
+                  <button onClick={handleApplyGravity}
+                    style={{ padding:"5px 14px", background:C.human, color:"#fff", border:"none", borderRadius:6, fontSize:11, fontWeight:600, cursor:"pointer" }}>
+                    Gravity Viewに反映する
+                  </button>
+                  <button onClick={()=>setPendingGravity(null)}
+                    style={{ padding:"5px 10px", background:"none", color:C.textWeak, border:`1px solid ${C.border}`, borderRadius:6, fontSize:11, cursor:"pointer" }}>
+                    キャンセル
+                  </button>
+                </div>
               </div>
             );
             return (
@@ -3760,6 +4025,14 @@ export default function App() {
     setSelected(prevSel => (prevSel && prevSel.id === selected.id) ? { ...prevSel, gravity: chart } : prevSel);
   };
 
+  // GravityViewの＋ボタン(手動でのノード/エッジ追加・削除)から呼ばれる。
+  // handleGravityExtractと同じ「gravity全体を丸ごと置き換える」方式で統一する。
+  const handleGravityUpdate = (nextGravity) => {
+    if (!selected) return;
+    setProjects(prev => prev.map(pr => pr.id === selected.id ? { ...pr, gravity: nextGravity } : pr));
+    setSelected(prevSel => (prevSel && prevSel.id === selected.id) ? { ...prevSel, gravity: nextGravity } : prevSel);
+  };
+
   const p = selected;
   const st = STATUS[p.status];
   const avgStatic  = Math.round(Object.values(p.static || {schedule:0,tasks:0,risk:0}).reduce((a,v)=>a+v,0)/3);
@@ -3947,7 +4220,7 @@ export default function App() {
 
           {/* ── GRAVITY VIEW ── */}
           <div style={{ margin: "12px 14px 14px" }}>
-            <GravityView project={p} />
+            <GravityView project={p} onUpdateGravity={handleGravityUpdate} />
           </div>
         </div>
 
@@ -4090,7 +4363,7 @@ export default function App() {
         <span style={{ fontSize: 9, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>Metis　alpha　v0.2.0</span>
       </div>
 
-      <GhostSearch project={selected} visible={ghostOpen} onClose={() => { setGhostOpen(false); setGhostContext(null); }} onApplyData={(type, rows, tasks) => { setGhostApplyTarget({ type, rows, tasks }); if(type === "stakeholders") setActiveNavTab("Stakeholders"); if(type === "schedule") setActiveNavTab("Dashboard"); }} onApplyGravity={handleGravityExtract} initialQuery={ghostContext} />
+      <GhostSearch project={selected} visible={ghostOpen} onClose={() => { setGhostOpen(false); setGhostContext(null); }} onApplyData={(type, rows, tasks) => { setGhostApplyTarget({ type, rows, tasks }); if(type === "stakeholders") setActiveNavTab("Stakeholders"); if(type === "schedule") setActiveNavTab("Dashboard"); }} onApplyGravity={handleGravityExtract} initialQuery={ghostContext} session={session} />
       <CreateProjectModal visible={createOpen} onClose={() => setCreateOpen(false)} onCreated={handleCreated} nextCode={nextCode} />
 
       {/* Ghost スライドイン通知スタック */}
