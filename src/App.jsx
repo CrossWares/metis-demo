@@ -2645,6 +2645,78 @@ function GravityView({ project, onUpdateGravity }) {
           Semantic Space より生成　—　MDM Engine　·　Dependency Strength　·　Change Probability　·　Communication Frequency　·　Coupling Score
         </span>
       </div>
+      {addPopup && (
+        <>
+          <div onClick={() => setAddPopup(null)} style={{ position: "fixed", inset: 0, background: "rgba(26,24,51,0.22)", zIndex: 200, backdropFilter: "blur(2px)" }} />
+          <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 340, background: C.bgCard, border: `1.5px solid ${C.border}`, borderRadius: 14, boxShadow: "0 24px 64px rgba(0,0,0,0.14)", zIndex: 201, padding: 18 }}>
+
+            {addPopup === "menu" && (
+              <>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: C.text, marginBottom: 14 }}>Semantic Spaceに追加</div>
+                <button onClick={() => setAddPopup("node")}
+                  style={{ width: "100%", textAlign: "left", padding: "10px 12px", marginBottom: 8, border: `1px solid ${C.border}`, borderRadius: 8, background: C.bg, cursor: "pointer" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: C.text }}>＋ ノードを追加</div>
+                  <div style={{ fontSize: 10, color: C.textWeak, marginTop: 2 }}>新しい概念・人物・成果物などを1つ追加</div>
+                </button>
+                <button onClick={() => setAddPopup("edge")}
+                  style={{ width: "100%", textAlign: "left", padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 8, background: C.bg, cursor: "pointer" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: C.text }}>＋ エッジを追加</div>
+                  <div style={{ fontSize: 10, color: C.textWeak, marginTop: 2 }}>既存ノード同士の関係性を1本追加</div>
+                </button>
+              </>
+            )}
+
+            {addPopup === "node" && (
+              <>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: C.text, marginBottom: 14 }}>ノードを追加</div>
+                <label style={{ fontSize: 10, color: C.textWeak, display: "block", marginBottom: 4 }}>ノード名</label>
+                <input value={newNodeForm.id} onChange={e => setNewNodeForm(f => ({ ...f, id: e.target.value }))}
+                  placeholder="例：リカバリープラン" autoFocus
+                  style={{ width: "100%", padding: "7px 10px", fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, marginBottom: 12, fontFamily: "'Noto Sans JP', sans-serif" }} />
+                <label style={{ fontSize: 10, color: C.textWeak, display: "block", marginBottom: 4 }}>分類</label>
+                <select value={newNodeForm.category} onChange={e => setNewNodeForm(f => ({ ...f, category: e.target.value }))}
+                  style={{ width: "100%", padding: "7px 10px", fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, marginBottom: 16, fontFamily: "'Noto Sans JP', sans-serif" }}>
+                  {["Concept", "Organization", "Process", "Issue", "Artifact"].map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={() => setAddPopup("menu")} style={{ flex: 1, padding: "8px 0", fontSize: 11.5, border: `1px solid ${C.border}`, borderRadius: 6, background: "transparent", color: C.textMid, cursor: "pointer" }}>戻る</button>
+                  <button onClick={handleAddNode} disabled={!newNodeForm.id.trim()}
+                    style={{ flex: 1, padding: "8px 0", fontSize: 11.5, fontWeight: 700, border: "none", borderRadius: 6, background: newNodeForm.id.trim() ? C.human : C.border, color: "#fff", cursor: newNodeForm.id.trim() ? "pointer" : "default" }}>追加</button>
+                </div>
+              </>
+            )}
+
+            {addPopup === "edge" && (
+              <>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: C.text, marginBottom: 14 }}>エッジを追加</div>
+                <label style={{ fontSize: 10, color: C.textWeak, display: "block", marginBottom: 4 }}>接続元</label>
+                <select value={newEdgeForm.source} onChange={e => setNewEdgeForm(f => ({ ...f, source: e.target.value }))}
+                  style={{ width: "100%", padding: "7px 10px", fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, marginBottom: 10 }}>
+                  <option value="">選択してください</option>
+                  {gravNodes.map(n => <option key={n.id} value={n.id}>{n.id}</option>)}
+                </select>
+                <label style={{ fontSize: 10, color: C.textWeak, display: "block", marginBottom: 4 }}>接続先</label>
+                <select value={newEdgeForm.target} onChange={e => setNewEdgeForm(f => ({ ...f, target: e.target.value }))}
+                  style={{ width: "100%", padding: "7px 10px", fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, marginBottom: 10 }}>
+                  <option value="">選択してください</option>
+                  {gravNodes.map(n => <option key={n.id} value={n.id}>{n.id}</option>)}
+                </select>
+                <label style={{ fontSize: 10, color: C.textWeak, display: "block", marginBottom: 4 }}>関係の種類</label>
+                <select value={newEdgeForm.edge_type} onChange={e => setNewEdgeForm(f => ({ ...f, edge_type: e.target.value }))}
+                  style={{ width: "100%", padding: "7px 10px", fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, marginBottom: 16 }}>
+                  {["Structural", "Dependency", "Temporal", "Governance", "Knowledge"].map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={() => setAddPopup("menu")} style={{ flex: 1, padding: "8px 0", fontSize: 11.5, border: `1px solid ${C.border}`, borderRadius: 6, background: "transparent", color: C.textMid, cursor: "pointer" }}>戻る</button>
+                  <button onClick={handleAddEdge} disabled={!newEdgeForm.source || !newEdgeForm.target || newEdgeForm.source === newEdgeForm.target}
+                    style={{ flex: 1, padding: "8px 0", fontSize: 11.5, fontWeight: 700, border: "none", borderRadius: 6, background: (newEdgeForm.source && newEdgeForm.target && newEdgeForm.source !== newEdgeForm.target) ? C.human : C.border, color: "#fff", cursor: "pointer" }}>追加</button>
+                </div>
+              </>
+            )}
+
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -2914,79 +2986,6 @@ function CreateProjectModal({ visible, onClose, onCreated, nextCode }) {
           </div>
         </div>
       </div>
-
-      {addPopup && (
-        <>
-          <div onClick={() => setAddPopup(null)} style={{ position: "fixed", inset: 0, background: "rgba(26,24,51,0.22)", zIndex: 200, backdropFilter: "blur(2px)" }} />
-          <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 340, background: C.bgCard, border: `1.5px solid ${C.border}`, borderRadius: 14, boxShadow: "0 24px 64px rgba(0,0,0,0.14)", zIndex: 201, padding: 18 }}>
-
-            {addPopup === "menu" && (
-              <>
-                <div style={{ fontSize: 12.5, fontWeight: 700, color: C.text, marginBottom: 14 }}>Semantic Spaceに追加</div>
-                <button onClick={() => setAddPopup("node")}
-                  style={{ width: "100%", textAlign: "left", padding: "10px 12px", marginBottom: 8, border: `1px solid ${C.border}`, borderRadius: 8, background: C.bg, cursor: "pointer" }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: C.text }}>＋ ノードを追加</div>
-                  <div style={{ fontSize: 10, color: C.textWeak, marginTop: 2 }}>新しい概念・人物・成果物などを1つ追加</div>
-                </button>
-                <button onClick={() => setAddPopup("edge")}
-                  style={{ width: "100%", textAlign: "left", padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: 8, background: C.bg, cursor: "pointer" }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: C.text }}>＋ エッジを追加</div>
-                  <div style={{ fontSize: 10, color: C.textWeak, marginTop: 2 }}>既存ノード同士の関係性を1本追加</div>
-                </button>
-              </>
-            )}
-
-            {addPopup === "node" && (
-              <>
-                <div style={{ fontSize: 12.5, fontWeight: 700, color: C.text, marginBottom: 14 }}>ノードを追加</div>
-                <label style={{ fontSize: 10, color: C.textWeak, display: "block", marginBottom: 4 }}>ノード名</label>
-                <input value={newNodeForm.id} onChange={e => setNewNodeForm(f => ({ ...f, id: e.target.value }))}
-                  placeholder="例：リカバリープラン" autoFocus
-                  style={{ width: "100%", padding: "7px 10px", fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, marginBottom: 12, fontFamily: "'Noto Sans JP', sans-serif" }} />
-                <label style={{ fontSize: 10, color: C.textWeak, display: "block", marginBottom: 4 }}>分類</label>
-                <select value={newNodeForm.category} onChange={e => setNewNodeForm(f => ({ ...f, category: e.target.value }))}
-                  style={{ width: "100%", padding: "7px 10px", fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, marginBottom: 16, fontFamily: "'Noto Sans JP', sans-serif" }}>
-                  {["Concept", "Organization", "Process", "Issue", "Artifact"].map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => setAddPopup("menu")} style={{ flex: 1, padding: "8px 0", fontSize: 11.5, border: `1px solid ${C.border}`, borderRadius: 6, background: "transparent", color: C.textMid, cursor: "pointer" }}>戻る</button>
-                  <button onClick={handleAddNode} disabled={!newNodeForm.id.trim()}
-                    style={{ flex: 1, padding: "8px 0", fontSize: 11.5, fontWeight: 700, border: "none", borderRadius: 6, background: newNodeForm.id.trim() ? C.human : C.border, color: "#fff", cursor: newNodeForm.id.trim() ? "pointer" : "default" }}>追加</button>
-                </div>
-              </>
-            )}
-
-            {addPopup === "edge" && (
-              <>
-                <div style={{ fontSize: 12.5, fontWeight: 700, color: C.text, marginBottom: 14 }}>エッジを追加</div>
-                <label style={{ fontSize: 10, color: C.textWeak, display: "block", marginBottom: 4 }}>接続元</label>
-                <select value={newEdgeForm.source} onChange={e => setNewEdgeForm(f => ({ ...f, source: e.target.value }))}
-                  style={{ width: "100%", padding: "7px 10px", fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, marginBottom: 10 }}>
-                  <option value="">選択してください</option>
-                  {gravNodes.map(n => <option key={n.id} value={n.id}>{n.id}</option>)}
-                </select>
-                <label style={{ fontSize: 10, color: C.textWeak, display: "block", marginBottom: 4 }}>接続先</label>
-                <select value={newEdgeForm.target} onChange={e => setNewEdgeForm(f => ({ ...f, target: e.target.value }))}
-                  style={{ width: "100%", padding: "7px 10px", fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, marginBottom: 10 }}>
-                  <option value="">選択してください</option>
-                  {gravNodes.map(n => <option key={n.id} value={n.id}>{n.id}</option>)}
-                </select>
-                <label style={{ fontSize: 10, color: C.textWeak, display: "block", marginBottom: 4 }}>関係の種類</label>
-                <select value={newEdgeForm.edge_type} onChange={e => setNewEdgeForm(f => ({ ...f, edge_type: e.target.value }))}
-                  style={{ width: "100%", padding: "7px 10px", fontSize: 12, border: `1px solid ${C.border}`, borderRadius: 6, marginBottom: 16 }}>
-                  {["Structural", "Dependency", "Temporal", "Governance", "Knowledge"].map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => setAddPopup("menu")} style={{ flex: 1, padding: "8px 0", fontSize: 11.5, border: `1px solid ${C.border}`, borderRadius: 6, background: "transparent", color: C.textMid, cursor: "pointer" }}>戻る</button>
-                  <button onClick={handleAddEdge} disabled={!newEdgeForm.source || !newEdgeForm.target || newEdgeForm.source === newEdgeForm.target}
-                    style={{ flex: 1, padding: "8px 0", fontSize: 11.5, fontWeight: 700, border: "none", borderRadius: 6, background: (newEdgeForm.source && newEdgeForm.target && newEdgeForm.source !== newEdgeForm.target) ? C.human : C.border, color: "#fff", cursor: "pointer" }}>追加</button>
-                </div>
-              </>
-            )}
-
-          </div>
-        </>
-      )}
     </>
   );
 }
