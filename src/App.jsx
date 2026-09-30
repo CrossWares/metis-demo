@@ -3851,6 +3851,9 @@ export default function App() {
   const [selected, setSelected] = useState(INITIAL_PROJECTS[0]);
   const [time, setTime]         = useState(new Date());
   const [ghostOpen, setGhostOpen]   = useState(false);
+  const [ghostHintDismissed, setGhostHintDismissed] = useState(() => {
+    try { return localStorage.getItem("metis_ghost_hint_dismissed") === "1"; } catch { return false; }
+  });
   const [createOpen, setCreateOpen] = useState(false);
   const [activeNavTab, setActiveNavTab] = useState("Dashboard");
   const [alertOpen, setAlertOpen] = useState(true);
@@ -4103,16 +4106,25 @@ export default function App() {
           <div key={tab} onClick={()=>setActiveNavTab(tab)} style={{ padding: "0 16px", height: 48, display: "flex", alignItems: "center", fontSize: 12, fontWeight: 600, color: tab === activeNavTab ? C.human : C.textWeak, borderBottom: tab === activeNavTab ? `2px solid ${C.human}` : "2px solid transparent", cursor: "pointer" }}>{tab}</div>
         ))}
         <div style={{ flex: 1 }} />
-        <button onClick={() => setGhostOpen(true)} style={{ display: "flex", alignItems: "center", gap: 8, border: `1px solid ${C.border}`, borderRadius: 8, padding: "5px 12px", background: C.bg, cursor: "pointer", color: C.textWeak, fontSize: 11, marginRight: 14, transition: "all 0.15s" }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = C.human; e.currentTarget.style.color = C.human; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.textWeak; }}>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.4" /><path d="M8 8l2.5 2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
-          Semantic Ghost
-          <span style={{ fontSize: 9, background: C.border, padding: "1px 5px", borderRadius: 3, fontFamily: "'DM Mono', monospace" }}>⌘K</span>
-        </button>
-        <div style={{ display: "flex", gap: 8, marginRight: 14 }}>
-          <span style={{ fontSize: 10, fontWeight: 600, color: C.thing, background: "#EEEDFB", padding: "3px 10px", borderRadius: 4 }}>◼ Static</span>
-          <span style={{ fontSize: 10, fontWeight: 600, color: C.human, background: "#EAF8F3", padding: "3px 10px", borderRadius: 4 }}>◆ Dynamic</span>
+        <div style={{ position: "relative", marginRight: 14 }}>
+          <button onClick={() => { setGhostOpen(true); if (!ghostHintDismissed) { setGhostHintDismissed(true); try { localStorage.setItem("metis_ghost_hint_dismissed", "1"); } catch {} } }}
+            style={{ display: "flex", alignItems: "center", gap: 8, border: `1.5px solid ${ghostHintDismissed ? C.border : C.human}`, borderRadius: 8, padding: "5px 12px", background: ghostHintDismissed ? C.bg : "#EAF8F3", cursor: "pointer", color: ghostHintDismissed ? C.textWeak : C.human, fontSize: 11, fontWeight: ghostHintDismissed ? 400 : 700, transition: "all 0.15s" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = C.human; e.currentTarget.style.color = C.human; }}
+            onMouseLeave={e => { if (ghostHintDismissed) { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.color = C.textWeak; } }}>
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 3.5C2 2.67 2.67 2 3.5 2h9C13.33 2 14 2.67 14 3.5v6c0 .83-.67 1.5-1.5 1.5H6l-2.5 2.5V11h-.5C2.67 11 2 10.33 2 9.5v-6Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/></svg>
+            AIに質問する（Semantic Ghost）
+            <span style={{ fontSize: 9, background: ghostHintDismissed ? C.border : "rgba(255,255,255,0.6)", padding: "1px 5px", borderRadius: 3, fontFamily: "'DM Mono', monospace" }}>⌘K</span>
+          </button>
+          {!ghostHintDismissed && (
+            <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, width: 240, background: C.human, color: "#fff", borderRadius: 10, padding: "10px 12px", fontSize: 11, lineHeight: 1.6, boxShadow: "0 8px 24px rgba(0,0,0,0.18)", zIndex: 50 }}>
+              <div style={{ position: "absolute", top: -5, right: 24, width: 10, height: 10, background: C.human, transform: "rotate(45deg)" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                <span>💬 ここはAIアシスタントです。プロジェクトについて何でも質問したり、「記憶しておいて」で情報を残せます。</span>
+                <span onClick={(e) => { e.stopPropagation(); setGhostHintDismissed(true); try { localStorage.setItem("metis_ghost_hint_dismissed", "1"); } catch {} }}
+                  style={{ cursor: "pointer", fontSize: 13, lineHeight: 1, flexShrink: 0, opacity: 0.8 }}>×</span>
+              </div>
+            </div>
+          )}
         </div>
         <div style={{ fontSize: 10, color: C.textWeak, fontFamily: "'DM Mono', monospace" }}>
           {time.toLocaleString("ja-JP", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })}
